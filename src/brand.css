@@ -1,0 +1,35 @@
+.brandMark,
+.logoMark {
+  width: 29px;
+  height: 29px;
+  background: #111;
+  border-radius: 8px;
+  display: inline-grid;
+  place-items: center;
+  padding: 4px;
+  flex: none;
+  overflow: hidden;
+}
+
+.brandMark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.brandMark.largeMark {
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
+  padding: 7px;
+  background: #fff;
+}
+
+.logoMark {
+  background: #111 url('/sallyip-logo.png') center / 21px 21px no-repeat;
+}
+
+.logoMark i {
+  display: none;
+}

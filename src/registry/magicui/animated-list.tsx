@@ -1,0 +1,5 @@
+"use client";
+import { Children, type ReactNode, useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+export function AnimatedList({ children, className, delay=1800 }:{ children:ReactNode; className?:string; delay?:number }) { const items=Children.toArray(children); const [offset,setOffset]=useState(0); useEffect(()=>{if(items.length<2)return;const timer=window.setInterval(()=>setOffset(v=>(v+1)%items.length),delay);return()=>window.clearInterval(timer)},[items.length,delay]);const visible=Array.from({length:Math.min(5,items.length)},(_,i)=>({node:items[(offset+i)%items.length],key:(offset+i)%items.length}));return <div className={cn("animated-list",className)}><AnimatePresence initial={false} mode="popLayout">{visible.map(({node,key},index)=><motion.div layout key={key} initial={{opacity:0,y:-28,scale:.96}} animate={{opacity:1-index*.13,y:0,scale:1-index*.018}} exit={{opacity:0,y:26,scale:.96}} transition={{type:"spring",stiffness:330,damping:30}}>{node}</motion.div>)}</AnimatePresence></div> }
