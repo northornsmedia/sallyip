@@ -1,0 +1,37 @@
+{
+  "nvidia/nemotron-3.5-lightning:free": {
+    "name": "NVIDIA Nemotron 3.5 Lightning",
+    "provider": "OpenRouter",
+    "key": "replace_with_openrouter_key"
+  },
+  "liquid/lfm-2.5-embedding-350m:free": {
+    "name": "Liquid LFM 2.5 Embedding 350M",
+    "provider": "OpenRouter",
+    "key": "replace_with_openrouter_embedding_key"
+  },
+  "liquid/lfm-2.5-2.6b:free": {
+    "name": "Liquid LFM 2.5 2.6B",
+    "provider": "OpenRouter",
+    "key": "replace_with_openrouter_lfm_chat_key"
+  },
+  "dots-studio/dots-3-note-preview:free": {
+    "name": "Dots 3 Note Preview",
+    "provider": "OpenRouter",
+    "key": "replace_with_openrouter_dots_key"
+  },
+  "google/gemma-4-26b-a4b-it:free": {
+    "name": "Google Gemma 4 26B A4B IT",
+    "provider": "OpenRouter",
+    "key": "replace_with_openrouter_gemma_key"
+  },
+  "nvidia/llama-nemotron-rerank-vl-1b-v2:free": {
+    "name": "NVIDIA Llama Nemotron Rerank VL 1B V2",
+    "provider": "OpenRouter",
+    "key": "replace_with_openrouter_rerank_key"
+  },
+  "stealth/ox-alpha": {
+    "name": "Stealth OX Alpha",
+    "provider": "OpenRouter",
+    "key": "replace_with_openrouter_ox_key"
+  }
+}

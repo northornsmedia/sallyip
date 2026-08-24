@@ -1,12 +1,16 @@
-export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: { message: 'Method not allowed' } })
-  try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`, 'Content-Type': 'application/json', 'HTTP-Referer': `https://${req.headers.host}`, 'X-Title': 'SallyIP Labs' },
-      body: JSON.stringify({ model: 'openrouter/free', messages: [{ role: 'system', content: 'You are SallyIP 4.1 Pro, a precise, helpful AI research assistant for intellectual property. Be clear and practical. State that you are not a lawyer when legal advice is requested.' }, ...(req.body.messages || [])] })
-    })
-    const data = await response.json()
-    return res.status(response.status).json(data)
-  } catch (error) { return res.status(500).json({ error: { message: error.message } }) }
+import {orchestrateSally} from '../src/lib/sally-orchestrator.js'
+import {recordSallyTelemetry} from '../src/lib/sally-telemetry.js'
+import {neon} from '@neondatabase/serverless'
+import {getSessionUser} from '../src/lib/auth.js'
+
+export default async function handler(req,res){
+  if(req.method!=='POST')return res.status(405).json({error:{message:'Method not allowed'}})
+  try{
+    const sql=neon(process.env.DATABASE_URL)
+    const user=await getSessionUser(sql,req.headers.cookie)
+    if(!user)return res.status(401).json({error:{message:'Not authenticated'}})
+    const result=await orchestrateSally(req.body?.messages||[],process.env,`https://${req.headers.host}`)
+    await recordSallyTelemetry(process.env.DATABASE_URL,result.meta).catch(()=>{})
+    return res.status(200).json({id:`sally-${Date.now()}`,object:'chat.completion',model:'sallyip/4.1-pro',choices:[{index:0,message:{role:'assistant',content:result.answer},finish_reason:'stop'}],sally_meta:result.meta})
+  }catch(error){return res.status(503).json({error:{message:error.message}})}
 }
