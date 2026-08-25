@@ -1,7 +1,7 @@
 import {neon} from '@neondatabase/serverless'
-import {getSessionUser} from '../src/lib/auth.js'
+import {getSessionUser} from '../../src/lib/auth.js'
 import {randomUUID} from 'node:crypto'
-import {validateArtifactContent} from '../src/lib/document-tool-service.js'
+import {validateArtifactContent} from '../../src/lib/document-tool-service.js'
 
 const shape=(artifact,version)=>({id:artifact.id,type:'legal_document',title:artifact.title,document_type:artifact.document_type,status:artifact.status,jurisdiction:artifact.jurisdiction,practice_area:artifact.practice_area,version:version.version,content:version.content,content_format:version.content_format,metadata:version.metadata,sources:version.sources,updated_at:artifact.updated_at})
 

@@ -1,5 +1,5 @@
 import {neon} from '@neondatabase/serverless'
-import {getSessionUser} from '../src/lib/auth.js'
-import {runIpSpecialist} from '../src/lib/ip-specialist-service.js'
+import {getSessionUser} from '../../src/lib/auth.js'
+import {runIpSpecialist} from '../../src/lib/ip-specialist-service.js'
 
 export default async function handler(req,res){if(req.method!=='POST')return res.status(405).json({error:{message:'Method not allowed'}});const sql=neon(process.env.DATABASE_URL);try{const user=await getSessionUser(sql,req.headers.cookie);if(!user)return res.status(401).json({error:{message:'Not authenticated'}});return res.status(201).json(await runIpSpecialist(sql,user.id,req.body||{}))}catch(error){const clientErrors=['Matter not found','No numbered patent claims were detected','Patent entity not found','Trademark entity not found','One to 100 prosecution events are required','Prosecution source passage not found','Live database provenance requires an official retrieved source','Invalid prosecution review status','Prosecution event not found','Unknown specialist action'];return res.status(clientErrors.includes(error.message)?400:500).json({error:{message:clientErrors.includes(error.message)?error.message:'Specialist analysis failed'}})}}

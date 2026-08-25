@@ -1,6 +1,6 @@
 import {neon} from '@neondatabase/serverless'
-import {getSessionUser} from '../src/lib/auth.js'
-import {acceptSuggestedClaimChartRows,createClaimChart,getClaimChart,listClaimChartInputs,reviewClaimChartRow} from '../src/lib/claim-chart-service.js'
+import {getSessionUser} from '../../src/lib/auth.js'
+import {acceptSuggestedClaimChartRows,createClaimChart,getClaimChart,listClaimChartInputs,reviewClaimChartRow} from '../../src/lib/claim-chart-service.js'
 
 export default async function handler(req,res){
   const sql=neon(process.env.DATABASE_URL)

@@ -1,12 +1,12 @@
 import { neon } from "@neondatabase/serverless";
-import { getSessionUser } from "../src/lib/auth.js";
+import { getSessionUser } from "../../src/lib/auth.js";
 import {
   createNoveltyAnalysis,
   finalizeNoveltyAnalysis,
   getNoveltyAnalysis,
   listNoveltyInputs,
   reviewNoveltyMapping,
-} from "../src/lib/novelty-service.js";
+} from "../../src/lib/novelty-service.js";
 export default async function handler(req, res) {
   const sql = neon(process.env.DATABASE_URL);
   try {

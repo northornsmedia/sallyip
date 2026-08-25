@@ -1,6 +1,6 @@
 import { neon } from '@neondatabase/serverless'
-import { getSessionUser } from '../src/lib/auth.js'
-import { buildGenerateFileToolCall, classifyDocumentIntent, GENERATE_FILE_TOOL, resolveArtifactReference } from '../src/lib/document-tool-service.js'
+import { getSessionUser } from '../../src/lib/auth.js'
+import { buildGenerateFileToolCall, classifyDocumentIntent, GENERATE_FILE_TOOL, resolveArtifactReference } from '../../src/lib/document-tool-service.js'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: { message: 'Method not allowed' } })

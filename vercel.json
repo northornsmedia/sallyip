@@ -1,0 +1,8 @@
+{
+  "framework": "vite",
+  "rewrites": [
+    { "source": "/api/generate-file", "destination": "/api/generate-file.py" },
+    { "source": "/api/ingest-document", "destination": "/api/ingest-document.py" },
+    { "source": "/api/:path*", "destination": "/api/[...path].js" }
+  ]
+}

@@ -1,5 +1,5 @@
 import { neon } from '@neondatabase/serverless'
-import { clearSessionCookie, createSession, destroySession, getSessionUser, hashPassword, sessionCookie, verifyPassword } from '../src/lib/auth.js'
+import { clearSessionCookie, createSession, destroySession, getSessionUser, hashPassword, sessionCookie, verifyPassword } from '../../src/lib/auth.js'
 
 const safeUser = user => ({id:user.id,email:user.email,name:user.full_name,initials:user.initials,role:user.role})
 

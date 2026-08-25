@@ -1,6 +1,6 @@
 import {neon} from '@neondatabase/serverless'
-import {getSessionUser} from '../src/lib/auth.js'
-import {runAutomatedLegalWorkflow} from '../src/lib/workflow-orchestrator.js'
+import {getSessionUser} from '../../src/lib/auth.js'
+import {runAutomatedLegalWorkflow} from '../../src/lib/workflow-orchestrator.js'
 
 export default async function handler(req,res){
   if(req.method!=='POST')return res.status(405).json({error:{message:'Method not allowed'}})
