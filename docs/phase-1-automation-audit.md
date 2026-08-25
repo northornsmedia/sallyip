@@ -1,0 +1,18 @@
+# Phase 1 automation audit
+
+| Workspace | Current manual work | Sally can automate now | Lawyer approval that remains | Advanced Review |
+|---|---|---|---|---|
+| Claim charts | Select claim/type/target, create chart, map and save every row | Select independent claims, create target, retrieve and rank passages, create rows, propose mapping/confidence, assemble exceptions | Accept/reject uncertain mappings and conclusions | Row mappings, evidence, confidence, audit history |
+| Prior art | Create project, choose claim, edit/run strategies, import/review candidates | Select claim, generate complementary strategies, run configured official searches, import/score/map candidates, list gaps | Reference relevance, timing and legal conclusions | Queries, candidates, timing and limitation mappings |
+| Novelty | Select project/reference/framework, map every limitation, configure checks | Select eligible single reference, create analysis, attach same-reference evidence and prepare checks/gaps | Direct/unambiguous disclosure, enablement, availability and final conclusion | All mappings, sources, authority and anti-mosaic gate |
+| Inventive step | Select project/framework/references and draft every step | Select jurisdiction framework and likely closest art, create the framework steps and attach available evidence | Technical effect/problem and obviousness judgment | References, framework steps, contrary evidence and authority |
+| FTO | Create project, enter features, add claims, operate mappings/coverage/status | Extract product/features, create project, add independent claims, propose feature mappings and record unavailable searches | Claim construction, legal status, coverage and risk conclusion | Coverage channels, claims, mappings, design-arounds and audit |
+| Patent families | Create family/members/links | Detect stored patent identifiers and group/link known entities | Resolve ambiguous priority/family relationships | Graph members, links and provenance |
+| Prosecution history | Select patent and manually add/classify events | Detect prosecution documents, classify dated events and compare claim versions | Accept event classification and scope effect | Timeline, amendments and review history |
+| Trademark clearance | Enter mark/classes/goods, run each channel, add/review candidates | Parse instruction, create clearance, suggest classes/variants, run configured registries, import/screen/rank | Goods specification, accepted variants and conflict conclusion | Channels, candidates, scores and reviews |
+| Trademark intelligence | Enter languages/variants/goods and review individually | Detect script, create candidate transliterations/translations/phonetics and goods terms | Verify and accept variants before they influence conclusions | Candidate variants, language coverage and Nice terms |
+| Litigation evidence | Create issues/events/items and attach each passage | Extract dated passages, propose chronology candidates and link source passages | Verify disputed dates, relevance, weight and final chronology | Events, matrix, witnesses, provenance and review history |
+| Verification Desk | Manually create propositions and attach sources | Extract material propositions from a substantial result and retrieve supporting/contrary passages | Verify authority existence, pinpoint and current status | Proposition/source checks, contrary authority and audit |
+| Documents/artifacts | Ask separately to create artifact/export | Auto-create an artifact for substantial workflows; resolve and export requested format | Final professional review | Versions, metadata and exports |
+
+Default UX will invoke automation from the instruction. These workspaces remain available only as Advanced Review surfaces.

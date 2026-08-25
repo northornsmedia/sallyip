@@ -2,10 +2,10 @@ import csv, html, io, json, re
 
 FORMATS = {'pdf','docx','pptx','xlsx','csv','md','html','json','txt'}
 MIMES = {'pdf':'application/pdf','docx':'application/vnd.openxmlformats-officedocument.wordprocessingml.document','pptx':'application/vnd.openxmlformats-officedocument.presentationml.presentation','xlsx':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','csv':'text/csv','md':'text/markdown','html':'text/html','json':'application/json','txt':'text/plain'}
-FORBIDDEN_ARTIFACT_PHRASES = ["i can't directly generate","i cannot generate","i can't create a pdf","copy and paste this into","save this as a pdf","use google docs","use microsoft word"]
+FORBIDDEN_ARTIFACT_PHRASES = ["i can't directly generate","i cannot generate","i can't create a pdf","i cannot create a pdf","i'm unable to create","unable to provide downloadable","copy and paste this into","copy this into word","copy this into microsoft word","save this as a pdf","save it as a pdf","open google docs","use google docs","use microsoft word","i hope this helps","let me know if you'd like changes"]
 
 def safe_name(name, fmt):
-    stem=re.sub(r'[^A-Za-z0-9 _-]+','',name or 'SallyIP document').strip()[:80] or 'SallyIP document'
+    stem=re.sub(r'-+','-',re.sub(r'[^A-Za-z0-9]+','-',name or 'SallyIP document')).strip('-').lower()[:80] or 'sallyip-document'
     return f'{stem}.{fmt}'
 
 def sections(content):
@@ -17,7 +17,7 @@ def sections(content):
         blocks.append(('heading' if level else 'text',line.lstrip('#').strip(),max(1,min(level,3))))
     return blocks or [('text',content,1)]
 
-def build_file(fmt, title, content):
+def build_file(fmt, title, content, requested_filename=None):
     if fmt not in FORMATS: raise ValueError('Unsupported file format')
     content=(content or '').strip()
     if not content: raise ValueError('File content is empty')
@@ -30,13 +30,22 @@ def build_file(fmt, title, content):
     if fmt=='pdf':
         from reportlab.lib.pagesizes import A4
         from reportlab.lib.styles import getSampleStyleSheet
-        from reportlab.platypus import SimpleDocTemplate,Paragraph,Spacer
+        from reportlab.lib.units import mm
+        from reportlab.platypus import SimpleDocTemplate,Paragraph,Spacer,KeepTogether
         styles=getSampleStyleSheet();story=[Paragraph(html.escape(title),styles['Title']),Spacer(1,14)]
-        for kind,text,level in sections(content): story.extend([Paragraph(html.escape(text),styles[f'Heading{level}'] if kind=='heading' else styles['BodyText']),Spacer(1,8)])
-        SimpleDocTemplate(out,pagesize=A4,title=title,author='SallyIP').build(story)
+        blocks=sections(content);index=0
+        while index<len(blocks):
+            kind,text,level=blocks[index]
+            if kind=='heading' and index+1<len(blocks) and blocks[index+1][0]=='text':
+                following=blocks[index+1][1];story.append(KeepTogether([Paragraph(html.escape(text),styles[f'Heading{level}']),Paragraph(html.escape(following),styles['BodyText']),Spacer(1,8)]));index+=2;continue
+            story.extend([Paragraph(html.escape(text),styles[f'Heading{level}'] if kind=='heading' else styles['BodyText']),Spacer(1,8)]);index+=1
+        def decorate(canvas,doc):
+            canvas.saveState();canvas.setFont('Helvetica',8);canvas.setFillColorRGB(.38,.4,.42);canvas.drawString(22*mm,14*mm,'SallyIP · Draft');canvas.drawRightString(A4[0]-22*mm,14*mm,f'Page {doc.page}');canvas.restoreState()
+        SimpleDocTemplate(out,pagesize=A4,title=title,author='SallyIP',leftMargin=22*mm,rightMargin=22*mm,topMargin=24*mm,bottomMargin=22*mm).build(story,onFirstPage=decorate,onLaterPages=decorate)
     elif fmt=='docx':
         from docx import Document
-        doc=Document();doc.core_properties.title=title;doc.core_properties.author='SallyIP';doc.add_heading(title,0)
+        from docx.shared import Mm
+        doc=Document();doc.core_properties.title=title;doc.core_properties.author='SallyIP';section=doc.sections[0];section.top_margin=Mm(24);section.bottom_margin=Mm(22);section.left_margin=Mm(22);section.right_margin=Mm(22);section.header.paragraphs[0].text='SallyIP · Draft';section.footer.paragraphs[0].text=title;doc.add_heading(title,0)
         for kind,text,level in sections(content): doc.add_heading(text,level=level) if kind=='heading' else doc.add_paragraph(text)
         doc.save(out)
     elif fmt=='pptx':
@@ -56,9 +65,9 @@ def build_file(fmt, title, content):
     elif fmt=='json': out.write(json.dumps({'title':title,'generated_by':'SallyIP','content':content},ensure_ascii=False,indent=2).encode())
     elif fmt=='html': out.write(f'<!doctype html><html><head><meta charset="utf-8"><title>{html.escape(title)}</title><style>body{{font:16px/1.7 system-ui;max-width:850px;margin:60px auto;padding:0 24px}}h1{{font-size:42px}}</style></head><body><h1>{html.escape(title)}</h1>{"".join(f"<h2>{html.escape(t)}</h2>" if k=="heading" else f"<p>{html.escape(t)}</p>" for k,t,_ in sections(content))}</body></html>'.encode())
     else: out.write(content.encode('utf-8'))
-    return safe_name(title,fmt),MIMES[fmt],out.getvalue()
+    return safe_name(requested_filename or title,fmt),MIMES[fmt],out.getvalue()
 
 if __name__=='__main__':
     import base64,sys
-    payload=json.load(sys.stdin);name,mime,data=build_file(payload['format'],payload.get('title'),payload.get('content'))
+    payload=json.load(sys.stdin);name,mime,data=build_file(payload['format'],payload.get('title'),payload.get('content'),payload.get('filename'))
     print(json.dumps({'filename':name,'mime_type':mime,'data':base64.b64encode(data).decode()}))

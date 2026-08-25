@@ -1,0 +1,6 @@
+import test from 'node:test'
+import assert from 'node:assert/strict'
+import {frameworkDefinition,listInventiveStepFrameworks} from '../src/lib/inventive-step-service.js'
+test('keeps EPO, UK and US inventive-step frameworks separate',()=>{const frameworks=listInventiveStepFrameworks();assert.deepEqual(frameworks.map(item=>item.key),['epo_problem_solution','uk_pozzoli','us_graham_ksr']);assert.equal(frameworkDefinition('epo_problem_solution').jurisdiction,'EPO');assert.equal(frameworkDefinition('uk_pozzoli').jurisdiction,'United Kingdom');assert.equal(frameworkDefinition('us_graham_ksr').jurisdiction,'United States')})
+test('EPO framework includes objective problem and could-would analysis',()=>{const keys=frameworkDefinition('epo_problem_solution').steps.map(step=>step[0]);assert.ok(keys.includes('objective_technical_problem'));assert.ok(keys.includes('could_would'));assert.ok(!keys.includes('secondary_considerations'))})
+test('US framework includes Graham factors and KSR combination safeguards',()=>{const keys=frameworkDefinition('us_graham_ksr').steps.map(step=>step[0]);assert.ok(keys.includes('scope_content'));assert.ok(keys.includes('motivation'));assert.ok(keys.includes('secondary_considerations'));assert.ok(!keys.includes('objective_technical_problem'))})

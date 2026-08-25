@@ -58,6 +58,7 @@ import TransparencyPage from "@/components/transparency-page";
 import "./styles.css";
 import "./brand.css";
 import "./premium.css";
+import "./chat-workspace.css";
 
 const jobs = [
   {

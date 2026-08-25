@@ -1,0 +1,7 @@
+import test from 'node:test'
+import assert from 'node:assert/strict'
+import {assessPropositionEvidence} from '../src/lib/proposition-verification-service.js'
+
+test('proposition cannot be supported without verified evidence and contrary-authority review',()=>{const result=assessPropositionEvidence([{support_type:'supports',authority_tier:1,authority_status:'current',verified_at:null}],{contraryAuthorityChecked:false});assert.equal(result.verification_status,'qualified');assert.equal(result.confidence,'low');assert.ok(result.gaps.includes('support_not_verified'));assert.ok(result.gaps.includes('contrary_authority_not_checked'))})
+test('verified current primary support can reach high confidence only after contrary review',()=>{const result=assessPropositionEvidence([{support_type:'supports',authority_tier:1,authority_status:'current',verified_at:new Date()}],{contraryAuthorityChecked:true});assert.equal(result.verification_status,'supported');assert.equal(result.confidence,'high');assert.deepEqual(result.gaps,[])})
+test('contradictory evidence prevents an unqualified high-confidence result',()=>{const result=assessPropositionEvidence([{support_type:'supports',authority_tier:1,authority_status:'current',verified_at:new Date()},{support_type:'contradicts',authority_tier:1,authority_status:'current',verified_at:new Date()}],{contraryAuthorityChecked:true});assert.equal(result.confidence,'moderate');assert.equal(result.counts.contrary,1)})
