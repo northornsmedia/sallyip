@@ -489,15 +489,76 @@ export default function ChatPage({ onHome, onAuthRequired }) {
           },
         ];
       }
-      const response = await fetch("/api/chat", {
+      let answer = "";
+      let data = null;
+      const stream = await fetch("/api/chat-stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: requestMessages, conversation_id: baseChat.id, matter_id: activeMatterId || null, deep_research: deepResearch }),
       });
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(data?.error?.message || "SallyIP could not respond");
-      const answer = data.choices?.[0]?.message?.content || "No response was returned.";
+      const contentType = stream.headers.get("content-type") || "";
+      if (stream.ok && contentType.includes("text/event-stream")) {
+        // Live SSE stream: append tokens into the assistant bubble as they arrive.
+        updateActive((chat) => ({
+          ...chat,
+          messages: [...next, { role: "assistant", content: "", streaming: true }],
+        }));
+        const reader = stream.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let streamError = null;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            try {
+              const event = JSON.parse(line.slice(6));
+              if (event.type === "delta" && event.delta) {
+                answer += event.delta;
+                updateActive((chat) => {
+                  const messages = [...chat.messages];
+                  const last = messages[messages.length - 1];
+                  messages[messages.length - 1] = { ...last, content: answer };
+                  return { ...chat, messages };
+                });
+              } else if (event.type === "meta") {
+                data = event;
+              } else if (event.type === "error") {
+                throw new Error(event.message || "Stream failed");
+              }
+            } catch (parseError) {
+              if (parseError instanceof SyntaxError) continue; // partial line
+              streamError = parseError;
+              break;
+            }
+          }
+          if (streamError) break;
+        }
+        if (streamError) throw streamError;
+        if (!data && !answer) throw new Error("No response was returned.");
+        // The completed answer may include server-side source disclosures that
+        // are intentionally applied after token generation.
+        if (data?.answer) answer = data.answer;
+      } else {
+        // Development may return the classic response from this URL because
+        // its middleware uses prefix matching. For a missing/failed streaming
+        // route (including production deployments), retry the real JSON API.
+        const response = stream.ok && contentType.includes("application/json")
+          ? stream
+          : await fetch("/api/chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ messages: requestMessages, conversation_id: baseChat.id, matter_id: activeMatterId || null, deep_research: deepResearch }),
+            });
+        data = await response.json();
+        if (!response.ok)
+          throw new Error(data?.error?.message || "SallyIP could not respond");
+        answer = data.choices?.[0]?.message?.content || "No response was returned.";
+      }
       let artifact = documentRequest || revisionRequest
         ? makeArtifact({
             title: fileRequest?.title || previousArtifact?.title || titleFor(clean),
