@@ -3,7 +3,7 @@ const CHAT_ENGINES=[
   {slug:'google/gemma-4-26b-a4b-it:free',name:'Gemma 4 26B',key:'OPENROUTER_GEMMA_API_KEY',weight:13,role:'Language clarity and explanation'},
   {slug:'stealth/ox-alpha',name:'OX Alpha',key:'OPENROUTER_OX_API_KEY',weight:50,role:'Primary deep synthesis and edge-case review'},
   {slug:'liquid/lfm-2.5-2.6b:free',name:'Liquid LFM 2.5 2.6B',key:'OPENROUTER_LFM_CHAT_API_KEY',weight:12,role:'Efficient structured reasoning'},
-  {slug:'auto/best-fast',name:'OmniRoute Auto',key:'OMNIROUTE_API_KEY',baseUrl:'OMNIROUTE_BASE_URL',weight:14,role:'Adaptive gateway routing across providers'}
+  {slug:'openrouter/google/gemini-3.5-flash-lite',name:'OmniRoute Gemini Flash',key:'OMNIROUTE_API_KEY',baseUrl:'OMNIROUTE_BASE_URL',weight:14,role:'Fast gateway routing across providers'}
 ]
 // OX_ALPHA_RESERVE: ox-alpha is the designated rescue engine. It is excluded from
 // the initial parallel race and held back; if fewer than RESCUE_THRESHOLD engines
@@ -180,6 +180,21 @@ export async function orchestrateSallyStreaming(messages,env,siteUrl='https://sa
     }catch(error){
       attempts.push({...emergency,content:'',status:'error',latency_ms:Date.now()-started,error:error.message,retried:false})
       trace.add('rescue','provider router failed: '+(error.message||'').slice(0,80),'error')
+    }
+  }
+  // OmniRoute gateway as final safety net before giving up.
+  if(!candidates.length&&env.OMNIROUTE_API_KEY){
+    const omniEmergency={slug:'openrouter/google/gemini-3.5-flash-lite',name:'OmniRoute Emergency',key:'OMNIROUTE_API_KEY',weight:1,role:'Gateway emergency fallback'}
+    const started=Date.now()
+    trace.add('rescue','all engines down — engaging OmniRoute gateway','warn')
+    try{
+      const content=await fetchStreamingContent(engineUrl(omniEmergency,env),{method:'POST',headers:headers(env.OMNIROUTE_API_KEY),body:JSON.stringify({model:omniEmergency.slug,temperature:.3,max_tokens:900,messages:[{role:'system',content:INTERNAL_PROMPT},...messages]})},Math.max(8000,deadline-Date.now()))
+      const result={...omniEmergency,content,status:'success',latency_ms:Date.now()-started,retried:false,adaptive_weight:omniEmergency.weight}
+      attempts.push(result);candidates.push(result);rescueUsed=true
+      trace.add('rescue','OmniRoute gateway answered · '+content.length+' chars','success')
+    }catch(error){
+      attempts.push({...omniEmergency,content:'',status:'error',latency_ms:Date.now()-started,error:error.message,retried:false})
+      trace.add('rescue','OmniRoute gateway failed: '+(error.message||'').slice(0,80),'error')
     }
   }
   candidates.sort((a,b)=>b.weight-a.weight)

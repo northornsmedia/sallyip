@@ -34,6 +34,7 @@ import {
   Trash2,
   Telescope,
   X,
+  RotateCw,
 } from "lucide-react";
 
 const STORAGE_KEY = "sallyip-chat-history-v1";
@@ -619,6 +620,8 @@ export default function ChatPage({ onHome, onAuthRequired }) {
           {
             role: "assistant",
             content: `I couldn't connect right now. ${error.message}`,
+            failed: true,
+            retryText: clean,
           },
         ],
       };
@@ -629,6 +632,15 @@ export default function ChatPage({ onHome, onAuthRequired }) {
     }
   };
   const messages = active?.messages || [];
+  const retry = (failed) => {
+    if (loading || !failed?.retryText) return;
+    const recall = failed.retryText;
+    const pruned = { ...active, messages: (active?.messages || []).filter((m) => m !== failed) };
+    updateActive(() => pruned);
+    persistChat(pruned).catch(() => {});
+    setLoading(true);
+    setTimeout(() => send(recall), 0);
+  };
   useEffect(() => {
     if (!messages.length) return;
     const frame = requestAnimationFrame(() => {
@@ -857,6 +869,16 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                           </a>
                         ))}
                       </div>
+                    )}
+                    {message.failed && message.retryText && (
+                      <button
+                        className="retryBtn"
+                        onClick={() => retry(message)}
+                        disabled={loading}
+                        aria-label="Retry this message"
+                      >
+                        <RotateCw className={loading ? "spin" : ""} /> Retry
+                      </button>
                     )}
                     {message.role === "assistant" && message.provenance?.route && (
                       <div className="answerProvenance">

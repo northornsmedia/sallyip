@@ -52,6 +52,8 @@ import { AnimatedCircularProgressBar } from "@/registry/magicui/animated-circula
 import { BackgroundPaths } from "@/components/ui/background-paths";
 import { ScrollAssembleText } from "@/components/ui/text-scroll-animation";
 import ChatPage from "@/components/chat-page";
+import BrainAdminPage from "@/components/brain-admin-page";
+import "./brain-admin.css";
 import PricingPage from "@/components/pricing-page";
 import AuthPage from "@/components/auth-page";
 import TransparencyPage from "@/components/transparency-page";
@@ -1774,6 +1776,8 @@ function App() {
       <SmoothCursor />
       {page === "home" ? (
         <Landing />
+      ) : page === "accessadmin" ? (
+        <BrainAdminPage onHome={() => go("home")} />
       ) : page === "auth" ? (
         <AuthPage onHome={() => go("home")} onSuccess={() => go("chat")} />
       ) : page === "chat" ? (

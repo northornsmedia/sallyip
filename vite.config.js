@@ -3,7 +3,8 @@ import react from '@vitejs/plugin-react'
 import { fileURLToPath, URL } from 'node:url'
 import { spawn } from 'node:child_process'
 import { neon } from '@neondatabase/serverless'
-import { orchestrateSally } from './src/lib/sally-orchestrator.js'
+import { orchestrateSally, orchestrateSallyStreaming } from './src/lib/sally-orchestrator.js'
+import { checkAdminCredentials, createAdminSession, verifyAdminSession, destroyAdminSession, clearAdminCookie, brainOverview, brainTrace } from './src/lib/brain-admin.js'
 import { readSallyTelemetry, recordSallyTelemetry } from './src/lib/sally-telemetry.js'
 import { clearSessionCookie, createSession, destroySession, getSessionUser, hashPassword, sessionCookie, verifyPassword } from './src/lib/auth.js'
 import { routeSpecialists } from './src/lib/specialist-router.js'
@@ -27,7 +28,7 @@ import { addFtoDesignAround, addFtoPatentReview, createFtoProject, finalizeFtoPr
 import { createNoveltyAnalysis, finalizeNoveltyAnalysis, getNoveltyAnalysis, listNoveltyInputs, reviewNoveltyMapping } from './src/lib/novelty-service.js'
 import { runAutomatedLegalWorkflow } from './src/lib/workflow-orchestrator.js'
 
-function sallyChatApi(apiKey, databaseUrl, model, embeddingKey, embeddingModel, lfmChatKey, lfmChatModel, dotsKey, dotsModel, gemmaKey, gemmaModel, rerankKey, rerankModel, oxKey, oxModel, epoKey, epoSecret, euipoClientId, euipoClientSecret, euipoAuthUrl, euipoApiBase) {
+function sallyChatApi(apiKey, databaseUrl, model, embeddingKey, embeddingModel, lfmChatKey, lfmChatModel, dotsKey, dotsModel, gemmaKey, gemmaModel, rerankKey, rerankModel, oxKey, oxModel, epoKey, epoSecret, euipoClientId, euipoClientSecret, euipoAuthUrl, euipoApiBase, brainAdminUsername, brainAdminPassword, omniRouteKey, omniRouteBaseUrl) {
   return {
     name: 'sally-chat-api',
     configureServer(server) {
@@ -136,7 +137,7 @@ function sallyChatApi(apiKey, databaseUrl, model, embeddingKey, embeddingModel, 
           const body=JSON.parse(raw||'{}'),messages=body.messages||[],latest=[...messages].reverse().find(message=>message.role==='user')?.content||''
           const matter=await getMatterContext(sql,user.id,body.matter_id),[conversation]=body.conversation_id?await sql`SELECT id FROM conversations WHERE id=${body.conversation_id} AND user_id=${user.id}`:[];if(conversation&&matter)await sql`UPDATE conversations SET matter_id=${matter.matter.id},updated_at=now() WHERE id=${conversation.id}`;const route=routeSpecialists(latest,{deepResearch:Boolean(body.deep_research),matterJurisdictions:matter?.matter?.jurisdictions||[]}),evidence=await retrieveHybridEvidence(sql,user.id,matter?.matter?.id,latest,{limit:body.deep_research?14:8,embeddingKey,embeddingModel}),verification=verificationSummary(evidence,route)
           const context={role:'system',content:`SALLY TASK ROUTE\nTask: ${route.task_class}\nSpecialists: ${route.specialists.join(', ')}\nJurisdictions: ${route.jurisdictions.join(', ')||'unresolved'}\nResearch mode: ${route.research_mode}\n\n${matterContextPrompt(matter)}\n\n${evidencePrompt(evidence)}\n\nQUALITY GATE: Distinguish facts, retrieved sources, model knowledge, and inference. Never fabricate research or citations. Include counterarguments and research gaps when material.`}
-          const result = await orchestrateSally([context,...messages],{OPENROUTER_API_KEY:apiKey,SALLYIP_MODEL:model,OPENROUTER_EMBEDDING_API_KEY:embeddingKey,SALLYIP_EMBEDDING_MODEL:embeddingModel,OPENROUTER_LFM_CHAT_API_KEY:lfmChatKey,SALLYIP_LFM_CHAT_MODEL:lfmChatModel,OPENROUTER_DOTS_API_KEY:dotsKey,SALLYIP_DOTS_MODEL:dotsModel,OPENROUTER_GEMMA_API_KEY:gemmaKey,SALLYIP_GEMMA_MODEL:gemmaModel,OPENROUTER_RERANK_API_KEY:rerankKey,SALLYIP_RERANK_MODEL:rerankModel,OPENROUTER_OX_API_KEY:oxKey,SALLYIP_OX_MODEL:oxModel},'http://localhost:3000')
+          const result = await orchestrateSally([context,...messages],{OPENROUTER_API_KEY:apiKey,SALLYIP_MODEL:model,OPENROUTER_EMBEDDING_API_KEY:embeddingKey,SALLYIP_EMBEDDING_MODEL:embeddingModel,OPENROUTER_LFM_CHAT_API_KEY:lfmChatKey,SALLYIP_LFM_CHAT_MODEL:lfmChatModel,OPENROUTER_DOTS_API_KEY:dotsKey,SALLYIP_DOTS_MODEL:dotsModel,OPENROUTER_GEMMA_API_KEY:gemmaKey,SALLYIP_GEMMA_MODEL:gemmaModel,OPENROUTER_RERANK_API_KEY:rerankKey,SALLYIP_RERANK_MODEL:rerankModel,OPENROUTER_OX_API_KEY:oxKey,SALLYIP_OX_MODEL:oxModel,OMNIROUTE_API_KEY:omniRouteKey,OMNIROUTE_BASE_URL:omniRouteBaseUrl},'http://localhost:3000',{sql:neon(databaseUrl||''),conversation_id:String(conversation?.id||''),task_class:route.task_class})
           const [run]=await sql`INSERT INTO specialist_agent_runs(user_id,matter_id,conversation_id,task_class,specialists,jurisdictions,research_mode,source_basis,verification_status) VALUES(${user.id},${matter?.matter?.id||null},${conversation?.id||null},${route.task_class},${route.specialists},${route.jurisdictions},${route.research_mode},${verification.source_basis},${verification.status}) RETURNING id`
           await recordSallyTelemetry(databaseUrl,result.meta).catch(()=>{})
           const data = {id:`sally-${Date.now()}`,object:'chat.completion',model:'sallyip/4.1-pro',choices:[{index:0,message:{role:'assistant',content:enforceSourceDisclosure(result.answer,verification)},finish_reason:'stop'}],sally_meta:{...result.meta,agent_run_id:run.id,route,verification,sources:evidence.map(({content,...source})=>source)}}
@@ -147,6 +148,59 @@ function sallyChatApi(apiKey, databaseUrl, model, embeddingKey, embeddingModel, 
           res.statusCode = 500; res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ error: { message: error.message } }))
         }
       })
+      server.middlewares.use('/api/chat-stream', async (req, res) => {
+        if (req.method !== 'POST') { res.setHeader('Content-Type','application/json'); res.statusCode = 405; return res.end(JSON.stringify({error:{message:'Method not allowed'}})) }
+        try {
+          const sql=neon(databaseUrl||'');const user=await getSessionUser(sql,req.headers.cookie);if(!user){res.statusCode=401;res.setHeader('Content-Type','application/json');return res.end(JSON.stringify({error:{message:'Not authenticated'}}))}
+          let raw = ''
+          for await (const chunk of req) raw += chunk
+          const body=JSON.parse(raw||'{}'),messages=body.messages||[],latest=[...messages].reverse().find(message=>message.role==='user')?.content||''
+          const matter=await getMatterContext(sql,user.id,body.matter_id),[conversation]=body.conversation_id?await sql`SELECT id FROM conversations WHERE id=${body.conversation_id} AND user_id=${user.id}`:[];if(conversation&&matter)await sql`UPDATE conversations SET matter_id=${matter.matter.id},updated_at=now() WHERE id=${conversation.id}`
+          const route=routeSpecialists(latest,{deepResearch:Boolean(body.deep_research),matterJurisdictions:matter?.matter?.jurisdictions||[]}),evidence=await retrieveHybridEvidence(sql,user.id,matter?.matter?.id,latest,{limit:body.deep_research?14:8,embeddingKey,embeddingModel}),verification=verificationSummary(evidence,route)
+          const context={role:'system',content:`SALLY TASK ROUTE\nTask: ${route.task_class}\nSpecialists: ${route.specialists.join(', ')}\nJurisdictions: ${route.jurisdictions.join(', ')||'unresolved'}\nResearch mode: ${body.deep_research?'deep':'quick'}\n\n${matterContextPrompt(matter)}\n\n${evidencePrompt(evidence)}\nQUALITY GATE: Distinguish facts, retrieved sources, model knowledge, and inference. Never fabricate research or citations. Include counterarguments and research gaps when material.`}
+          // SSE headers
+          res.statusCode = 200
+          res.setHeader('Content-Type', 'text/event-stream; charset=utf-8')
+          res.setHeader('Cache-Control', 'no-cache, no-transform')
+          res.setHeader('Connection', 'keep-alive')
+          res.setHeader('X-Accel-Buffering', 'no')
+          const send=event=>{try{res.write(`data: ${JSON.stringify(event)}\n\n`)}catch{}}
+          send({type:'status',stage:'engines'})
+          try {
+            const result = await orchestrateSallyStreaming([context,...messages],{OPENROUTER_API_KEY:apiKey,SALLYIP_MODEL:model,OPENROUTER_EMBEDDING_API_KEY:embeddingKey,SALLYIP_EMBEDDING_MODEL:embeddingModel,OPENROUTER_LFM_CHAT_API_KEY:lfmChatKey,SALLYIP_LFM_CHAT_MODEL:lfmChatModel,OPENROUTER_DOTS_API_KEY:dotsKey,SALLYIP_DOTS_MODEL:dotsModel,OPENROUTER_GEMMA_API_KEY:gemmaKey,SALLYIP_GEMMA_MODEL:gemmaModel,OPENROUTER_RERANK_API_KEY:rerankKey,SALLYIP_RERANK_MODEL:rerankModel,OPENROUTER_OX_API_KEY:oxKey,SALLYIP_OX_MODEL:oxModel,OMNIROUTE_API_KEY:omniRouteKey,OMNIROUTE_BASE_URL:omniRouteBaseUrl},'http://localhost:5173',delta=>send({type:'delta',delta}),{sql:neon(databaseUrl||''),conversation_id:String(conversation?.id||''),task_class:route.task_class})
+            const [run]=await sql`INSERT INTO specialist_agent_runs(user_id,matter_id,conversation_id,task_class,specialists,jurisdictions,research_mode,source_basis,verification_status) VALUES(${user.id},${matter?.matter?.id||null},${conversation?.id||null},${route.task_class},${route.specialists},${route.jurisdictions},${route.research_mode},${verification.source_basis},${verification.status}) RETURNING id`
+            await recordSallyTelemetry(databaseUrl,result.meta).catch(()=>{})
+            send({type:'meta',id:`sally-${Date.now()}`,object:'chat.completion',model:'sallyip/4.2-pro-stream',answer:enforceSourceDisclosure(result.answer,verification),finish_reason:'stop',sally_meta:{...result.meta,agent_run_id:run.id,route,verification,sources:evidence.map(({content,...source})=>source)}})
+          } catch (error) {
+            send({type:'error',message:error.message})
+          }
+          return res.end()
+        } catch (error) {
+          res.statusCode = 500; res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ error: { message: error.message } }))
+        }
+      })
+      server.middlewares.use('/api/admin', async (req, res) => {
+        res.setHeader('Content-Type','application/json')
+        const adminEnv={BRAIN_ADMIN_USERNAME:brainAdminUsername,BRAIN_ADMIN_PASSWORD:brainAdminPassword}
+        const url=new URL(req.url,'http://localhost')
+        const action=url.pathname.replace(/^\//,'')
+        try{
+          if(action==='login'&&req.method==='POST'){
+            let raw='';for await(const chunk of req)raw+=chunk
+            const body=JSON.parse(raw||'{}')
+            if(!checkAdminCredentials(adminEnv,String(body.username||''),String(body.password||''))){res.statusCode=401;return res.end(JSON.stringify({error:{message:'Invalid admin credentials'}}))}
+            const{cookie}=await createAdminSession(databaseUrl,String(body.username||'admin'))
+            res.setHeader('Set-Cookie',cookie)
+            return res.end(JSON.stringify({ok:true,role:'brain-admin'}))
+          }
+          const session=await verifyAdminSession(databaseUrl,req.headers.cookie)
+          if(!session){res.statusCode=401;return res.end(JSON.stringify({error:{message:'Admin authentication required'}}))}
+          if(action==='logout'&&req.method==='POST'){await destroyAdminSession(databaseUrl,req.headers.cookie);res.setHeader('Set-Cookie',clearAdminCookie);return res.end(JSON.stringify({ok:true}))}
+          if(action==='overview'&&req.method==='GET')return res.end(JSON.stringify(await brainOverview(databaseUrl)))
+          if(action==='trace'&&req.method==='GET'){const trace=await brainTrace(databaseUrl,url.searchParams.get('id'));if(!trace){res.statusCode=404;return res.end(JSON.stringify({error:{message:'Trace not found'}}))}return res.end(JSON.stringify(trace))}
+          res.statusCode=404;return res.end(JSON.stringify({error:{message:'Unknown admin action'}}))
+        }catch(error){res.statusCode=500;return res.end(JSON.stringify({error:{message:error.message||'Admin API failure'}}))}
+      })
     }
   }
 }
@@ -154,7 +208,7 @@ function sallyChatApi(apiKey, databaseUrl, model, embeddingKey, embeddingModel, 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   return {
-  plugins: [react(), sallyChatApi(env.OPENROUTER_API_KEY, env.DATABASE_URL, env.SALLYIP_MODEL, env.OPENROUTER_EMBEDDING_API_KEY, env.SALLYIP_EMBEDDING_MODEL, env.OPENROUTER_LFM_CHAT_API_KEY, env.SALLYIP_LFM_CHAT_MODEL, env.OPENROUTER_DOTS_API_KEY, env.SALLYIP_DOTS_MODEL, env.OPENROUTER_GEMMA_API_KEY, env.SALLYIP_GEMMA_MODEL, env.OPENROUTER_RERANK_API_KEY, env.SALLYIP_RERANK_MODEL, env.OPENROUTER_OX_API_KEY, env.SALLYIP_OX_MODEL, env.EPO_OPS_KEY, env.EPO_OPS_SECRET, env.EUIPO_CLIENT_ID, env.EUIPO_CLIENT_SECRET, env.EUIPO_AUTH_URL, env.EUIPO_API_BASE)],
+  plugins: [react(), sallyChatApi(env.OPENROUTER_API_KEY, env.DATABASE_URL, env.SALLYIP_MODEL, env.OPENROUTER_EMBEDDING_API_KEY, env.SALLYIP_EMBEDDING_MODEL, env.OPENROUTER_LFM_CHAT_API_KEY, env.SALLYIP_LFM_CHAT_MODEL, env.OPENROUTER_DOTS_API_KEY, env.SALLYIP_DOTS_MODEL, env.OPENROUTER_GEMMA_API_KEY, env.SALLYIP_GEMMA_MODEL, env.OPENROUTER_RERANK_API_KEY, env.SALLYIP_RERANK_MODEL, env.OPENROUTER_OX_API_KEY, env.SALLYIP_OX_MODEL, env.EPO_OPS_KEY, env.EPO_OPS_SECRET, env.EUIPO_CLIENT_ID, env.EUIPO_CLIENT_SECRET, env.EUIPO_AUTH_URL || 'https://auth.euipo.europa.eu/oidc/accessToken', env.EUIPO_API_BASE || 'https://api.euipo.europa.eu', env.BRAIN_ADMIN_USERNAME, env.BRAIN_ADMIN_PASSWORD, env.OMNIROUTE_API_KEY, env.OMNIROUTE_BASE_URL)],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
