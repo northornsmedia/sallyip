@@ -27,7 +27,7 @@ async function createArtifact(sql,userId,conversationId,{title:artifactTitle,typ
 
 async function matterInputs(sql,userId,matterId){
   const claims=await sql`SELECT pc.id,pc.claim_number,pc.claim_type,pc.claim_text,pc.patent_entity_id,p.name patent_name,p.canonical_identifier,p.jurisdiction FROM patent_claims pc JOIN ip_entities p ON p.id=pc.patent_entity_id WHERE pc.user_id=${userId} AND pc.matter_id=${matterId} ORDER BY CASE pc.claim_type WHEN 'independent' THEN 0 ELSE 1 END,pc.claim_number`
-  const passages=await sql`SELECT sp.id,sp.source_id,sp.content,sp.locator,s.title source_title,s.verified_at,s.source_type FROM source_passages sp JOIN legal_sources s ON s.id=sp.source_id WHERE s.user_id=${userId} AND s.matter_id=${matterId} ORDER BY s.created_at DESC,sp.created_at LIMIT 1000`
+  const passages=await sql`SELECT sp.id,sp.source_id,sp.content,sp.locator,s.title source_title,s.verified_at,s.source_type FROM source_passages sp JOIN legal_sources s ON s.id=sp.source_id WHERE s.user_id=${userId} AND s.matter_id=${matterId} ORDER BY s.created_at DESC,sp.created_at LIMIT 5000`
   return{claims,passages}
 }
 

@@ -2,10 +2,14 @@ import artifactsHandler from './_handlers/artifacts.js'
 import authHandler from './_handlers/auth.js'
 import chatHandler from './_handlers/chat.js'
 import claimChartsHandler from './_handlers/claim-charts.js'
+import citationsHandler from './_handlers/citations.js'
 import conversationsHandler from './_handlers/conversations.js'
+import contractsHandler from './_handlers/contracts.js'
 import documentToolsHandler from './_handlers/document-tools.js'
 import embeddingsHandler from './_handlers/embeddings.js'
+import evalRunsHandler from './_handlers/eval-runs.js'
 import ftoHandler from './_handlers/fto.js'
+import flywheelHandler from './_handlers/flywheel.js'
 import generatedFilesHandler from './_handlers/generated-files.js'
 import inventiveStepHandler from './_handlers/inventive-step.js'
 import ipGraphHandler from './_handlers/ip-graph.js'
@@ -15,12 +19,14 @@ import mattersHandler from './_handlers/matters.js'
 import noveltyHandler from './_handlers/novelty.js'
 import officialSearchHandler from './_handlers/official-search.js'
 import patentFamiliesHandler from './_handlers/patent-families.js'
+import playbooksHandler from './_handlers/playbooks.js'
 import priorArtHandler from './_handlers/prior-art.js'
 import rerankHandler from './_handlers/rerank.js'
 import sourcesHandler from './_handlers/sources.js'
 import trademarkClearanceHandler from './_handlers/trademark-clearance.js'
 import trademarkIntelligenceHandler from './_handlers/trademark-intelligence.js'
 import transparencyMetricsHandler from './_handlers/transparency-metrics.js'
+import vaultReviewsHandler from './_handlers/vault-reviews.js'
 import verificationDeskHandler from './_handlers/verification-desk.js'
 import workflowsHandler from './_handlers/workflows.js'
 
@@ -29,10 +35,14 @@ const handlers = {
   'auth': authHandler,
   'chat': chatHandler,
   'claim-charts': claimChartsHandler,
+  'citations': citationsHandler,
   'conversations': conversationsHandler,
+  'contracts': contractsHandler,
   'document-tools': documentToolsHandler,
   'embeddings': embeddingsHandler,
+  'eval-runs': evalRunsHandler,
   'fto': ftoHandler,
+  'flywheel': flywheelHandler,
   'generated-files': generatedFilesHandler,
   'inventive-step': inventiveStepHandler,
   'ip-graph': ipGraphHandler,
@@ -42,12 +52,14 @@ const handlers = {
   'novelty': noveltyHandler,
   'official-search': officialSearchHandler,
   'patent-families': patentFamiliesHandler,
+  'playbooks': playbooksHandler,
   'prior-art': priorArtHandler,
   'rerank': rerankHandler,
   'sources': sourcesHandler,
   'trademark-clearance': trademarkClearanceHandler,
   'trademark-intelligence': trademarkIntelligenceHandler,
   'transparency-metrics': transparencyMetricsHandler,
+  'vault-reviews': vaultReviewsHandler,
   'verification-desk': verificationDeskHandler,
   'workflows': workflowsHandler,
 }

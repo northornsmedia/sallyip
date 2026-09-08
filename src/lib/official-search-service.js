@@ -3,6 +3,8 @@ import {XMLParser} from 'fast-xml-parser'
 export const officialProviders={
   epo_ops:{name:'EPO Open Patent Services',source:'EPO bibliographic and worldwide patent data',credentials:['EPO_OPS_KEY','EPO_OPS_SECRET'],officialUrl:'https://www.epo.org/en/searching-for-patents/data/web-services/ops'},
   euipo_trademark:{name:'EUIPO Trademark Search',source:'EUIPO trademark database',credentials:['EUIPO_CLIENT_ID','EUIPO_CLIENT_SECRET'],officialUrl:'https://dev.euipo.europa.eu/product/trademark-search_100'},
+  uspto_patent:{name:'USPTO Patent Search',source:'USPTO published patents and applications (beta)',credentials:['USPTO_API_KEY'],officialUrl:'https://developer.uspto.gov/api-catalog/uspto-patent-search'},
+  courtlistener:{name:'CourtListener Case Law',source:'Free Law Project US federal and state opinions',credentials:['COURTLISTENER_TOKEN'],officialUrl:'https://www.courtlistener.com/help/api/rest/search/'},
 }
 
 export function providerStatus(env){return Object.entries(officialProviders).map(([id,provider])=>({id,name:provider.name,source:provider.source,official_url:provider.officialUrl,configured:provider.credentials.every(key=>Boolean(env[key]))}))}
@@ -47,4 +49,50 @@ export async function searchEuipoTrademarks({mark,classes=[],query,page=0,size=2
   const response=await fetchImpl(url.toString(),{headers:{Authorization:`Bearer ${token.access_token}`,'X-IBM-Client-Id':env.EUIPO_CLIENT_ID,Accept:'application/json','Accept-Language':'en'}})
   if(!response.ok){const error=new Error(`EUIPO trademark search failed (${response.status})`);error.code='PROVIDER_SEARCH_FAILED';throw error}
   return parseEuipoTrademarkResults(await response.json())
+}
+
+export function parseUsptoPatentResults(payload){
+  const items=array(first(payload?.results,payload?.patents,payload?.items,payload?.docs))
+  return items.map((item,index)=>{
+    const number=String(first(item.patentNumber,item.patent_number,item.publicationNumber,item.publication_number,item.documentNumber,'')).trim()
+    const title=String(first(item.patentTitle,item.patent_title,item.title,item.inventionTitle,`USPTO patent ${index+1}`)).trim()
+    const date=first(item.patentDate,item.patent_date,item.publicationDate,item.publication_date)
+    const officialUrl=number?`https://ppubs.uspto.gov/pubwebapp/static/pages/ppubsbasic.html`:null
+    return{external_id:number||null,title,publication_number:number||null,country:'US',patent_date:date||null,official_url:officialUrl,raw_metadata:item}
+  }).filter(item=>item.external_id||item.title)
+}
+
+export async function searchUsptoPatents(query,env,{fetchImpl=fetch,size=25}={}){
+  if(!env.USPTO_API_KEY){const error=new Error('USPTO Patent Search is not configured');error.code='PROVIDER_NOT_CONFIGURED';throw error}
+  const q=String(query||'').trim();if(!q){const error=new Error('A USPTO search query is required');error.code='INVALID_QUERY';throw error}
+  const apiBase=(env.USPTO_API_BASE||'https://api.uspto.gov/patents/v1').replace(/\/$/,'')
+  if(/sandbox|example\.test|localhost/i.test(apiBase)){const error=new Error('USPTO sandbox endpoints are not permitted for production evidence');error.code='SANDBOX_NOT_ALLOWED';throw error}
+  const response=await fetchImpl(`${apiBase}/search`,{method:'POST',headers:{'X-API-KEY':env.USPTO_API_KEY,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({q,pagination:{limit:Math.min(100,Math.max(1,Number(size)||25)),offset:0}})})
+  if(response.status===401||response.status===403){const error=new Error('USPTO authentication failed');error.code='PROVIDER_AUTH_FAILED';throw error}
+  if(!response.ok){const error=new Error(`USPTO patent search failed (${response.status})`);error.code='PROVIDER_SEARCH_FAILED';throw error}
+  return parseUsptoPatentResults(await response.json())
+}
+
+export function parseCourtListenerResults(payload){
+  const items=array(first(payload?.results,payload?.items))
+  return items.map((item,index)=>{
+    const title=String(first(item.caseName,item.case_name,item.caption,`CourtListener opinion ${index+1}`)).trim()
+    const court=first(item.court,item.court_name)
+    const dateFiled=first(item.dateFiled,item.date_filed,item.dateArgued)
+    const citeCount=first(item.citeCount,item.cite_count)
+    const path=String(first(item.absolute_url,item.absoluteUrl,''))
+    return{external_id:path||null,title,court:court||null,date_filed:dateFiled||null,cite_count:citeCount??null,snippet:first(item.snippet,null),jurisdiction:'US',official_url:path?`https://www.courtlistener.com${path.startsWith('/')?path:'/'+path}`:null,raw_metadata:item}
+  }).filter(item=>item.external_id||item.title)
+}
+
+export async function searchCourtListener(query,env,{fetchImpl=fetch,size=25,type='o'}={}){
+  if(!env.COURTLISTENER_TOKEN){const error=new Error('CourtListener is not configured');error.code='PROVIDER_NOT_CONFIGURED';throw error}
+  const q=String(query||'').trim();if(!q){const error=new Error('A case-law search query is required');error.code='INVALID_QUERY';throw error}
+  const apiBase=(env.COURTLISTENER_API_BASE||'https://www.courtlistener.com/api/rest/v3').replace(/\/$/,'')
+  const url=new URL(`${apiBase}/search/`);url.searchParams.set('q',q);url.searchParams.set('type',type);url.searchParams.set('order_by','score desc');url.searchParams.set('page_size',String(Math.min(100,Math.max(1,Number(size)||25))))
+  if(env.COURTLISTENER_COURT)url.searchParams.set('court',env.COURTLISTENER_COURT)
+  const response=await fetchImpl(url.toString(),{headers:{Authorization:`Token ${env.COURTLISTENER_TOKEN}`,Accept:'application/json','User-Agent':'SallyIP/1.0'}})
+  if(response.status===401||response.status===403){const error=new Error('CourtListener authentication failed');error.code='PROVIDER_AUTH_FAILED';throw error}
+  if(!response.ok){const error=new Error(`CourtListener search failed (${response.status})`);error.code='PROVIDER_SEARCH_FAILED';throw error}
+  return parseCourtListenerResults(await response.json())
 }

@@ -1,6 +1,7 @@
 import {neon} from '@neondatabase/serverless'
 import {getSessionUser} from '../../src/lib/auth.js'
 import {getMatterContext} from '../../src/lib/matter-service.js'
+import {requireEditor} from '../../src/lib/security.js'
 
 export default async function handler(req,res){
   const sql=neon(process.env.DATABASE_URL)
@@ -12,6 +13,7 @@ export default async function handler(req,res){
       return res.status(200).json({matters})
     }
     if(req.method!=='POST')return res.status(405).json({error:{message:'Method not allowed'}})
+    try{requireEditor(user)}catch(error){return res.status(403).json({error:{message:error.message}})}
     const body=req.body||{},action=body.action||'create'
     if(action==='create'){
       const name=String(body.name||'').trim();if(name.length<2)return res.status(400).json({error:{message:'Matter name is required'}})

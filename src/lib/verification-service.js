@@ -2,6 +2,7 @@ const searchTerms=text=>[...new Set((text.toLowerCase().match(/[a-z0-9][a-z0-9-]
 
 export async function retrieveVerifiedEvidence(sql,userId,matterId,query,{limit=8}={}){
   if(!matterId)return[]
+  limit=Math.min(Math.max(Number(limit)||8,1),50)
   const terms=searchTerms(query);if(!terms.length)return[]
   const pattern=`%${terms.join('%')}%`
   const direct=await sql`SELECT s.id source_id,s.title,s.source_type,s.authority_tier,s.jurisdiction,s.citation,s.official_url,s.authority_status,s.retrieval_method,s.verified_at,p.id passage_id,p.locator_type,p.locator,p.content FROM legal_sources s JOIN source_passages p ON p.source_id=s.id WHERE s.user_id=${userId} AND s.matter_id=${matterId} AND p.content ILIKE ${pattern} ORDER BY s.authority_tier ASC,s.verified_at DESC NULLS LAST LIMIT ${limit}`
@@ -16,6 +17,7 @@ async function queryEmbedding(query,key,model){
 }
 
 export async function retrieveHybridEvidence(sql,userId,matterId,query,{limit=8,embeddingKey,embeddingModel,queryVector}={}){
+  limit=Math.min(Math.max(Number(limit)||8,1),50)
   const[lexical,vector]=await Promise.all([retrieveVerifiedEvidence(sql,userId,matterId,query,{limit:Math.max(limit*2,12)}),queryVector?Promise.resolve(queryVector):queryEmbedding(query,embeddingKey,embeddingModel)])
   let semantic=[]
   if(vector&&matterId){const serialized=`[${vector.map(value=>Number(value)||0).join(',')}]`;semantic=await sql`SELECT s.id source_id,s.title,s.source_type,s.authority_tier,s.jurisdiction,s.citation,s.official_url,s.authority_status,s.retrieval_method,s.verified_at,p.id passage_id,p.locator_type,p.locator,p.content,(1-(kc.embedding <=> ${serialized}::vector))::float semantic_similarity FROM knowledge_chunks kc JOIN knowledge_sources ks ON ks.id=kc.source_id JOIN legal_sources s ON s.id=ks.legal_source_id JOIN source_passages p ON p.source_id=s.id AND p.content=kc.content WHERE ks.user_id=${userId} AND ks.matter_id=${matterId} AND kc.embedding IS NOT NULL ORDER BY kc.embedding <=> ${serialized}::vector LIMIT ${Math.max(limit*2,12)}`}
@@ -34,4 +36,19 @@ export function verificationSummary(evidence,route){return{source_basis:evidence
 export function enforceSourceDisclosure(answer,verification){
   if(!verification.requires_primary_sources||verification.source_basis==='retrieved_source')return answer
   return `${answer}\n\n> **Source status:** This response currently relies on model knowledge and inference; Sally did not retrieve primary authority for this answer. Verify material legal propositions before reliance.`
+}
+
+export function guardAnswerCitations(answer,evidence=[],verification={}){
+  const text=String(answer||'')
+  const cited=[...new Set([...text.matchAll(/\[S(\d+)\]/g)].map(m=>Number(m[1])))]
+  const dangling=cited.filter(n=>!(n>=1&&n<=evidence.length))
+  const valid=cited.filter(n=>n>=1&&n<=evidence.length)
+  let guarded=enforceSourceDisclosure(text,verification)
+  if(dangling.length){
+    guarded+=`\n\n> **Citation check:** ${dangling.map(n=>`[S${n}]`).join(', ')} ${dangling.length===1?'does':'do'} not match any retrieved source in this answer. Treat ${dangling.length===1?'that claim':'those claims'} as unverified until Sally links ${dangling.length===1?'it':'them'} to evidence.`
+  }
+  if(verification.requires_primary_sources&&evidence.length>0&&cited.length===0){
+    guarded+=`\n\n> **Citation check:** this answer cites no retrieved source ([S1]–[S${evidence.length}]). Ask Sally to pin each material proposition to a source before reliance.`
+  }
+  return{answer:guarded,guard:{cited,valid,dangling,evidence_count:evidence.length,supported:dangling.length===0&&(cited.length>0||!verification.requires_primary_sources)}}
 }

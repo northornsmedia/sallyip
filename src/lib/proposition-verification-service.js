@@ -21,7 +21,7 @@ export async function listVerificationDesk(sql,userId,matterId){
 
 export async function getProposition(sql,userId,propositionId){
   const proposition=await propositionForUser(sql,userId,propositionId)
-  const sources=await sql`SELECT ps.support_type,ps.verification_note,sp.id passage_id,sp.locator_type,sp.locator,sp.content,s.id source_id,s.title,s.citation,s.source_type,s.authority_tier,s.jurisdiction,s.authority_status,s.official_url,s.retrieval_method,s.verified_at,(SELECT row_to_json(r) FROM source_verification_reviews r WHERE r.source_id=s.id ORDER BY r.reviewed_at DESC LIMIT 1) verification_review FROM proposition_sources ps JOIN source_passages sp ON sp.id=ps.passage_id JOIN legal_sources s ON s.id=sp.source_id WHERE ps.proposition_id=${proposition.id} ORDER BY CASE ps.support_type WHEN 'supports' THEN 1 WHEN 'contradicts' THEN 2 WHEN 'distinguishes' THEN 3 ELSE 4 END,s.authority_tier`
+  const sources=await sql`SELECT ps.support_type,ps.verification_note,ps.quote,ps.quote_match,sp.id passage_id,sp.locator_type,sp.locator,sp.content,s.id source_id,s.title,s.citation,s.source_type,s.authority_tier,s.jurisdiction,s.authority_status,s.official_url,s.retrieval_method,s.verified_at,(SELECT row_to_json(r) FROM source_verification_reviews r WHERE r.source_id=s.id ORDER BY r.reviewed_at DESC LIMIT 1) verification_review FROM proposition_sources ps JOIN source_passages sp ON sp.id=ps.passage_id JOIN legal_sources s ON s.id=sp.source_id WHERE ps.proposition_id=${proposition.id} ORDER BY CASE ps.support_type WHEN 'supports' THEN 1 WHEN 'contradicts' THEN 2 WHEN 'distinguishes' THEN 3 ELSE 4 END,s.authority_tier`
   const events=await sql`SELECT * FROM proposition_verification_events WHERE proposition_id=${proposition.id} ORDER BY created_at DESC LIMIT 50`
   return{proposition,sources,events,assessment:assessPropositionEvidence(sources,{contraryAuthorityChecked:proposition.contrary_authority_checked})}
 }
@@ -30,8 +30,15 @@ export async function createProposition(sql,userId,body){await assertMatter(sql,
 
 export async function attachPropositionSource(sql,userId,body){
   const proposition=await propositionForUser(sql,userId,body.proposition_id);if(!SUPPORT_TYPES.includes(body.support_type))throw new Error('Invalid support type')
-  const[passage]=await sql`SELECT sp.id FROM source_passages sp JOIN legal_sources s ON s.id=sp.source_id WHERE sp.id=${body.passage_id} AND s.user_id=${userId} AND s.matter_id=${proposition.matter_id}`;if(!passage)throw new Error('Source passage not found')
-  await sql`INSERT INTO proposition_sources(proposition_id,passage_id,support_type,verification_note) VALUES(${proposition.id},${passage.id},${body.support_type},${String(body.verification_note||'').slice(0,2000)||null}) ON CONFLICT(proposition_id,passage_id) DO UPDATE SET support_type=excluded.support_type,verification_note=excluded.verification_note`;await sql`UPDATE legal_propositions SET updated_at=now() WHERE id=${proposition.id}`;return getProposition(sql,userId,proposition.id)
+  const[passage]=await sql`SELECT sp.id,sp.content FROM source_passages sp JOIN legal_sources s ON s.id=sp.source_id WHERE sp.id=${body.passage_id} AND s.user_id=${userId} AND s.matter_id=${proposition.matter_id}`;if(!passage)throw new Error('Source passage not found')
+  let quote=null,quoteMatch='unchecked'
+  if(body.quote!==undefined&&body.quote!==null&&String(body.quote).trim()!==''){
+    quote=String(body.quote).slice(0,4000)
+    const {verifyQuote}=await import('./citation-service.js')
+    quoteMatch=verifyQuote(passage.content,quote)
+    if(quoteMatch==='missing')throw new Error('Quote not found in the cited passage — check the exact wording and locator')
+  }
+  await sql`INSERT INTO proposition_sources(proposition_id,passage_id,support_type,verification_note,quote,quote_match) VALUES(${proposition.id},${passage.id},${body.support_type},${String(body.verification_note||'').slice(0,2000)||null},${quote},${quoteMatch}) ON CONFLICT(proposition_id,passage_id) DO UPDATE SET support_type=excluded.support_type,verification_note=excluded.verification_note,quote=excluded.quote,quote_match=excluded.quote_match`;await sql`UPDATE legal_propositions SET updated_at=now() WHERE id=${proposition.id}`;return getProposition(sql,userId,proposition.id)
 }
 
 export async function reviewLegalSource(sql,userId,body){

@@ -3,7 +3,9 @@ import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ThinkingOrb } from "thinking-orbs";
+import { sanitizeModelResponse } from "../lib/document-tool-service.js";
 const IpToolsPanel=lazy(()=>import("./ip-tools-panel"));
+
 const ClaimChartWorkspace=lazy(()=>import("./claim-chart-workspace"));
 const TrademarkClearanceWorkspace=lazy(()=>import("./trademark-clearance-workspace"));
 const PatentFamilyWorkspace=lazy(()=>import("./patent-family-workspace"));
@@ -16,6 +18,8 @@ const TrademarkIntelligenceWorkspace=lazy(()=>import("./trademark-intelligence-w
 const NoveltyWorkspace=lazy(()=>import("./novelty-workspace"));
 const LitigationEvidenceWorkspace=lazy(()=>import("./litigation-evidence-workspace"));
 const VerificationDeskWorkspace=lazy(()=>import("./verification-desk-workspace"));
+const PlaybookWorkspace=lazy(()=>import("./playbook-workspace"));
+const ContractWorkspace=lazy(()=>import("./contract-workspace"));
 import {
   ArrowRight,
   ChevronDown,
@@ -520,10 +524,11 @@ export default function ChatPage({ onHome, onAuthRequired }) {
               const event = JSON.parse(line.slice(6));
               if (event.type === "delta" && event.delta) {
                 answer += event.delta;
+                const cleanStreamingAnswer = sanitizeModelResponse(answer);
                 updateActive((chat) => {
                   const messages = [...chat.messages];
                   const last = messages[messages.length - 1];
-                  messages[messages.length - 1] = { ...last, content: answer };
+                  messages[messages.length - 1] = { ...last, content: cleanStreamingAnswer };
                   return { ...chat, messages };
                 });
               } else if (event.type === "meta") {
@@ -543,7 +548,8 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         if (!data && !answer) throw new Error("No response was returned.");
         // The completed answer may include server-side source disclosures that
         // are intentionally applied after token generation.
-        if (data?.answer) answer = data.answer;
+        if (data?.answer) answer = sanitizeModelResponse(data.answer);
+        else answer = sanitizeModelResponse(answer);
       } else {
         // Development may return the classic response from this URL because
         // its middleware uses prefix matching. For a missing/failed streaming
@@ -558,7 +564,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         data = await response.json();
         if (!response.ok)
           throw new Error(data?.error?.message || "SallyIP could not respond");
-        answer = data.choices?.[0]?.message?.content || "No response was returned.";
+        answer = sanitizeModelResponse(data.choices?.[0]?.message?.content || "No response was returned.");
       }
       let artifact = documentRequest || revisionRequest
         ? makeArtifact({
@@ -833,7 +839,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                     ) : (
                       <div className="markdownAnswer">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {message.content}
+                          {sanitizeModelResponse(message.content)}
                         </ReactMarkdown>
                       </div>
                     )}
@@ -951,6 +957,8 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                   <TrademarkIntelligenceWorkspace matterId={activeMatterId} onResult={recordToolResult}/>
                   <LitigationEvidenceWorkspace matterId={activeMatterId} onResult={recordToolResult}/>
                   <VerificationDeskWorkspace matterId={activeMatterId} onResult={recordToolResult}/>
+                  <PlaybookWorkspace matterId={activeMatterId} conversationId={active?.id} onResult={recordToolResult}/>
+                  <ContractWorkspace matterId={activeMatterId} onResult={recordToolResult}/>
                 </Suspense>
               </motion.div>
             )}

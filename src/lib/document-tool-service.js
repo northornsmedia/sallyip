@@ -88,3 +88,79 @@ export function buildGenerateFileToolCall(intent, artifact) {
     },
   }
 }
+
+export function unescapeStringLiteral(str) {
+  if (typeof str !== 'string') return ''
+  return str
+    .replace(/\\r\\n/g, '\n')
+    .replace(/\\n/g, '\n')
+    .replace(/\\t/g, '\t')
+    .replace(/\\"/g, '"')
+    .replace(/\\'/g, "'")
+    .replace(/\\\\/g, '\\')
+}
+
+export function sanitizeModelResponse(input) {
+  if (typeof input !== 'string') return ''
+  let text = input.trim()
+
+  // 1. Check for <itool_call_begin> or [generate_file(...) or <tool_call>
+  const toolCallMatch = text.match(/<itool_call_begin>[\s\S]*?(?:<itool_call_end>|$)/i) ||
+                        text.match(/<tool_call>[\s\S]*?(?:<\/tool_call>|$)/i) ||
+                        text.match(/\[generate_file\([\s\S]*?\)(?:\]|$)/i)
+
+  if (toolCallMatch) {
+    const rawCall = toolCallMatch[0]
+    const beforeCall = text.slice(0, toolCallMatch.index).trim()
+    const afterCall = text.slice(toolCallMatch.index + rawCall.length).trim()
+
+    let extractedContent = ''
+
+    // Pattern 1: clean_document_content='...' or clean_document_content="..." or content='...'
+    const contentArgMatch = rawCall.match(/(?:clean_document_content|content|document_content|text)\s*=\s*(['"])([\s\S]*?)\1(?:\s*,\s*[a-zA-Z_]+\s*=|\s*\)|$)/)
+
+    if (contentArgMatch) {
+      extractedContent = unescapeStringLiteral(contentArgMatch[2])
+    } else {
+      // Pattern 2: JSON payload inside tool_call
+      const jsonMatch = rawCall.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        try {
+          const parsed = JSON.parse(jsonMatch[0])
+          const args = parsed.arguments || parsed.parameters || parsed
+          extractedContent = args.clean_document_content || args.content || args.text || ''
+        } catch {}
+      }
+    }
+
+    if (!extractedContent) {
+      // Pattern 3: Fallback unclosed string match
+      const fallbackMatch = rawCall.match(/(?:clean_document_content|content)\s*=\s*(['"])([\s\S]+)/)
+      if (fallbackMatch) {
+        let rawExtracted = fallbackMatch[2].replace(/(?:['"]\s*\)?\s*\]?\s*(?:<itool_call_end>)?|\s*\)?\s*\]?)$/, '')
+        extractedContent = unescapeStringLiteral(rawExtracted)
+      }
+    }
+
+    const parts = []
+    if (beforeCall) parts.push(beforeCall)
+    if (extractedContent) parts.push(extractedContent)
+    if (afterCall) parts.push(afterCall)
+
+    text = parts.filter(Boolean).join('\n\n')
+  }
+
+  // 2. Strip any remaining leaked tool-call tags or marker tokens
+  text = text
+    .replace(/<\/?i?tool_call(?:_begin|_end)?>/gi, '')
+    .replace(/<\|(?:action_start|action_end|im_start|im_end|thought|action_thought)\b[^>]*>/gi, '')
+    .replace(/\[generate_file\([\s\S]*?\)\]/gi, '')
+
+  // 3. Fix unescaped literal `\n` in text that was rendered with literal backslash-n escapes
+  if (text.includes('\\n') && !text.includes('```')) {
+    text = unescapeStringLiteral(text)
+  }
+
+  return text.trim()
+}
+
