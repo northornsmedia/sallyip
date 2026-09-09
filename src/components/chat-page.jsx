@@ -616,6 +616,34 @@ export default function ChatPage({ onHome, onAuthRequired }) {
     setActiveId(id);
     setInput("");
   };
+  const streamResponseLineByLine = async (fullText) => {
+    setIsWriting(true);
+    const lines = fullText.split("\n");
+    let currentOutput = "";
+    for (let i = 0; i < lines.length; i++) {
+      currentOutput += (i > 0 ? "\n" : "") + lines[i];
+      setStreamingAnswer(currentOutput);
+      if (threadRef.current) {
+        threadRef.current.scrollTop = threadRef.current.scrollHeight;
+      }
+      const delay = Math.max(90, Math.min(240, lines[i].length * 3.5));
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+    await new Promise((resolve) => setTimeout(resolve, 400));
+  };
+
+  const transitionToComplete = async () => {
+    // 1. Enter 99% the moment the answer is received from the model
+    setThinkingProgress(99);
+    setThinkingPhase("Model answer received • Finalizing statutory synthesis (99%)…");
+    await new Promise((resolve) => setTimeout(resolve, 600));
+
+    // 2. Advance to 100% and hold for 2-3 seconds as requested
+    setThinkingProgress(100);
+    setThinkingPhase("Synthesis 100% Complete • Commencing line-by-line delivery…");
+    await new Promise((resolve) => setTimeout(resolve, 2400));
+  };
+
   const send = async (text = input) => {
     const clean = text.trim();
     if (!clean || loading) return;
@@ -631,6 +659,29 @@ export default function ChatPage({ onHome, onAuthRequired }) {
     updateActive(() => baseChat);
     setInput("");
     setLoading(true);
+    setThinkingProgress(0);
+    setThinkingPhase("Parsing legal intent & parameters…");
+    setIsWriting(false);
+    setStreamingAnswer("");
+
+    let currentProg = 0;
+    const progressTimer = setInterval(() => {
+      if (currentProg < 30) {
+        currentProg += Math.floor(Math.random() * 4 + 3);
+      } else if (currentProg < 65) {
+        currentProg += Math.floor(Math.random() * 3 + 2);
+      } else if (currentProg < 88) {
+        currentProg += Math.floor(Math.random() * 2 + 1);
+      } else if (currentProg < 92) {
+        currentProg = Math.min(currentProg + (Math.random() > 0.6 ? 1 : 0), 92);
+      }
+      setThinkingProgress(currentProg);
+      if (currentProg < 25) setThinkingPhase("Parsing legal intent & jurisdiction parameters…");
+      else if (currentProg < 50) setThinkingPhase("Consulting USPTO / MPEP examination guidelines…");
+      else if (currentProg < 75) setThinkingPhase("Synthesizing claim analysis with Nemotron 3 Ultra…");
+      else setThinkingPhase("Formulating authoritative legal response…");
+    }, 240);
+
     try {
       await persistChat(baseChat);
       if (activeMatterId) {
@@ -648,6 +699,8 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         });
         if (workflowResponse.ok) {
           const workflow = await workflowResponse.json();
+          clearInterval(progressTimer);
+          await transitionToComplete();
           const completed = workflow.steps
             .filter((step) => step.status === "completed")
             .map((step) => `- ✓ ${step.key.replaceAll("_", " ")}`)
@@ -658,13 +711,15 @@ export default function ChatPage({ onHome, onAuthRequired }) {
               .map((step) => `- ⚠ ${step.key.replaceAll("_", " ")}`),
             ...(workflow.warnings || []).map((warning) => `- ⚠ ${warning}`),
           ].join("\n");
+          const fullContent = `${workflow.content}\n\n## Workflow execution\n\n**Completed**\n${completed || "- Workflow prepared"}\n\n${pending ? `**Needs review / incomplete**\n${pending}` : "**Status:** Completed"}`;
+          await streamResponseLineByLine(fullContent);
           const finalChat = {
             ...baseChat,
             messages: [
               ...next,
               {
                 role: "assistant",
-                content: `${workflow.content}\n\n## Workflow execution\n\n**Completed**\n${completed || "- Workflow prepared"}\n\n${pending ? `**Needs review / incomplete**\n${pending}` : "**Status:** Completed"}`,
+                content: fullContent,
                 artifact: workflow.artifact_id
                   ? {
                       id: workflow.artifact_id,
@@ -737,13 +792,17 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         const generatedData = await generated.json();
         if (!generated.ok)
           throw new Error(generatedData?.message || generatedData?.error || "The file generator could not finish");
+        clearInterval(progressTimer);
+        await transitionToComplete();
+        const exportMsg = `Your ${fileRequest.format.toUpperCase()} has been created.`;
+        await streamResponseLineByLine(exportMsg);
         const finalChat = {
           ...baseChat,
           messages: [
             ...next,
             {
               role: "assistant",
-              content: `Your ${fileRequest.format.toUpperCase()} has been created.`,
+              content: exportMsg,
               artifact: previousArtifact,
               attachments: generatedData.file ? [generatedData.file] : [],
             },
@@ -775,22 +834,6 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       let answer = "";
       let data = {};
 
-      // Run visual percentage progress (0 -> 100%)
-      setThinkingProgress(0);
-      setThinkingPhase("Parsing legal intent & jurisdiction parameters…");
-      setIsWriting(false);
-      setStreamingAnswer("");
-
-      let currentProg = 0;
-      const progressTimer = setInterval(() => {
-        currentProg = Math.min(currentProg + Math.floor(Math.random() * 9 + 8), 99);
-        setThinkingProgress(currentProg);
-        if (currentProg < 25) setThinkingPhase("Parsing legal intent & jurisdiction parameters…");
-        else if (currentProg < 50) setThinkingPhase("Consulting USPTO / MPEP examination guidelines…");
-        else if (currentProg < 75) setThinkingPhase("Synthesizing claim analysis & statutory authority…");
-        else setThinkingPhase("Formulating authoritative legal response…");
-      }, 100);
-
       try {
         const response = await fetch("/api/chat", {
           method: "POST",
@@ -813,25 +856,10 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         answer = getFallbackLegalResponse(clean, user, baseChat.messages);
       }
 
-      // Complete progress bar to 100%
+      // Model answer received: hit 99% immediately, hold for 2-3s at 100%, then stream line-by-line
       clearInterval(progressTimer);
-      setThinkingProgress(100);
-      setThinkingPhase("Synthesis 100% Complete • Commencing draft…");
-      await new Promise((resolve) => setTimeout(resolve, 350));
-
-      // Line-by-line typewriter presentation
-      setIsWriting(true);
-      const lines = answer.split("\n");
-      let currentOutput = "";
-      for (let i = 0; i < lines.length; i++) {
-        currentOutput += (i > 0 ? "\n" : "") + lines[i];
-        setStreamingAnswer(currentOutput);
-        if (threadRef.current) {
-          threadRef.current.scrollTop = threadRef.current.scrollHeight;
-        }
-        const delay = Math.max(30, Math.min(85, lines[i].length * 2.5));
-        await new Promise((resolve) => setTimeout(resolve, delay));
-      }
+      await transitionToComplete();
+      await streamResponseLineByLine(answer);
 
       let artifact = documentRequest || revisionRequest
         ? makeArtifact({
@@ -889,9 +917,10 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       updateActive(() => finalChat);
       await persistChat(finalChat);
     } catch (error) {
-      const fallbackAns = getFallbackLegalResponse(clean, user);
-      setIsWriting(true);
-      setStreamingAnswer(fallbackAns);
+      clearInterval(progressTimer);
+      const fallbackAns = getFallbackLegalResponse(clean, user, baseChat.messages);
+      await transitionToComplete();
+      await streamResponseLineByLine(fallbackAns);
       const finalChat = {
         ...baseChat,
         messages: [
@@ -905,6 +934,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       updateActive(() => finalChat);
       await persistChat(finalChat).catch(() => {});
     } finally {
+      clearInterval(progressTimer);
       setIsWriting(false);
       setStreamingAnswer("");
       setThinkingProgress(0);
