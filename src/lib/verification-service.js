@@ -1,26 +1,46 @@
 const searchTerms=text=>[...new Set((text.toLowerCase().match(/[a-z0-9][a-z0-9-]{3,}/g)||[]).filter(term=>!['that','this','with','from','what','when','where','which','about'].includes(term)))].slice(0,8)
 
 export function extractSectionRefs(query) {
-  const text = String(query || ''), refs = new Set()
-  for (const m of text.matchAll(/§\s*(\d{2,4}[a-z]?(?:\(\w+\))?)/g)) refs.add(m[1])
-  for (const m of text.matchAll(/MPEP\s*§?\s*(\d{4})/gi)) refs.add(m[1])
+  const text = String(query || '').toLowerCase(), refs = new Set()
+  for (const m of text.matchAll(/§\s*(\d{2,4}[a-z]?(?:\(\w+\))?)/g)) {
+    refs.add(m[1])
+    const base = m[1].replace(/\([a-z0-9]+\)/gi, '').trim()
+    if (base) refs.add(base)
+  }
+  for (const m of text.matchAll(/mpep\s*§?\s*(\d{4})/gi)) refs.add(m[1])
   for (const m of text.matchAll(/\b(10[123]|11[12]|2106)\b/g)) refs.add(m[1])
-  return [...refs].slice(0, 6)
+
+  // Legal topic & concept aliases for US patent law
+  if (/\b(provisional|111\(b\)|twelve months|12 months|abandonment)\b/i.test(text)) refs.add('111')
+  if (/\b(grace period|prior art|disclosure by inventor|102\(b\))\b/i.test(text)) refs.add('102')
+  if (/\b(obvious|non-obvious|inventive step|phosita)\b/i.test(text)) refs.add('103')
+  if (/\b(enablement|written description|best mode|specification require|claim must contain|dependent claim)\b/i.test(text)) refs.add('112')
+  if (/\b(eligible|patentable subject|statutory categories|software per se|abstract idea|alice|mayo|2106)\b/i.test(text)) {
+    refs.add('101')
+    refs.add('2106')
+  }
+
+  return [...refs].slice(0, 8)
 }
 
 export async function retrievePackEvidence(sql,codes,query,{limit=6}={}){
   if(!codes?.length)return[]
-  const terms=searchTerms(query);if(!terms.length)return[]
-  const pattern=`%${terms.join('%')}%`
-  const base=await sql`SELECT s.id source_id,s.title,s.source_type,s.authority_tier,s.jurisdiction,s.citation,s.official_url,s.authority_status,s.retrieval_method,s.verified_at,p.id passage_id,p.locator_type,p.locator,p.content FROM legal_sources s JOIN source_passages p ON p.source_id=s.id WHERE s.source_type='jurisdiction_pack' AND s.matter_id IS NULL AND s.jurisdiction=ANY(${codes}) AND p.content ILIKE ${pattern} ORDER BY s.authority_tier ASC LIMIT ${Math.min(Math.max(Number(limit)||6,1),20)}`
-  // Quote-seeking queries ("quote §102") carry instruction words, not content
-  // words: resolve explicit section references straight to their passages.
+  const base=[]
+  const seen=new Set()
   const refs=extractSectionRefs(query)
-  if(!refs.length)return base
-  const seen=new Set(base.map(r=>r.passage_id))
-  for(const ref of refs){
-    const extra=await sql`SELECT s.id source_id,s.title,s.source_type,s.authority_tier,s.jurisdiction,s.citation,s.official_url,s.authority_status,s.retrieval_method,s.verified_at,p.id passage_id,p.locator_type,p.locator,p.content FROM legal_sources s JOIN source_passages p ON p.source_id=s.id WHERE s.source_type='jurisdiction_pack' AND s.matter_id IS NULL AND s.jurisdiction=ANY(${codes}) AND p.locator ILIKE ${`%${ref}%`} ORDER BY s.authority_tier ASC LIMIT 4`
-    for(const row of extra)if(!seen.has(row.passage_id)){seen.add(row.passage_id);base.push(row)}
+  if(refs.length){
+    for(const ref of refs){
+      const extra=await sql`SELECT s.id source_id,s.title,s.source_type,s.authority_tier,s.jurisdiction,s.citation,s.official_url,s.authority_status,s.retrieval_method,s.verified_at,p.id passage_id,p.locator_type,p.locator,p.content FROM legal_sources s JOIN source_passages p ON p.source_id=s.id WHERE s.source_type='jurisdiction_pack' AND s.matter_id IS NULL AND s.jurisdiction=ANY(${codes}) AND (p.locator ILIKE ${`%${ref}%`} OR p.content ILIKE ${`%${ref}%`}) ORDER BY s.authority_tier ASC LIMIT 4`
+      for(const row of extra)if(!seen.has(row.passage_id)){seen.add(row.passage_id);base.push(row)}
+    }
+  }
+  const terms=searchTerms(query)
+  if(terms.length&&base.length<Number(limit||6)){
+    for(const term of terms){
+      if(base.length>=Number(limit||6))break
+      const extra=await sql`SELECT s.id source_id,s.title,s.source_type,s.authority_tier,s.jurisdiction,s.citation,s.official_url,s.authority_status,s.retrieval_method,s.verified_at,p.id passage_id,p.locator_type,p.locator,p.content FROM legal_sources s JOIN source_passages p ON p.source_id=s.id WHERE s.source_type='jurisdiction_pack' AND s.matter_id IS NULL AND s.jurisdiction=ANY(${codes}) AND p.content ILIKE ${`%${term}%`} ORDER BY s.authority_tier ASC LIMIT 4`
+      for(const row of extra)if(!seen.has(row.passage_id)){seen.add(row.passage_id);base.push(row)}
+    }
   }
   return base.slice(0,Math.min(Math.max(Number(limit)||6,1),20)+refs.length*2)
 }

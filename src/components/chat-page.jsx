@@ -628,6 +628,142 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   const [activeWorkspace, setActiveWorkspace] = useState(null);
   const [viewingPassage, setViewingPassage] = useState(null);
   const [docPanel, setDocPanel] = useState(null);
+  const [libraryFiles, setLibraryFiles] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("sallyip-docx-library") || "[]");
+      return Array.isArray(saved) ? saved : [];
+    } catch {
+      return [];
+    }
+  });
+  const [libraryLoading, setLibraryLoading] = useState(false);
+  const [sidebarTab, setSidebarTab] = useState("chats"); // 'chats' | 'library'
+
+  const syncLibraryFiles = async () => {
+    try {
+      setLibraryLoading(true);
+      const res = await fetch("/api/generated-files");
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.files)) {
+          setLibraryFiles((prev) => {
+            const map = new Map();
+            for (const f of data.files) {
+              if (f.format === "docx" || f.name?.endsWith(".docx") || f.filename?.endsWith(".docx")) {
+                map.set(f.id || f.name, { ...f, format: "docx" });
+              }
+            }
+            for (const f of prev) {
+              if (f.format === "docx" || f.name?.endsWith(".docx") || f.filename?.endsWith(".docx")) {
+                const existing = map.get(f.id || f.name);
+                map.set(f.id || f.name, { ...f, ...existing, content: f.content || existing?.content });
+              }
+            }
+            const merged = Array.from(map.values()).sort(
+              (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
+            );
+            try {
+              localStorage.setItem("sallyip-docx-library", JSON.stringify(merged));
+            } catch {}
+            return merged;
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to sync library files:", e);
+    } finally {
+      setLibraryLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    syncLibraryFiles();
+  }, []);
+
+  const addLibraryFile = (file) => {
+    if (!file) return;
+    const isDocx = file.format === "docx" || file.name?.endsWith(".docx") || file.filename?.endsWith(".docx");
+    if (!isDocx) return;
+    const cleanFile = {
+      id: file.id || crypto.randomUUID(),
+      name: file.name || file.filename || "document.docx",
+      filename: file.filename || file.name || "document.docx",
+      format: "docx",
+      size: file.size || file.size_bytes || 0,
+      size_bytes: file.size_bytes || file.size || 0,
+      artifact_id: file.artifact_id || null,
+      artifact_version: file.artifact_version || 1,
+      conversation_id: file.conversation_id || activeId,
+      created_at: file.created_at || new Date().toISOString(),
+      content: file.content || "",
+      url: file.url || (file.id ? `/api/generated-files?id=${file.id}` : null),
+    };
+    setLibraryFiles((prev) => {
+      const filtered = prev.filter((f) => f.id !== cleanFile.id && f.name !== cleanFile.name);
+      const updated = [cleanFile, ...filtered];
+      try {
+        localStorage.setItem("sallyip-docx-library", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
+  const deleteLibraryFile = async (fileId, e) => {
+    e?.stopPropagation();
+    if (!window.confirm("Remove this Word document from your library?")) return;
+    setLibraryFiles((prev) => {
+      const updated = prev.filter((f) => f.id !== fileId);
+      try {
+        localStorage.setItem("sallyip-docx-library", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+    try {
+      await fetch(`/api/generated-files?id=${encodeURIComponent(fileId)}`, { method: "DELETE" });
+    } catch {}
+  };
+
+  const downloadLibraryFile = (file, e) => {
+    e?.stopPropagation();
+    if (!file) return;
+    const a = document.createElement("a");
+    a.href = file.url || `/api/generated-files?id=${file.id}`;
+    a.download = file.name || file.filename || "document.docx";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
+  const openLibraryDocInPanel = (file, e) => {
+    e?.stopPropagation();
+    if (!file) return;
+    let content = file.content || "";
+    if (!content && file.conversation_id) {
+      const targetChat = chats.find((c) => c.id === file.conversation_id);
+      if (targetChat) {
+        const matchingMsg = [...targetChat.messages].reverse().find((m) => m.artifact || m.attachments?.some((a) => a.id === file.id));
+        if (matchingMsg?.artifact?.content) {
+          content = matchingMsg.artifact.content;
+        } else if (matchingMsg?.content) {
+          content = matchingMsg.content;
+        }
+      }
+    }
+    if (!content) {
+      content = `# ${file.name || "Word Document"}\n\n*Word document (.docx) ready for download.*`;
+    }
+    setDocPanel({
+      title: file.name || "Word Document",
+      content,
+      version: file.artifact_version || 1,
+      live: false,
+      artifact: file.artifact_id ? { id: file.artifact_id, title: file.name, content } : null,
+      conversationId: file.conversation_id || activeId,
+    });
+    if (file.conversation_id && file.conversation_id !== activeId) {
+      openChat(file.conversation_id);
+    }
+  };
   const openPassage = async (passageId, label) => {
     setViewingPassage({ loading: true, label });
     try {
@@ -1034,6 +1170,13 @@ export default function ChatPage({ onHome, onAuthRequired }) {
             },
           ],
         };
+        if (generatedData.file) {
+          addLibraryFile({
+            ...generatedData.file,
+            content: previousArtifact?.content || "",
+            conversation_id: baseChat.id,
+          });
+        }
         if (previousArtifact?.content) {
           setDocPanel({ title: previousArtifact.title, content: previousArtifact.content, version: previousArtifact.version, live: false, artifact: previousArtifact, conversationId: baseChat.id });
         }
@@ -1189,6 +1332,11 @@ export default function ChatPage({ onHome, onAuthRequired }) {
             const generatedData = await generated.json();
             if (generatedData.file) {
               attachments = [generatedData.file];
+              addLibraryFile({
+                ...generatedData.file,
+                content: artifact?.content || answer,
+                conversation_id: baseChat.id,
+              });
               try {
                 const a = document.createElement("a");
                 a.href = generatedData.file.url;
@@ -1264,6 +1412,11 @@ export default function ChatPage({ onHome, onAuthRequired }) {
             const generatedData = await generated.json();
             if (generatedData.file) {
               attachments = [generatedData.file];
+              addLibraryFile({
+                ...generatedData.file,
+                content: artifact?.content || fallbackAns,
+                conversation_id: baseChat.id,
+              });
               try {
                 const a = document.createElement("a");
                 a.href = generatedData.file.url;
@@ -1376,6 +1529,53 @@ export default function ChatPage({ onHome, onAuthRequired }) {
     ].filter((g) => g.items.length > 0);
   }, [filteredChats]);
 
+  const allDocxFiles = useMemo(() => {
+    const map = new Map();
+    // 1. Files from state / database
+    for (const f of libraryFiles) {
+      const isDocx = f.format === "docx" || f.name?.endsWith(".docx") || f.filename?.endsWith(".docx");
+      if (isDocx) map.set(f.id || f.name, f);
+    }
+    // 2. Scan attachments from conversation messages
+    for (const chat of chats || []) {
+      for (const msg of chat.messages || []) {
+        for (const att of msg.attachments || []) {
+          const isDocx = att && (att.format === "docx" || att.name?.endsWith(".docx") || att.filename?.endsWith(".docx"));
+          if (isDocx) {
+            const key = att.id || att.name || att.url;
+            if (!map.has(key)) {
+              map.set(key, {
+                id: att.id || crypto.randomUUID(),
+                name: att.name || att.filename || "document.docx",
+                filename: att.filename || att.name || "document.docx",
+                format: "docx",
+                size: att.size || att.size_bytes || 0,
+                size_bytes: att.size_bytes || att.size || 0,
+                conversation_id: chat.id,
+                created_at: msg.createdAt || chat.createdAt || new Date().toISOString(),
+                content: msg.artifact?.content || msg.content || "",
+                url: att.url || (att.id ? `/api/generated-files?id=${att.id}` : null),
+              });
+            }
+          }
+        }
+      }
+    }
+    return Array.from(map.values()).sort(
+      (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
+    );
+  }, [libraryFiles, chats]);
+
+  const filteredDocxFiles = useMemo(() => {
+    if (!searchQuery.trim()) return allDocxFiles;
+    const q = searchQuery.toLowerCase();
+    return allDocxFiles.filter(
+      (f) =>
+        (f.name || "").toLowerCase().includes(q) ||
+        (f.filename || "").toLowerCase().includes(q)
+    );
+  }, [allDocxFiles, searchQuery]);
+
   return (
     <div className="beebotLayout">
       {/* Top App Tabs Bar with Window Controls */}
@@ -1475,18 +1675,27 @@ export default function ChatPage({ onHome, onAuthRequired }) {
               <span>Explore</span>
             </button>
             <button
-              className={`beebotNavItem ${activeNav === "library" ? "active" : ""}`}
+              className={`beebotNavItem ${activeNav === "library" || sidebarTab === "library" ? "active" : ""}`}
               onClick={() => {
                 setActiveNav("library");
-                uploadInputRef.current?.click();
+                setSidebarTab("library");
               }}
+              title="Word Document Library"
             >
               <BookOpen className="w-4 h-4" />
               <span>Library</span>
+              {allDocxFiles.length > 0 && (
+                <span className="beebotNavBadge">{allDocxFiles.length}</span>
+              )}
             </button>
             <button
               className={`beebotNavItem ${activeNav === "history" ? "active" : ""}`}
-              onClick={() => { setActiveNav("history"); setSearchQuery(""); searchInputRef.current?.focus(); }}
+              onClick={() => {
+                setActiveNav("history");
+                setSidebarTab("chats");
+                setSearchQuery("");
+                searchInputRef.current?.focus();
+              }}
               title="Search conversation history"
             >
               <Clock3 className="w-4 h-4" />
@@ -1494,38 +1703,154 @@ export default function ChatPage({ onHome, onAuthRequired }) {
             </button>
           </nav>
 
-          {/* Grouped History with clean hover delete */}
-          <div className="beebotHistoryScroll">
-            {groupedChats.map((group) => (
-              <div key={group.label} className="beebotHistorySection">
-                <div className="beebotHistoryHeader">{group.label}</div>
-                {group.items.map((chat) => (
-                  <div
-                    key={chat.id}
-                    className={`beebotHistoryRow ${chat.id === activeId ? "active" : ""}`}
-                  >
-                    <button
-                      className="beebotHistoryItem"
-                      onClick={() => openChat(chat.id)}
-                      title={chat.title}
-                    >
-                      {chat.title || "Untitled Conversation"}
-                    </button>
-                    <button
-                      className="beebotHistoryDelete"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteChat(chat.id);
-                      }}
-                      title="Delete chat"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ))}
+          {/* Switcher tabs between Chats & DOCX Library */}
+          <div className="beebotSidebarTabs">
+            <button
+              type="button"
+              className={`beebotSidebarTab ${sidebarTab === "chats" && activeNav !== "library" ? "active" : ""}`}
+              onClick={() => {
+                setSidebarTab("chats");
+                if (activeNav === "library") setActiveNav("home");
+              }}
+            >
+              <MessageSquare className="w-3 h-3" />
+              <span>Chats</span>
+              <span className="beebotSidebarTabBadge">{chats.length}</span>
+            </button>
+            <button
+              type="button"
+              className={`beebotSidebarTab ${sidebarTab === "library" || activeNav === "library" ? "active" : ""}`}
+              onClick={() => {
+                setSidebarTab("library");
+                setActiveNav("library");
+              }}
+            >
+              <BookOpen className="w-3 h-3" />
+              <span>DOCX</span>
+              <span className="beebotSidebarTabBadge">{allDocxFiles.length}</span>
+            </button>
           </div>
+
+          {sidebarTab === "library" || activeNav === "library" ? (
+            <div className="beebotLibraryScroll">
+              <div className="beebotLibraryHeaderBar">
+                <span className="beebotLibraryTitle">Word Documents (.docx)</span>
+                <button
+                  type="button"
+                  className="beebotLibraryRefreshBtn"
+                  onClick={syncLibraryFiles}
+                  title="Sync DOCX library from server"
+                >
+                  <RotateCw className={`w-3 h-3 ${libraryLoading ? "animate-spin" : ""}`} />
+                </button>
+              </div>
+
+              {filteredDocxFiles.length === 0 ? (
+                <div className="beebotLibraryEmpty">
+                  <div className="beebotLibraryEmptyIcon">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div className="beebotLibraryEmptyTitle">No Word Documents Yet</div>
+                  <div className="beebotLibraryEmptyDesc">
+                    Any agreement, NDA, or patent drafted as a Word document will be stored here automatically.
+                  </div>
+                  <button
+                    type="button"
+                    className="beebotLibrarySampleBtn"
+                    onClick={() => {
+                      setSidebarTab("chats");
+                      setActiveNav("home");
+                      send("Draft a mutual NDA between A Ltd and B Ltd as a Word document");
+                    }}
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>Draft Sample NDA (.docx)</span>
+                  </button>
+                </div>
+              ) : (
+                filteredDocxFiles.map((file) => (
+                  <div
+                    key={file.id || file.name}
+                    className="beebotDocxCard"
+                    onClick={() => openLibraryDocInPanel(file)}
+                    title={`Click to view ${file.name} in document panel`}
+                  >
+                    <div className="beebotDocxTop">
+                      <div className="beebotDocxIconBadge">W</div>
+                      <div className="beebotDocxInfo">
+                        <div className="beebotDocxName">{file.name}</div>
+                        <div className="beebotDocxMeta">
+                          <span>{file.size ? `${Math.round(file.size / 1024)} KB` : "Word Doc"}</span>
+                          <span className="beebotDocxMetaDot" />
+                          <span>{new Date(file.created_at || Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="beebotDocxActions">
+                      <button
+                        type="button"
+                        className="beebotDocxActionBtn download"
+                        onClick={(e) => downloadLibraryFile(file, e)}
+                        title="Download DOCX file"
+                      >
+                        <Download className="w-3 h-3" />
+                        <span>Download</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="beebotDocxActionBtn"
+                        onClick={(e) => openLibraryDocInPanel(file, e)}
+                        title="Open in Right Panel"
+                      >
+                        <FileText className="w-3 h-3" />
+                        <span>View</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="beebotDocxActionBtn delete"
+                        onClick={(e) => deleteLibraryFile(file.id, e)}
+                        title="Delete from Library"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          ) : (
+            <div className="beebotHistoryScroll">
+              {groupedChats.map((group) => (
+                <div key={group.label} className="beebotHistorySection">
+                  <div className="beebotHistoryHeader">{group.label}</div>
+                  {group.items.map((chat) => (
+                    <div
+                      key={chat.id}
+                      className={`beebotHistoryRow ${chat.id === activeId ? "active" : ""}`}
+                    >
+                      <button
+                        className="beebotHistoryItem"
+                        onClick={() => openChat(chat.id)}
+                        title={chat.title}
+                      >
+                        {chat.title || "Untitled Conversation"}
+                      </button>
+                      <button
+                        className="beebotHistoryDelete"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteChat(chat.id);
+                        }}
+                        title="Delete chat"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* User Profile Card */}
           <div className="beebotUserCard" onClick={logout} title="Click to log out or switch account">
@@ -1936,7 +2261,10 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                   <DocPanel
                     doc={docPanel}
                     onClose={() => setDocPanel(null)}
-                    onExported={(file) => recordToolResult?.(`## Document exported\n\n**${file.name}** ready for download.`, { task_class: "DOCUMENT_EXPORT", source_basis: "user_supplied" })}
+                    onExported={(file) => {
+                      recordToolResult?.(`## Document exported\n\n**${file.name}** ready for download.`, { task_class: "DOCUMENT_EXPORT", source_basis: "user_supplied" });
+                      addLibraryFile({ ...file, content: docPanel?.content || "" });
+                    }}
                   />
                 </Suspense>
               )}

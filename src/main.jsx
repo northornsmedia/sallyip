@@ -56,6 +56,8 @@ import "./brain-admin.css";
 import PricingPage from "@/components/pricing-page";
 import AuthPage from "@/components/auth-page";
 import TransparencyPage from "@/components/transparency-page";
+import HomePageRedesign from "@/components/home-page-redesign";
+import "./home-redesign.css";
 import "./styles.css";
 import "./brand.css";
 import "./premium.css";
@@ -1774,7 +1776,12 @@ function App() {
   return (
     <>
       {page === "home" ? (
-        <Landing />
+        <HomePageRedesign
+          onOpenChat={() => go("chat")}
+          onOpenAuth={() => go("auth")}
+          onOpenPricing={() => go("pricing")}
+          onOpenTransparency={() => go("transparency")}
+        />
       ) : page === "accessadmin" ? (
         <BrainAdminPage onHome={() => go("home")} />
       ) : page === "auth" ? (
