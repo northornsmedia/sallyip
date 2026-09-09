@@ -29,8 +29,8 @@ export function validateArtifactContent(value) {
 }
 
 const FILE_PATTERN = /\b(pdf|docx?|word(?: document)?|xlsx?|excel|csv|markdown|md|txt|text file)\b/i
-const EXPORT_PATTERN = /\b(create|generate|make|export|download|convert|provide|give|turn)\b/i
-const DOCUMENT_PATTERN = /\b(draft|write|prepare|create|generate)\b[\s\S]*\b(agreement|contract|memorandum|memo|opinion|letter|report|notice|policy|brief|claim chart|checklist|document)\b/i
+const EXPORT_PATTERN = /\b(create|generate|make|export|download|convert|provide|give|turn|draft|write|prepare)\b/i
+const DOCUMENT_PATTERN = /\b(draft|write|prepare|create|generate)\b[\s\S]*\b(agreement|contract|memorandum|memo|opinion|letter|report|notice|policy|brief|claim chart|checklist|document|nda|patent application|specification|claims|assignment|licence|license|declaration|petition)\b/i
 const REVISION_PATTERN = /\b(revise|change|replace|rename|amend|edit|update|remove|add|rewrite|restore)\b/i
 const REFERENCE_PATTERN = /\b(this|that|it|previous|above|same|last|document|agreement|report|draft|version)\b/i
 

@@ -73,7 +73,7 @@ const thinkingStages = [
 ];
 const detectFileRequest = (text) => {
   const match = text.match(/\b(pdf|docx?|word document|pptx?|powerpoint|xlsx?|excel|csv|markdown|md|html|json|txt|text file)\b/i);
-  const requestsDownload = /\b(create|generate|make|export|prepare|download|convert|provide|give|turn .+ into)\b/i.test(text);
+  const requestsDownload = /\b(create|generate|make|export|prepare|download|convert|provide|give|draft|write|turn .+ into)\b/i.test(text);
   const implied = /\b(downloadable version|turn (this|that|it) into (a )?document)\b/i.test(text);
   if (!match && !implied) return null;
   if (!requestsDownload && text.trim().split(/\s+/).length > 6) return null;
@@ -85,7 +85,7 @@ const isBareFileRequest = (text) =>
   text.trim().split(/\s+/).length <= 6 &&
   /\b(pdf|docx?|word|pptx?|xlsx?|excel|csv|markdown|md|html|json|txt|downloadable)\b/i.test(text);
 const detectDocumentRequest = (text) =>
-  /\b(draft|write|prepare|create|generate)\b[\s\S]*\b(agreement|contract|memorandum|memo|opinion|letter|report|notice|policy|brief|claim chart|checklist|document)\b/i.test(text);
+  /\b(draft|write|prepare|create|generate)\b[\s\S]*\b(agreement|contract|memorandum|memo|opinion|letter|report|notice|policy|brief|claim chart|checklist|document|nda|patent application|specification|claims|assignment|licence|license|declaration|petition)\b/i.test(text);
 const detectRevisionRequest = (text) =>
   /\b(revise|change|replace|rename|amend|edit|update|remove|add|rewrite)\b/i.test(text);
 const referencesPreviousArtifact = (text) =>

@@ -25,6 +25,24 @@ test('draft and export requires new clean document content', () => {
   assert.equal(intent.requires_document_content, true)
 })
 
+test('draft NDA as Word routes to export with content', () => {
+  const intent = classifyDocumentIntent('Draft a mutual NDA between A Ltd and B Ltd as a Word document')
+  assert.equal(intent.intent, 'EXPORT_DOCUMENT')
+  assert.equal(intent.format, 'docx')
+  assert.equal(intent.requires_document_content, true)
+})
+
+test('patent drafting language routes to document content', () => {
+  assert.equal(classifyDocumentIntent('Write my patent claims as PDF').intent, 'EXPORT_DOCUMENT')
+  assert.equal(classifyDocumentIntent('Draft a patent application for my new mouse tech').intent, 'DRAFT_LEGAL_DOCUMENT')
+  assert.equal(classifyDocumentIntent('prepare the specification').intent, 'DRAFT_LEGAL_DOCUMENT')
+})
+
+test('general questions stay out of document flows', () => {
+  assert.equal(classifyDocumentIntent('What is FTO?').intent, 'CHAT')
+  assert.equal(classifyDocumentIntent('Explain novelty').intent, 'CHAT')
+})
+
 test('tool contract exposes only supported semantic formats', () => {
   assert.deepEqual(GENERATE_FILE_TOOL.formats, ['pdf', 'docx', 'xlsx', 'csv', 'txt', 'md'])
 })
