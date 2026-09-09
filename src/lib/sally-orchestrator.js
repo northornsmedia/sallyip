@@ -17,8 +17,8 @@ const OPENROUTER_CHAT_URL='https://openrouter.ai/api/v1/chat/completions'
 const engineUrl=(engine,env)=>engine.baseUrl&&env[engine.baseUrl]?`${String(env[engine.baseUrl]).replace(/\/+$/,'')}/chat/completions`:OPENROUTER_CHAT_URL
 const engineCredential=(engine,env)=>env[engine.key]||(!engine.baseUrl?env.OPENROUTER_API_KEY:null)
 const RETRY_FAST_FAIL_MS=1000
-const STRAGGLER_ABORT_MS=6000
-const RACE_TIMEOUT=8000
+const STRAGGLER_ABORT_MS=25000
+const RACE_TIMEOUT=28000
 const STREAM_CHUNK_SIZE=48
 const STREAM_CHUNK_DELAY_MS=12
 
@@ -74,6 +74,7 @@ function createWireTrace(){
 
 function createEngineCollector(env,messages,headers,trace,engines=CHAT_ENGINES){
   const requestMessages=[{role:'system',content:INTERNAL_PROMPT},...messages]
+  const maxTokens=Number(env.SALLYIP_MAX_TOKENS)||4096
   const controllers=new Map()
   const runAttempt=async(engine,allowRetry)=>{
     const started=Date.now()
@@ -82,7 +83,7 @@ function createEngineCollector(env,messages,headers,trace,engines=CHAT_ENGINES){
     try{
       const credential=engineCredential(engine,env)
       if(!credential)throw new Error('Model credential unavailable')
-      const content=await fetchStreamingContent(engineUrl(engine,env),{method:'POST',headers:headers(env[engine.key]),signal:controller.signal,body:JSON.stringify({model:engine.slug,temperature:.3,max_tokens:900,messages:requestMessages})}, STRAGGLER_ABORT_MS)
+      const content=await fetchStreamingContent(engineUrl(engine,env),{method:'POST',headers:headers(env[engine.key]),signal:controller.signal,body:JSON.stringify({model:engine.slug,temperature:.3,max_tokens:maxTokens,messages:requestMessages})}, STRAGGLER_ABORT_MS)
       controllers.delete(engine.slug)
       trace.add('node',engine.name+' responded · '+content.length+' chars','success')
       return{...engine,content,status:'success',latency_ms:Date.now()-started,retried:!allowRetry}
@@ -158,7 +159,7 @@ export async function persistBrainOutcome(sql,record){
 
 export async function orchestrateSallyStreaming(messages,env,siteUrl='https://sallyip.com',onToken=null,options={}){
   const totalStarted=Date.now()
-  const budget=onToken?16000:9500
+  const budget=onToken?35000:25000
   const deadline=totalStarted+budget
   const headers=key=>({Authorization:`Bearer ${key}`,'Content-Type':'application/json','HTTP-Referer':siteUrl,'X-Title':'SallyIP Labs'})
   const latest=[...messages].reverse().find(message=>message.role==='user')?.content||''
@@ -180,7 +181,7 @@ export async function orchestrateSallyStreaming(messages,env,siteUrl='https://sa
   const racers=weightedEngines.filter(engine=>engine.slug!==OX_ALPHA_SLUG)
   const racerEnv={...env}
   const collector=createEngineCollector(racerEnv,messages,headers,trace,racers)
-  const collectCutoff=Math.max(4500,budget*0.45)
+  const collectCutoff=Math.max(12000,budget*0.65)
   const {attempts,successes}=await collector.run(collectCutoff)
 
   // === OX-ALPHA RESCUE: if fewer than RESCUE_THRESHOLD engines succeeded, run ox-alpha alone ===
@@ -259,7 +260,8 @@ export async function orchestrateSallyStreaming(messages,env,siteUrl='https://sa
   try{
     const remaining=deadline-Date.now()
     if(candidates.length>1&&remaining>800){
-      const rawFinal=await fetchStreamingContent(engineUrl(synthesisEngine,env),{method:'POST',headers:headers(engineCredential(synthesisEngine,env)),body:JSON.stringify({model:synthesisEngine.slug,max_tokens:900,messages:[{role:'system',content:'You are Sally, the single public intelligence of SallyIP 4.1 Pro. Merge the weighted internal candidate answers into one accurate, direct, well-structured Markdown response. Resolve conflicts, preserve useful caveats, remove repetition, and never mention internal model/provider names, candidates, orchestration, weights, tool syntax, or hidden reasoning. Your name is Sally and no other name.'},{role:'user',content:`USER QUESTION:\n${latest}\n\nINTERNAL EVIDENCE:\n${evidence}`}]})},Math.min(7000,remaining),onToken)
+      const synthesisTokens=Number(env.SALLYIP_MAX_TOKENS)||4096
+      const rawFinal=await fetchStreamingContent(engineUrl(synthesisEngine,env),{method:'POST',headers:headers(engineCredential(synthesisEngine,env)),body:JSON.stringify({model:synthesisEngine.slug,max_tokens:synthesisTokens,messages:[{role:'system',content:'You are Sally, the single public intelligence of SallyIP 4.1 Pro. Merge the weighted internal candidate answers into one accurate, direct, well-structured Markdown response. Resolve conflicts, preserve useful caveats, remove repetition, and never mention internal model/provider names, candidates, orchestration, weights, tool syntax, or hidden reasoning. Your name is Sally and no other name.'},{role:'user',content:`USER QUESTION:\n${latest}\n\nINTERNAL EVIDENCE:\n${evidence}`}]})},Math.min(18000,remaining),onToken)
       finalAnswer=sanitizeModelResponse(rawFinal)
       synthesisStatus='success'
       trace.add('synthesis','merged answer streamed · '+finalAnswer.length+' chars','success')
