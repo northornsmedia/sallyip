@@ -100,27 +100,33 @@ const makeArtifact = ({ title, content, previous }) => ({
   version: (previous?.version || 0) + 1,
   updated_at: new Date().toISOString(),
 });
-const persistArtifact = async ({ artifact, conversationId, revision }) => {
-  const response = await fetch("/api/artifacts", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      action: revision ? "revise" : "create",
-      artifact_id: artifact.id,
-      conversation_id: conversationId,
-      title: artifact.title,
-      document_type: artifact.document_type || "legal_document",
-      content: artifact.content,
-      metadata: artifact.metadata || {
-        practice_area: "Intellectual Property",
-        status: "draft",
-        requires_review: true,
-      },
-    }),
-  });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data?.error?.message || "Artifact could not be saved");
-  return data.artifact;
+const persistArtifact = async ({ artifact, conversationId, conversation_id, revision }) => {
+  const convId = conversationId || conversation_id;
+  try {
+    const response = await fetch("/api/artifacts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: revision ? "revise" : "create",
+        artifact_id: artifact.id,
+        conversation_id: convId,
+        title: artifact.title,
+        document_type: artifact.document_type || "legal_document",
+        content: artifact.content,
+        metadata: artifact.metadata || {
+          practice_area: "Intellectual Property",
+          status: "draft",
+          requires_review: true,
+        },
+      }),
+    });
+    if (!response.ok) return artifact;
+    const data = await response.json().catch(() => ({}));
+    return data.artifact || artifact;
+  } catch (err) {
+    console.warn("Could not persist artifact to server:", err);
+    return artifact;
+  }
 };
 const makeChat = () => ({
   id: crypto.randomUUID(),
@@ -260,6 +266,141 @@ I am ready to assist you across key patent and legal workflows:
    - Direct mark clearance across EUIPO, USPTO, and common-law registries.
 
 What invention, matter, or legal question would you like to explore today?`;
+  }
+
+  // 2.5 Mutual NDA / Contract / Agreement drafting
+  const isNdaOrContract =
+    /\b(nda|non[- ]disclosure|nondisclosure|confidentiality agreement|confidentiality)\b/i.test(p) ||
+    (/\b(draft|write|prepare|create|generate)\b/i.test(p) && /\b(agreement|contract|covenant)\b/i.test(p));
+
+  if (isNdaOrContract) {
+    let partyA = "A Ltd";
+    let partyB = "B Ltd";
+    const betweenMatch = prompt.match(/\bbetween\s+([A-Za-z0-9\s.,&'-]+?)\s+and\s+([A-Za-z0-9\s.,&'-]+?)(?:\s+(?:as|for|in|under|with|to)\b|\.|\?|!|$)/i);
+    if (betweenMatch) {
+      partyA = betweenMatch[1].trim();
+      partyB = betweenMatch[2].trim();
+    } else {
+      const partiesMatch = prompt.match(/\bfor\s+([A-Za-z0-9\s.,&'-]+?)\s+and\s+([A-Za-z0-9\s.,&'-]+?)(?:\s+(?:as|for|in|under|with)\b|\.|\?|!|$)/i);
+      if (partiesMatch) {
+        partyA = partiesMatch[1].trim();
+        partyB = partiesMatch[2].trim();
+      }
+    }
+    const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    return `# MUTUAL NON-DISCLOSURE AND CONFIDENTIALITY AGREEMENT
+
+**THIS MUTUAL NON-DISCLOSURE AGREEMENT** (this "Agreement") is entered into and made effective as of **${today}** (the "Effective Date"), by and between:
+
+- **${partyA}**, a corporation duly organized and existing under applicable corporate law, with its principal place of business ("**${partyA}**"), and
+- **${partyB}**, a corporation duly organized and existing under applicable corporate law, with its principal place of business ("**${partyB}**").
+
+*(Each of ${partyA} and ${partyB} is referred to individually as a "**Party**" and collectively as the "**Parties**".)*
+
+---
+
+### RECITALS
+
+**WHEREAS**, the Parties desire to explore, evaluate, and pursue a potential business relationship, technology evaluation, intellectual property transaction, or commercial collaboration (the "**Authorized Purpose**"); and
+
+**WHEREAS**, in connection with the Authorized Purpose, each Party may disclose to the other Party certain proprietary, non-public, technical, patentable, commercial, or financial information; and
+
+**WHEREAS**, the Parties desire to establish binding terms governing the non-disclosure, restricted use, and protection of such Confidential Information.
+
+**NOW, THEREFORE**, in consideration of the mutual promises, covenants, and undertakings set forth herein, the Parties agree as follows:
+
+---
+
+### 1. DEFINITION OF CONFIDENTIAL INFORMATION
+
+1.1 **Scope**. "**Confidential Information**" means any and all non-public, confidential, or proprietary technical, business, legal, financial, or product data disclosed by one Party ("**Disclosing Party**") to the other Party ("**Receiving Party**"), whether disclosed orally, visually, in writing, electronically, or via physical inspection, that:
+- (a) is marked or identified as "Confidential", "Proprietary", or with equivalent restrictive legend at the time of disclosure; or
+- (b) by its nature or the context of disclosure, ought reasonably to be treated as confidential and proprietary.
+
+1.2 **Inclusions**. Confidential Information includes, without limitation:
+- Invention disclosures, patent claims, prior-art documentation, prosecution strategies, and IP filings;
+- Computer code, algorithms, software architectures, APIs, system designs, benchmarks, and data schemas;
+- Commercial roadmaps, customer identities, pricing structures, financial metrics, and strategic analyses.
+
+---
+
+### 2. EXCLUSIONS FROM CONFIDENTIALITY
+
+Confidential Information shall not include any information that the Receiving Party can establish by competent written evidence:
+- 2.1 is or becomes generally available to the public without breach of this Agreement by Receiving Party;
+- 2.2 was already rightfully known to Receiving Party prior to disclosure by Disclosing Party without restriction;
+- 2.3 is independently developed by Receiving Party's personnel without access to or use of Disclosing Party's Confidential Information; or
+- 2.4 is rightfully received from a third party free of confidentiality restrictions.
+
+---
+
+### 3. NON-DISCLOSURE AND RESTRICTED USE OBLIGATIONS
+
+3.1 **Degree of Care**. The Receiving Party shall protect Confidential Information with at least the degree of care it uses for its own confidential information of like importance, and in no event less than a reasonable standard of care.
+
+3.2 **Restricted Purpose**. The Receiving Party shall use Confidential Information solely and exclusively in furtherance of the Authorized Purpose. Receiving Party shall not reverse engineer, decompile, or disassemble any prototypes, software, or technical samples provided.
+
+3.3 **Restricted Access**. Receiving Party shall limit access to Confidential Information strictly to those of its directors, officers, employees, and professional legal/financial advisors ("**Representatives**") who have a need to know for the Authorized Purpose and who are bound by confidentiality obligations at least as restrictive as this Agreement.
+
+---
+
+### 4. COMPELLED DISCLOSURE
+
+If Receiving Party is compelled by subpoena, legal process, or regulatory order to disclose any Confidential Information, Receiving Party shall provide prompt written notice to Disclosing Party (where legally permissible) to enable Disclosing Party to seek a protective order or other remedy.
+
+---
+
+### 5. TERM AND TERMINATION
+
+5.1 **Term**. This Agreement shall govern all disclosures made between the Parties for a period of **two (2) years** from the Effective Date, unless terminated earlier by either Party upon thirty (30) days' written notice.
+
+5.2 **Survival**. The confidentiality obligations set forth herein shall survive the termination or expiration of this Agreement for a period of **three (3) years** from the date of disclosure; provided that any information constituting a **Trade Secret** shall remain protected for as long as it retains trade secret status under applicable law.
+
+---
+
+### 6. RETURN OR DESTRUCTION OF MATERIALS
+
+Upon Disclosing Party's written request, Receiving Party shall promptly return or certify the secure destruction of all tangible and electronic embodiments of Confidential Information within thirty (30) days, subject only to bona fide regulatory compliance and archival backup requirements.
+
+---
+
+### 7. NO LICENSE OR IP CONVEYANCE
+
+Nothing contained in this Agreement shall be construed as granting, either expressly or by implication, estoppel or otherwise, any license, title, ownership, or right under any patent, trademark, copyright, or trade secret of either Party.
+
+---
+
+### 8. EQUITABLE RELIEF
+
+The Parties acknowledge that damages at law may be an inadequate remedy for any breach of this Agreement and that Disclosing Party shall be entitled to seek injunctive relief and specific performance in any court of competent jurisdiction without the requirement of posting a bond, in addition to all other legal remedies available.
+
+---
+
+### 9. GOVERNING LAW AND DISPUTE RESOLUTION
+
+This Agreement shall be governed by, construed, and enforced in accordance with the laws of the **State of Delaware** (or applicable governing corporate jurisdiction), without regard to its conflicts of law principles. Any dispute arising under or in connection with this Agreement shall be submitted to the exclusive jurisdiction of the competent courts located therein.
+
+---
+
+### 10. MISCELLANEOUS
+
+- 10.1 **Entire Agreement**. This Agreement embodies the entire understanding of the Parties with respect to the subject matter hereof and supersedes all prior agreements and understandings.
+- 10.2 **Severability**. If any provision of this Agreement is held invalid or unenforceable, all other provisions shall remain in full force and effect.
+- 10.3 **Counterparts and Signatures**. This Agreement may be executed in counterparts, each of which shall be deemed an original, including electronic and PDF signature transmissions.
+
+---
+
+### SIGNATURES AND EXECUTION
+
+**IN WITNESS WHEREOF**, the Parties hereto have caused this Mutual Non-Disclosure Agreement to be executed by their duly authorized representatives.
+
+| **FOR AND ON BEHALF OF:**<br>**${partyA}** | **FOR AND ON BEHALF OF:**<br>**${partyB}** |
+| :--- | :--- |
+| **By:** ____________________________________ | **By:** ____________________________________ |
+| **Name:** Authorized Signatory | **Name:** Authorized Signatory |
+| **Title:** Corporate Officer / Director | **Title:** Corporate Officer / Director |
+| **Date:** ${today} | **Date:** ${today} |`;
   }
 
   const isPatentDraftingRequest =
@@ -697,6 +838,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
     for (let i = 0; i < lines.length; i++) {
       currentOutput += (i > 0 ? "\n" : "") + lines[i];
       setStreamingAnswer(currentOutput);
+      setDocPanel((p) => (p?.live ? { ...p, content: currentOutput } : p));
       if (threadRef.current) {
         threadRef.current.scrollTop = threadRef.current.scrollHeight;
       }
@@ -1025,6 +1167,8 @@ export default function ChatPage({ onHome, onAuthRequired }) {
           revision: revisionRequest,
         });
         setDocPanel((p) => p ? { ...p, title: artifact.title, content: artifact.content, version: artifact.version, live: false, artifact, conversationId: baseChat.id } : p);
+      } else {
+        setDocPanel((p) => p?.live ? { ...p, live: false, content: answer } : p);
       }
       let attachments = [];
       if (fileRequest) {
@@ -1043,7 +1187,17 @@ export default function ChatPage({ onHome, onAuthRequired }) {
           });
           if (generated.ok) {
             const generatedData = await generated.json();
-            if (generatedData.file) attachments = [generatedData.file];
+            if (generatedData.file) {
+              attachments = [generatedData.file];
+              try {
+                const a = document.createElement("a");
+                a.href = generatedData.file.url;
+                a.download = generatedData.file.name || `document.${fileRequest.format}`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+              } catch {}
+            }
           }
         } catch {}
       }
@@ -1072,13 +1226,70 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       const fallbackAns = getFallbackLegalResponse(clean, user, baseChat.messages);
       await transitionToComplete();
       await streamResponseLineByLine(fallbackAns);
+
+      let artifact = documentRequest || revisionRequest
+        ? makeArtifact({
+            title: fileRequest?.title || previousArtifact?.title || titleFor(clean),
+            content: fallbackAns,
+            previous: revisionRequest ? previousArtifact : null,
+          })
+        : null;
+      if (artifact) {
+        artifact = await persistArtifact({
+          artifact,
+          conversation_id: baseChat.id,
+          revision: revisionRequest,
+        });
+        setDocPanel((p) => p ? { ...p, title: artifact.title, content: artifact.content, version: artifact.version, live: false, artifact, conversationId: baseChat.id } : p);
+      } else {
+        setDocPanel((p) => p?.live ? { ...p, live: false, content: fallbackAns } : p);
+      }
+
+      let attachments = [];
+      if (fileRequest) {
+        try {
+          const generated = await fetch("/api/generate-file", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ...fileRequest,
+              title: artifact?.title || titleFor(clean),
+              content: artifact?.content || fallbackAns,
+              artifact_id: artifact?.id,
+              artifact_version: artifact?.version,
+              conversation_id: baseChat.id,
+            }),
+          });
+          if (generated.ok) {
+            const generatedData = await generated.json();
+            if (generatedData.file) {
+              attachments = [generatedData.file];
+              try {
+                const a = document.createElement("a");
+                a.href = generatedData.file.url;
+                a.download = generatedData.file.name || `document.${fileRequest.format}`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+              } catch {}
+            }
+          }
+        } catch {}
+      }
+
       const finalChat = {
         ...baseChat,
         messages: [
           ...next,
           {
             role: "assistant",
-            content: fallbackAns,
+            content: fileRequest
+              ? attachments.length
+                ? `Your ${fileRequest.format.toUpperCase()} has been created.`
+                : fallbackAns
+              : fallbackAns,
+            artifact,
+            attachments,
           },
         ],
       };

@@ -54,6 +54,7 @@ export function classifyDocumentIntent(input) {
 
 export async function resolveArtifactReference(sql, userId, conversationId, requested = {}) {
   if (!conversationId) return null
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(conversationId)) return null
   const [conversation] = await sql`
     SELECT id,last_active_artifact_id FROM conversations
     WHERE id=${conversationId} AND user_id=${userId} LIMIT 1`

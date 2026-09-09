@@ -40,3 +40,10 @@ test('no pack codes means no pack query effect', async () => {
   await retrieveHybridEvidence(mockSql, 'u1', 'matter-1', 'test query here', {})
   assert.equal(packQueried, false)
 })
+
+test('extracts section references for direct passage lookup', async () => {
+  const { extractSectionRefs } = await import('../src/lib/verification-service.js')
+  assert.deepEqual(extractSectionRefs('rejected under 35 U.S.C. 102 as anticipated'), ['102'])
+  assert.deepEqual(extractSectionRefs('Under MPEP 2106, is this eligible?'), ['2106'])
+  assert.deepEqual(extractSectionRefs('What is a patent?'), [])
+})

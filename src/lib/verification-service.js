@@ -1,10 +1,28 @@
 const searchTerms=text=>[...new Set((text.toLowerCase().match(/[a-z0-9][a-z0-9-]{3,}/g)||[]).filter(term=>!['that','this','with','from','what','when','where','which','about'].includes(term)))].slice(0,8)
 
+export function extractSectionRefs(query) {
+  const text = String(query || ''), refs = new Set()
+  for (const m of text.matchAll(/§\s*(\d{2,4}[a-z]?(?:\(\w+\))?)/g)) refs.add(m[1])
+  for (const m of text.matchAll(/MPEP\s*§?\s*(\d{4})/gi)) refs.add(m[1])
+  for (const m of text.matchAll(/\b(10[123]|11[12]|2106)\b/g)) refs.add(m[1])
+  return [...refs].slice(0, 6)
+}
+
 export async function retrievePackEvidence(sql,codes,query,{limit=6}={}){
   if(!codes?.length)return[]
   const terms=searchTerms(query);if(!terms.length)return[]
   const pattern=`%${terms.join('%')}%`
-  return sql`SELECT s.id source_id,s.title,s.source_type,s.authority_tier,s.jurisdiction,s.citation,s.official_url,s.authority_status,s.retrieval_method,s.verified_at,p.id passage_id,p.locator_type,p.locator,p.content FROM legal_sources s JOIN source_passages p ON p.source_id=s.id WHERE s.source_type='jurisdiction_pack' AND s.matter_id IS NULL AND s.jurisdiction=ANY(${codes}) AND p.content ILIKE ${pattern} ORDER BY s.authority_tier ASC LIMIT ${Math.min(Math.max(Number(limit)||6,1),20)}`
+  const base=await sql`SELECT s.id source_id,s.title,s.source_type,s.authority_tier,s.jurisdiction,s.citation,s.official_url,s.authority_status,s.retrieval_method,s.verified_at,p.id passage_id,p.locator_type,p.locator,p.content FROM legal_sources s JOIN source_passages p ON p.source_id=s.id WHERE s.source_type='jurisdiction_pack' AND s.matter_id IS NULL AND s.jurisdiction=ANY(${codes}) AND p.content ILIKE ${pattern} ORDER BY s.authority_tier ASC LIMIT ${Math.min(Math.max(Number(limit)||6,1),20)}`
+  // Quote-seeking queries ("quote §102") carry instruction words, not content
+  // words: resolve explicit section references straight to their passages.
+  const refs=extractSectionRefs(query)
+  if(!refs.length)return base
+  const seen=new Set(base.map(r=>r.passage_id))
+  for(const ref of refs){
+    const extra=await sql`SELECT s.id source_id,s.title,s.source_type,s.authority_tier,s.jurisdiction,s.citation,s.official_url,s.authority_status,s.retrieval_method,s.verified_at,p.id passage_id,p.locator_type,p.locator,p.content FROM legal_sources s JOIN source_passages p ON p.source_id=s.id WHERE s.source_type='jurisdiction_pack' AND s.matter_id IS NULL AND s.jurisdiction=ANY(${codes}) AND p.locator ILIKE ${`%${ref}%`} ORDER BY s.authority_tier ASC LIMIT 4`
+    for(const row of extra)if(!seen.has(row.passage_id)){seen.add(row.passage_id);base.push(row)}
+  }
+  return base.slice(0,Math.min(Math.max(Number(limit)||6,1),20)+refs.length*2)
 }
 
 export async function retrieveVerifiedEvidence(sql,userId,matterId,query,{limit=8,minOverlap=0}={}){
