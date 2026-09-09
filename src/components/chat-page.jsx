@@ -755,8 +755,8 @@ export default function ChatPage({ onHome, onAuthRequired }) {
           </button>
 
           <div className="beebotTabBtn active">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-            <span className="max-w-[140px] truncate">{active?.title || "BeeBot"}</span>
+            <img src="/sallyip-brand-mark.png" alt="" className="w-3.5 h-3.5 object-contain shrink-0" />
+            <span className="max-w-[140px] truncate">{active?.title || "SallyIP"}</span>
             <button
               className="beebotTabClose"
               onClick={(e) => {
@@ -788,9 +788,9 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         <aside className="beebotSidebar">
           <div className="beebotBrand" onClick={onHome}>
             <div className="beebotLogoIcon">
-              <Sparkles className="w-4 h-4" />
+              <img src="/sallyip-brand-mark.png" alt="SallyIP" className="beebotBrandLogoImg" />
             </div>
-            <div className="beebotLogoText">BeeBot</div>
+            <div className="beebotLogoText">SallyIP</div>
           </div>
 
           <div className="beebotSearchWrap">
@@ -903,9 +903,9 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                 onClick={() => setModelMenuOpen((v) => !v)}
               >
                 <div className="beebotModelIcon">
-                  <Sparkles className="w-3 h-3" />
+                  <img src="/sallyip-brand-mark.png" alt="" className="w-3.5 h-3.5 object-contain" />
                 </div>
-                <span>iBeeBot 4o</span>
+                <span>SallyIP 4.2 Pro</span>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
               </button>
 
@@ -942,7 +942,9 @@ export default function ChatPage({ onHome, onAuthRequired }) {
           {messages.length === 0 ? (
             <div className="beebotHero">
               {/* Iridescent 3D Pearl Sphere */}
-              <div className="beebotPearlSphere" />
+              <div className="beebotPearlSphereWrap">
+                <img src="/sallyip-hero-orb.png" alt="SallyIP AI" className="beebotPearlSphereImg" />
+              </div>
 
               <div className="beebotHeroGreeting">
                 {greeting}, {displayName}
@@ -1048,7 +1050,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                 >
                   {message.role === "assistant" && (
                     <div className="beebotAvatar assistant">
-                      <Sparkles className="w-4 h-4" />
+                      <img src="/sallyip-brand-mark.png" alt="SallyIP" className="w-4 h-4 object-contain" />
                     </div>
                   )}
 

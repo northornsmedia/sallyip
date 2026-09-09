@@ -98,6 +98,27 @@
   font-weight: 600;
 }
 
+.beebotTabBtn img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.beebotModelPicker img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.beebotAvatar img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .beebotTabClose {
   display: flex;
   align-items: center;
@@ -179,15 +200,24 @@
 }
 
 .beebotLogoIcon {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
-  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.25);
+  box-shadow: 0 3px 10px rgba(99, 102, 241, 0.15);
+  padding: 4px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.beebotBrandLogoImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .beebotLogoText {
@@ -566,32 +596,29 @@
   box-sizing: border-box;
 }
 
-/* Translucent Pastel Iridescent Pearl Sphere */
-.beebotPearlSphere {
-  width: 74px;
-  height: 74px;
-  border-radius: 50%;
-  margin: 0 auto 20px auto;
+/* 3D Pearl Sphere Hero Asset */
+.beebotPearlSphereWrap {
+  width: 86px;
+  height: 86px;
+  margin: 0 auto 18px auto;
   position: relative;
-  background: radial-gradient(circle at 35% 28%, #ffffff 0%, rgba(255, 255, 255, 0.95) 20%, #dbeafe 48%, #e0e7ff 72%, #c7d2fe 88%, #a5b4fc 100%);
-  box-shadow: 
-    0 20px 38px -8px rgba(99, 102, 241, 0.32),
-    inset -8px -8px 20px rgba(139, 92, 246, 0.28),
-    inset 8px 8px 16px rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   animation: beebotFloat 4s ease-in-out infinite alternate;
 }
 
-.beebotPearlSphere::after {
-  content: '';
-  position: absolute;
-  top: 16%;
-  left: 24%;
-  width: 20px;
-  height: 14px;
+.beebotPearlSphereImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
-  filter: blur(1.5px);
-  transform: rotate(-30deg);
+  filter: drop-shadow(0 16px 28px rgba(99, 102, 241, 0.25));
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.beebotPearlSphereWrap:hover .beebotPearlSphereImg {
+  transform: scale(1.06);
 }
 
 @keyframes beebotFloat {
