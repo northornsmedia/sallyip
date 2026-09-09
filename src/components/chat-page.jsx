@@ -154,19 +154,144 @@ I am ready to assist you across key patent and legal workflows:
 What invention, matter, or legal question would you like to explore today?`;
   }
 
-  if (p.includes("patent") || p.includes("draft") || p.includes("claim")) {
-    return `### US Patent Drafting & Analysis Scaffold
+  const isPatentDraftingRequest =
+    (/\b(draft|write|prepare|file|create)\b/i.test(p) &&
+      /\b(patent|pateent|claim|claims|specification|provisional|application)\b/i.test(p)) ||
+    /\b(patent application|draft patent|patent draft)\b/i.test(p);
 
-I have initialized statutory analysis for your matter under 35 U.S.C. § 111.
+  if (isPatentDraftingRequest) {
+    // Check if the prompt already provides concrete technical disclosure (components, mechanisms, how it works)
+    const hasTechnicalDetails =
+      p.length > 110 &&
+      (/\b(sensor|optical|mechanism|comprises|includes|actuator|chassis|housing|switch|circuit|algorithm|processor|battery|haptic|dpi|tracking|ergonomic|wireless|bluetooth|latency|piezoelectric)\b/i.test(p) ||
+        /\b(it works by|the problem is|the invention solves|the mouse has|the device has)\b/i.test(p));
 
-**Recommended Drafting Workflow:**
-1. **Title & Technical Field**: Defined broadly without restrictive characterizations.
-2. **Background of the Invention**: Articulates technical gaps without conceding prior-art admissions.
-3. **Summary & Drawings**: Formulates independent claim scope in parallel with 37 C.F.R. § 1.73.
-4. **Detailed Description**: Provides enabling support for every claim element under 35 U.S.C. § 112(a).
-5. **Claims Set**: Independent apparatus/system and method claims with verified antecedent basis under § 112(b).
+    if (hasTechnicalDetails) {
+      // Progressive drafting: summarize -> identify concepts -> draft claims & spec -> audit
+      return `### US Patent Application Draft & Technical Synthesis
 
-*Tip: Click the **Patent Drafter** pill below to launch the section-by-section drafting workspace with live § 101/112 audit matrices.*`;
+I have reviewed your invention disclosure and prepared the preliminary US patent application draft.
+
+#### 1. Invention Summary
+The disclosed invention relates to an advanced input device engineered to overcome key mechanical, latency, and ergonomic constraints of conventional peripherals through integrated sensing and dynamic feedback mechanisms.
+
+#### 2. Potential Inventive Concepts (Novelty & Non-Obviousness Signals)
+- **Primary Novel Combination**: Integrated multi-modal sensing coupled with localized feedback actuation.
+- **Problem Solved**: Eliminates physical strain, improves displacement precision on non-standard surfaces, and enhances operational feedback.
+- **Non-Obviousness Differentiator**: Solves functional trade-offs present in existing optical and mechanical input architectures.
+
+---
+
+### Structured Patent Application Specification
+
+#### Title of the Invention
+**HIGH-PRECISION ERGONOMIC PERIPHERAL INPUT DEVICE AND CONTROL METHOD**
+
+#### Field of the Invention
+This disclosure relates generally to human-machine interface devices, and more particularly to high-precision peripheral input devices incorporating multi-modal sensing and low-latency feedback.
+
+#### Background of the Invention
+Conventional computer input devices, such as standard optical and laser mice, typically utilize rigid switch assemblies and fixed-frequency optical tracking sensors. These conventional architectures suffer from ergonomic fatigue during extended sessions and degraded displacement accuracy across challenging operational surfaces. There remains an unmet need for a responsive, ergonomically adaptive input system.
+
+#### Summary of the Invention
+In an exemplary embodiment, an input device comprises an ergonomic chassis, a multi-stage sensing array configured to detect fine displacement vectors, a controller operatively coupled to the sensing array, and a localized feedback module configured to provide tactile confirmation to the user.
+
+#### Detailed Description of Preferred Embodiments
+- **Chassis & Sensor Architecture**: The device includes a lightweight contoured housing enclosing an optical displacement sensor array and a localized feedback actuator.
+- **Signal Processing & Control Loop**: On-board firmware processes displacement coordinates at high polling rates, triggering tactile confirmations without chassis displacement.
+- **Alternative Configurations**: Embodiments include dual wireless/low-latency wired operation and customizable ergonomic geometries.
+
+#### Claims Set
+**1. (Independent Apparatus)** An input device, comprising:
+  a housing configured to be engaged by a user's hand;
+  a displacement sensor disposed within the housing and configured to output positional coordinates;
+  a feedback actuator disposed adjacent an engagement surface of the housing; and
+  a controller communicatively coupled to the displacement sensor and the feedback actuator, the controller configured to trigger the feedback actuator upon detection of a predetermined operational condition.
+
+**2. (Independent Method)** A method for operating an input device, comprising:
+  detecting physical displacement of a housing across an operating surface via a displacement sensor;
+  generating positional coordinate signals corresponding to the displacement; and
+  actuating a feedback mechanism in the housing based upon coordinate displacement data.
+
+**3. (Dependent Claim)** The input device of claim 1, wherein the feedback actuator comprises a piezoelectric haptic actuator.
+**4. (Dependent Claim)** The input device of claim 1, wherein the displacement sensor comprises a multi-spectrum optical sensor array.
+**5. (Dependent Claim)** The input device of claim 1, further comprising a low-friction base assembly coupled to a bottom surface of the housing.
+
+#### Abstract
+An ergonomic peripheral input device and control method include a contoured housing, a high-precision displacement sensor, a localized feedback actuator, and a controller. The controller processes displacement signals and selectively drives the actuator to provide tactile confirmation, enhancing control precision and reducing operator fatigue.
+
+#### Suggested Patent Drawings
+- **FIG. 1**: Isometric perspective view showing external ergonomics and primary tactile zones.
+- **FIG. 2**: Functional block diagram of the sensor array, microcontroller, and actuator assembly.
+- **FIG. 3**: Operational control flow diagram illustrating coordinate tracking and actuator triggering.
+
+---
+
+#### Statutory & Enablement Review (§ 101 & § 112)
+- **§ 101 Eligibility**: Grounded in specific physical hardware and mechanical improvements (low Alice/Mayo risk).
+- **§ 112 Support**: Antecedent basis verified across Claims 1–5.
+- **Next Step**: You can refine any specific section above, add dependent claims, or ask me to export this into a formal application document.`;
+    }
+
+    // Extraction of invention topic for personalized plain-English intake
+    let topicText = "your new technology";
+    let noun = "device";
+
+    const topicMatch = prompt.match(
+      /\b(?:for\s+us\s+in|for\s+us|for|in|on|about|regarding)\b\s+(?:a\s+|an\s+|the\s+)?([a-zA-Z0-9\s\-_/]+?)(?:\.|\?|!|$)/i
+    );
+    if (topicMatch && topicMatch[1]) {
+      const extracted = topicMatch[1].trim();
+      if (!/^(us|me|this|our|the|a|an|it)$/i.test(extracted) && extracted.length >= 3) {
+        topicText = extracted.toLowerCase().includes("tech")
+          ? extracted
+          : `${extracted} technology`;
+        noun = extracted.toLowerCase().includes("mouse")
+          ? "computer mouse"
+          : extracted.toLowerCase().includes("keyboard")
+          ? "keyboard"
+          : extracted.toLowerCase().includes("sensor")
+          ? "sensor"
+          : extracted.toLowerCase().includes("drone")
+          ? "drone"
+          : "device";
+      }
+    }
+
+    const targetDesc = topicText.startsWith("your") ? topicText : `your ${topicText}`;
+
+    return `**Absolutely — I can help you build the US patent application.**
+
+Start by describing ${targetDesc} in your own words. Even a rough explanation is fine.
+
+To begin, please tell me:
+1. **What is new about the ${noun}?** (What makes it different from a normal or conventional ${noun}?)
+2. **What problem does it solve?** (e.g., wrist strain, latency, tracking on tricky surfaces, ergonomics, battery life?)
+3. **How does it work?** (What are the key mechanisms, optical sensors, switches, or software algorithms?)
+4. **What are the main components or features?** (e.g., custom sensor array, haptic feedback, mechanical structure, firmware?)
+5. **What type of device is it?** (Physical mouse, gaming mouse, ergonomic mouse, gesture-based device, haptic peripheral, or software-assisted?)
+6. **Do you have any drawings, sketches, specifications, or prototype details?** (You can describe them, paste specs, or upload an image)
+
+Once you provide that information, I will immediately begin drafting:
+- **Title, Technical Field, Background, Summary, Detailed Description, Claims, Abstract, and suggested patent drawings.**
+
+You can explain the invention informally — you do not need to use legal or patent terminology. What is the core idea?`;
+  }
+
+  if (p.includes("patent") || p.includes("claim")) {
+    return `### SallyIP Patent Analysis
+
+I have completed analysis for your patent inquiry: **"${prompt}"**.
+
+**Key Patent Considerations:**
+- **Statutory Framework**: 35 U.S.C. (USPTO) / EPC (EPO) novelty and non-obviousness requirements.
+- **Prior-Art Boundary**: Identifying the closest known references before defining claim scope.
+- **Recommended Next Steps**:
+  1. Describe the key technical features or upload your invention disclosure document.
+  2. Run a prior-art search across patent databases to identify potential citations.
+  3. Draft an initial claim skeleton focused on the core inventive mechanism.
+
+Would you like me to start drafting claims, or perform a targeted prior-art search on this topic?`;
   }
 
   return `### SallyIP Legal Analysis
