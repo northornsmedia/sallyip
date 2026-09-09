@@ -1778,7 +1778,15 @@ function App() {
       ) : page === "accessadmin" ? (
         <BrainAdminPage onHome={() => go("home")} />
       ) : page === "auth" ? (
-        <AuthPage onHome={() => go("home")} onSuccess={() => go("chat")} />
+        <AuthPage
+          onHome={() => go("home")}
+          onSuccess={(u) => {
+            if (u) {
+              try { localStorage.setItem("sallyip-user", JSON.stringify(u)); } catch {}
+            }
+            go("chat");
+          }}
+        />
       ) : page === "chat" ? (
         <ChatPage onHome={() => go("home")} onAuthRequired={() => go("auth")} />
       ) : page === "pricing" ? (

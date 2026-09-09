@@ -150,7 +150,14 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [thinkingStage, setThinkingStage] = useState(0);
-  const [user, setUser] = useState({ name: "Judha", email: "attorney@sallyip.com", role: "Patent Attorney" });
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem("sallyip-user");
+      if (stored) return JSON.parse(stored);
+    } catch {}
+    return { name: "Aman", email: "aman@sallyip.com", role: "Patent Practitioner" };
+  });
+  const [selectedEngine, setSelectedEngine] = useState("sally-4.2-pro");
   const [renamingId, setRenamingId] = useState(null);
   const [renameValue, setRenameValue] = useState("");
   const [editingMessage, setEditingMessage] = useState(null);
@@ -190,11 +197,14 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       .then(async (response) => {
         if (!response.ok) return;
         const data = await response.json();
-        if (!cancelled && data?.user) setUser(data.user);
+        if (!cancelled && data?.user) {
+          setUser(data.user);
+          try {
+            localStorage.setItem("sallyip-user", JSON.stringify(data.user));
+          } catch {}
+        }
       })
-      .catch(() => {
-        // Fallback user already set
-      });
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
@@ -694,7 +704,12 @@ export default function ChatPage({ onHome, onAuthRequired }) {
 
   const displayName = useMemo(() => {
     if (user?.name) return user.name.split(" ")[0];
-    return "Judha";
+    return "Aman";
+  }, [user]);
+
+  const userInitial = useMemo(() => {
+    if (user?.name) return user.name.trim()[0].toUpperCase();
+    return "A";
   }, [user]);
 
   const filteredChats = useMemo(() => {
@@ -733,30 +748,23 @@ export default function ChatPage({ onHome, onAuthRequired }) {
             <Plus className="w-3.5 h-3.5" />
           </button>
 
+          {/* Active Legal Matter */}
           <button
             className="beebotTabBtn"
             onClick={() => {
-              const name = prompt("Enter Matter / Client Name:");
+              const name = prompt("Enter Legal Matter Name:");
               if (name) createMatter(name);
             }}
             title="Matter workspace"
           >
-            <span className="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block shrink-0" />
-            <span>{matters.find((m) => m.id === activeMatterId)?.name || "Judha | Dribbble"}</span>
+            <FolderKanban className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+            <span>{matters.find((m) => m.id === activeMatterId)?.name || "General Matter"}</span>
           </button>
 
-          <button
-            className="beebotTabBtn"
-            onClick={() => setToolsOpen(true)}
-            title="Studio workspace"
-          >
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block shrink-0" />
-            <span>Emura Studio</span>
-          </button>
-
+          {/* Active Conversation Tab */}
           <div className="beebotTabBtn active">
             <img src="/sallyip-brand-mark.png" alt="" className="w-3.5 h-3.5 object-contain shrink-0" />
-            <span className="max-w-[140px] truncate">{active?.title || "SallyIP"}</span>
+            <span className="max-w-[160px] truncate">{active?.title || "New conversation"}</span>
             <button
               className="beebotTabClose"
               onClick={(e) => {
@@ -769,8 +777,10 @@ export default function ChatPage({ onHome, onAuthRequired }) {
             </button>
           </div>
 
-          <button className="beebotTabBtn" onClick={() => setToolsOpen((v) => !v)} title="Workspaces">
-            <span>•••</span>
+          {/* Workspaces Launcher */}
+          <button className="beebotTabBtn" onClick={() => setToolsOpen(true)} title="Specialist Legal Workspaces">
+            <Layers3 className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+            <span>Workspaces</span>
           </button>
         </div>
 
@@ -878,15 +888,15 @@ export default function ChatPage({ onHome, onAuthRequired }) {
             ))}
           </div>
 
-          {/* User Profile Card (Matches Reference Image) */}
+          {/* User Profile Card */}
           <div className="beebotUserCard" onClick={logout} title="Click to log out or switch account">
             <div className="beebotUserMeta">
               <div className="beebotUserAvatar">
-                {user?.name?.[0] || "J"}
+                {userInitial}
               </div>
               <div className="beebotUserTexts">
-                <div className="beebotUserName">{user?.name || "Judha Maygustya"}</div>
-                <div className="beebotUserEmail">{user?.email || "judha.design@gmail.com"}</div>
+                <div className="beebotUserName">{user?.name || "Aman"}</div>
+                <div className="beebotUserEmail">{user?.email || "aman@sallyip.com"}</div>
               </div>
             </div>
             <ChevronsUpDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -897,32 +907,55 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         <main className="beebotMainArea">
           {/* Main Top Bar */}
           <div className="beebotMainTop">
-            <div className="relative">
+            <div className="beebotModelPickerWrap">
               <button
+                type="button"
                 className="beebotModelPicker"
                 onClick={() => setModelMenuOpen((v) => !v)}
               >
                 <div className="beebotModelIcon">
                   <img src="/sallyip-brand-mark.png" alt="" className="w-3.5 h-3.5 object-contain" />
                 </div>
-                <span>SallyIP 4.2 Pro</span>
+                <span>{selectedEngine === "nemotron" ? "Nemotron 3.5" : selectedEngine === "nex" ? "Nex N2.5 Pro" : "SallyIP 4.2 Pro"}</span>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
               </button>
 
               {modelMenuOpen && (
-                <div className="absolute top-11 left-0 z-30 w-56 p-2 rounded-xl bg-white border border-slate-200 shadow-xl space-y-1 text-xs">
-                  <div className="px-2 py-1 font-semibold text-slate-400 uppercase text-[10px]">
-                    Active AI Engines
-                  </div>
-                  <div className="p-2 rounded-lg bg-indigo-50 text-indigo-700 font-medium">
-                    ⚡ OpenRouter Free Router (Active)
-                  </div>
-                  <div className="p-2 rounded-lg hover:bg-slate-50 text-slate-600">
-                    🔬 Nemotron 3.5 Lightning (Legal reasoning)
-                  </div>
-                  <div className="p-2 rounded-lg hover:bg-slate-50 text-slate-600">
-                    📄 Nex N2.5 Pro (Drafting)
-                  </div>
+                <div className="beebotModelDropdown">
+                  <div className="beebotDropdownHeader">Active AI Engines</div>
+                  <button
+                    type="button"
+                    className={`beebotDropdownItem ${selectedEngine === "sally-4.2-pro" ? "active" : ""}`}
+                    onClick={() => {
+                      setSelectedEngine("sally-4.2-pro");
+                      setModelMenuOpen(false);
+                    }}
+                  >
+                    <span>⚡ SallyIP 4.2 Pro (Default)</span>
+                    {selectedEngine === "sally-4.2-pro" && <Check className="w-3.5 h-3.5 text-indigo-600" />}
+                  </button>
+                  <button
+                    type="button"
+                    className={`beebotDropdownItem ${selectedEngine === "nemotron" ? "active" : ""}`}
+                    onClick={() => {
+                      setSelectedEngine("nemotron");
+                      setModelMenuOpen(false);
+                    }}
+                  >
+                    <span>🔬 Nemotron 3.5 (Legal reasoning)</span>
+                    {selectedEngine === "nemotron" && <Check className="w-3.5 h-3.5 text-indigo-600" />}
+                  </button>
+                  <button
+                    type="button"
+                    className={`beebotDropdownItem ${selectedEngine === "nex" ? "active" : ""}`}
+                    onClick={() => {
+                      setSelectedEngine("nex");
+                      setModelMenuOpen(false);
+                    }}
+                  >
+                    <span>📄 Nex N2.5 Pro (Drafting)</span>
+                    {selectedEngine === "nex" && <Check className="w-3.5 h-3.5 text-indigo-600" />}
+                  </button>
                 </div>
               )}
             </div>
@@ -932,8 +965,8 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                 <Plus className="w-3.5 h-3.5" />
                 <span>New Chat</span>
               </button>
-              <div className="beebotAvatarPill" title={user?.name || "User Profile"}>
-                <span>{user?.name?.[0] || "J"}</span>
+              <div className="beebotAvatarPill" title={user?.name || "Aman"}>
+                <span>{userInitial}</span>
               </div>
             </div>
           </div>
