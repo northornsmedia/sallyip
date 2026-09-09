@@ -151,6 +151,18 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   const [ingesting, setIngesting] = useState(false);
   const [uploadedSource, setUploadedSource] = useState(null);
   const [toolsOpen, setToolsOpen] = useState(false);
+  const [viewingPassage, setViewingPassage] = useState(null);
+  const openPassage = async (passageId, label) => {
+    setViewingPassage({ loading: true, label });
+    try {
+      const response = await fetch(`/api/sources?passage_id=${encodeURIComponent(passageId)}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error?.message || "Passage unavailable");
+      setViewingPassage({ loading: false, label, data });
+    } catch (error) {
+      setViewingPassage({ loading: false, label, error: error.message });
+    }
+  };
   const active = useMemo(
     () => chats.find((chat) => chat.id === activeId) || chats[0],
     [chats, activeId],
@@ -890,7 +902,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                     {message.role === "assistant" && message.provenance?.route && (
                       <div className="answerProvenance">
                         <div><Telescope/><b>{message.provenance.route.task_class.replaceAll("_", " ")}</b><span>{message.provenance.verification?.source_basis === "retrieved_source" ? `${message.provenance.verification.sources_retrieved} retrieved sources` : "Model knowledge · verification required"}</span></div>
-                        {message.provenance.sources?.length > 0 && <div className="sourceChips">{message.provenance.sources.map((source,index) => source.official_url ? <a href={source.official_url} target="_blank" rel="noreferrer" key={source.passage_id}>S{index+1} · {source.citation || source.title} · {source.locator}</a> : <span key={source.passage_id}>S{index+1} · {source.citation || source.title} · {source.locator}</span>)}</div>}
+                        {message.provenance.sources?.length > 0 && <div className="sourceChips">{message.provenance.sources.map((source,index) => source.official_url ? <a href={source.official_url} target="_blank" rel="noreferrer" key={source.passage_id}>S{index+1} · {source.citation || source.title} · {source.locator}</a> : <button type="button" key={source.passage_id} onClick={() => openPassage(source.passage_id, `S${index+1}`)}>S{index+1} · {source.citation || source.title} · {source.locator}</button>)}</div>}
                       </div>
                     )}
                   </div>
@@ -996,6 +1008,33 @@ export default function ChatPage({ onHome, onAuthRequired }) {
             SallyIP provides AI-assisted legal research and drafting.
             Professional review may be appropriate before reliance or filing.
           </small>
+          {viewingPassage && (
+            <div className="ipToolOverlay" onMouseDown={(event) => event.target === event.currentTarget && setViewingPassage(null)}>
+              <section className="ipToolModal">
+                <header>
+                  <div>
+                    <span>SOURCE PASSAGE · {viewingPassage.label}</span>
+                    <h2>{viewingPassage.data?.title || "Loading…"}</h2>
+                  </div>
+                  <button type="button" onClick={() => setViewingPassage(null)}><X /></button>
+                </header>
+                {viewingPassage.loading && <div className="claimChartEmpty">Fetching passage…</div>}
+                {viewingPassage.error && <div className="ipToolError">{viewingPassage.error}</div>}
+                {viewingPassage.data && (
+                  <>
+                    <div className="familyMeta">
+                      <span>{viewingPassage.data.locator_type} {viewingPassage.data.locator}</span>
+                      {viewingPassage.data.citation && <span>{viewingPassage.data.citation}</span>}
+                      <span>tier {viewingPassage.data.authority_tier}</span>
+                      <span>{viewingPassage.data.verified_at ? "verified" : "unverified"}</span>
+                    </div>
+                    <div style={{ maxHeight: 320, overflow: "auto", border: "1px solid #ddd", padding: 10, fontSize: 13, whiteSpace: "pre-wrap" }}>{viewingPassage.data.content}</div>
+                    {viewingPassage.data.official_url && <p><a href={viewingPassage.data.official_url} target="_blank" rel="noreferrer">Open official source</a></p>}
+                  </>
+                )}
+              </section>
+            </div>
+          )}
         </div>
       </main>
     </div>

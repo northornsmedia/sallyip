@@ -7,6 +7,7 @@ import { orchestrateSally, orchestrateSallyStreaming } from './src/lib/sally-orc
 import { checkAdminCredentials, createAdminSession, verifyAdminSession, destroyAdminSession, clearAdminCookie, brainOverview, brainTrace } from './src/lib/brain-admin.js'
 import { readSallyTelemetry, recordSallyTelemetry } from './src/lib/sally-telemetry.js'
 import { clearSessionCookie, createSession, destroySession, getSessionUser, hashPassword, sessionCookie, verifyPassword } from './src/lib/auth.js'
+import { getPassage } from './src/lib/passage-service.js'
 import { getClientIp, logSecurityEvent, loginBlocked, recordLoginAttempt, requireEditor } from './src/lib/security.js'
 import { routeSpecialists } from './src/lib/specialist-router.js'
 import { getMatterContext, matterContextPrompt } from './src/lib/matter-service.js'
@@ -75,6 +76,16 @@ function sallyChatApi(apiKey, databaseUrl, model, embeddingKey, embeddingModel, 
           else{res.statusCode=400;return res.end(JSON.stringify({error:{message:'Unknown authentication action'}}))}
           const token=await createSession(sql,user.id);res.setHeader('Set-Cookie',sessionCookie(token,false));return res.end(JSON.stringify({user:{id:user.id,email:user.email,name:user.full_name,initials:user.initials,role:user.role}}))
         }catch(error){res.statusCode=500;return res.end(JSON.stringify({error:{message:'Authentication is temporarily unavailable'}}))}
+      })
+      server.middlewares.use('/api/sources', async (req, res) => {
+        res.setHeader('Content-Type','application/json')
+        const sql=neon(databaseUrl||'')
+        try{
+          const user=await getSessionUser(sql,req.headers.cookie);if(!user){res.statusCode=401;return res.end(JSON.stringify({error:{message:'Not authenticated'}}))}
+          if(req.method!=='GET'){res.statusCode=405;return res.end(JSON.stringify({error:{message:'Method not allowed'}}))}
+          const id=new URL(req.url,'http://localhost').searchParams.get('passage_id');if(!id){res.statusCode=400;return res.end(JSON.stringify({error:{message:'passage_id is required'}}))}
+          return res.end(JSON.stringify(await getPassage(sql,user.id,id)))
+        }catch(error){res.statusCode=error.message==='Source passage not found'?404:500;return res.end(JSON.stringify({error:{message:error.message}}))}
       })
       server.middlewares.use('/api/transparency-metrics', async (req, res) => {
         res.setHeader('Content-Type','application/json')

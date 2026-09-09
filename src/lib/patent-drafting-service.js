@@ -91,17 +91,24 @@ export function verifyClaimSupport112(claimsText = '', specText = '') {
     
     // Check antecedent basis within claim: "the [noun]" without preceding "a/an [noun]"
     const definedNouns = new Set()
-    const indefiniteRegex = /\b(?:a|an)\s+([a-zA-Z0-9_\-\s]{3,35}?)(?:,|\.|;|\s+comprising|\s+configured|\s+wherein|\s+connected)/gi
+    const indefiniteRegex = /\b(?:a|an)\s+([a-z0-9_-]+(?:\s+[a-z0-9_-]+){0,3})\b/gi
     let match
     while ((match = indefiniteRegex.exec(block)) !== null) {
       const noun = match[1].trim().toLowerCase()
-      if (noun) definedNouns.add(noun)
+      if (noun && !['method', 'system', 'apparatus', 'plurality', 'first', 'second', 'predetermined'].includes(noun)) {
+        definedNouns.add(noun)
+      }
     }
 
-    const definiteRegex = /\b(?:the|said)\s+([a-zA-Z0-9_\-\s]{3,35}?)(?:,|\.|;|\s+configured|\s+wherein|\s+generates|\s+transmits)/gi
+    const definiteRegex = /\b(?:the|said)\s+([a-z0-9_-]+(?:\s+[a-z0-9_-]+){0,3})\b/gi
     while ((match = definiteRegex.exec(block)) !== null) {
       const noun = match[1].trim().toLowerCase()
-      if (noun && !definedNouns.has(noun) && !Array.from(definedNouns).some(d => noun.includes(d) || d.includes(noun))) {
+      if (
+        noun &&
+        !['method', 'system', 'apparatus', 'invention', 'disclosure', 'step', 'process'].includes(noun) &&
+        !definedNouns.has(noun) &&
+        !Array.from(definedNouns).some(d => d.includes(noun) || noun.includes(d))
+      ) {
         issues.push({
           claimNumber: claimNum,
           type: 'antecedent_basis',
@@ -120,7 +127,7 @@ export function verifyClaimSupport112(claimsText = '', specText = '') {
         status: foundInSpec ? 'supported' : 'missing',
         note: foundInSpec ? 'Found in specification text' : 'Missing explicit antecedent support in detailed description (§ 112(a))'
       })
-      if (!foundInSpec && spec.length > 100) {
+      if (!foundInSpec && spec.length > 20) {
         issues.push({
           claimNumber: claimNum,
           type: 'enablement_gap',
