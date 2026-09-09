@@ -18,6 +18,7 @@ import {
   Lock,
   Cpu
 } from "lucide-react";
+import SallyTopNav from "./sally-topnav";
 import "../home-redesign.css";
 
 const LIFECYCLE_STAGES = [
@@ -145,34 +146,17 @@ export default function HomePageRedesign({
   return (
     <div className="sally-home">
       {/* ---------------- Topnav ---------------- */}
-      <header className="sh-topnav">
-        <div className="sh-topnav-inner">
-          <button className="sh-brand" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-            <div className="sh-brand-icon">
-              <Sparkles size={18} color="#ffffff" />
-            </div>
-            <span className="sh-brand-name">SallyIP</span>
-            <span className="sh-brand-badge">2026</span>
-          </button>
-
-          <nav className="sh-nav-links">
-            <button onClick={() => handleScrollTo("lifecycle")}>Lifecycle</button>
-            <button onClick={() => handleScrollTo("modules")}>Modules</button>
-            <button onClick={() => handleScrollTo("metrics")}>Performance</button>
-            <button onClick={() => handleScrollTo("security")}>Security</button>
-            <button onClick={onOpenPricing}>Pricing</button>
-          </nav>
-
-          <div className="sh-nav-actions">
-            <button className="sh-btn-text" onClick={onOpenAuth}>
-              Sign in
-            </button>
-            <button className="sh-btn-white" onClick={onOpenChat}>
-              Launch Studio <ArrowRight size={15} />
-            </button>
-          </div>
-        </div>
-      </header>
+      <SallyTopNav
+        activePage="home"
+        onNavigate={(page) => {
+          if (page === 'pricing') onOpenPricing ? onOpenPricing() : (window.location.hash = 'pricing');
+          else if (page === 'chat') onOpenChat ? onOpenChat() : (window.location.hash = 'chat');
+          else if (page === 'auth') onOpenAuth ? onOpenAuth() : (window.location.hash = 'auth');
+          else window.location.hash = page;
+        }}
+        onOpenChat={onOpenChat}
+        onOpenAuth={onOpenAuth}
+      />
 
       <main>
         {/* ---------------- Hero Section (Image 1) ---------------- */}

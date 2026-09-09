@@ -20,6 +20,7 @@ const API = (process.env.SALLYIP_PRIMARY_BASE_URL || 'https://generativelanguage
 const BENCHMARK_FILE = path.resolve(process.cwd(), 'benchmarks/v1.0/dataset.json');
 const FAILURES_FILE = path.resolve(process.cwd(), 'benchmarks/v1.0/failures_27_unverified_quotes.json');
 const REPORT_FILE = path.resolve(process.cwd(), 'benchmarks/full_100_raw_vs_guarded_report.md');
+const CHECKPOINT_FILE = path.resolve(process.cwd(), 'benchmarks/checkpoint_dual_eval.json');
 
 if (!process.env.DATABASE_URL) {
   console.error('DATABASE_URL is required in environment.');
@@ -35,7 +36,7 @@ async function askModel(prompt, evidence) {
   const context = evidence.map((e, i) => `[S${i + 1}] ${e.title} | ${e.citation || ''} | ${e.locator}\n${e.content.slice(0, 1200)}`).join('\n\n');
   const systemPrompt = `You are Sally, a verification-first IP legal AI. You strictly follow the verification-first protocol:\n1. Answer ONLY using the retrieved sources below.\n2. Every material factual and legal assertion must be immediately followed by its supporting source citation [S1], [S2].\n3. Verbatim quotations MUST be exact substrings from the source passages without alterations, bracketed letters, or ellipses inside quotes. Always place citations OUTSIDE quotation marks (e.g. "exact text" [S1]).\n4. If the retrieved sources do not contain the answer, state: "I could not verify this proposition from the available authorities." Never invent authorities, dates, or sections.\n\nSOURCES:\n${context}`;
 
-  for (let attempt = 0; attempt < 4; attempt++) {
+  for (let attempt = 0; attempt < 6; attempt++) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 60000);
     try {
@@ -56,8 +57,8 @@ async function askModel(prompt, evidence) {
 
       if (res.status === 429 || res.status === 503) {
         clearTimeout(timer);
-        const delay = 2500 * Math.pow(2, attempt);
-        console.warn(`[API Rate Limit ${res.status}] Backing off for ${delay}ms...`);
+        const delay = 35000 + (attempt * 10000);
+        console.warn(`\n[API Rate Limit ${res.status}] Pacing quota, waiting ${delay / 1000}s before retry...`);
         await new Promise(r => setTimeout(r, delay));
         continue;
       }
@@ -70,8 +71,8 @@ async function askModel(prompt, evidence) {
       return { answer: data.choices?.[0]?.message?.content || '' };
     } catch (e) {
       clearTimeout(timer);
-      if (attempt === 3) return { error: e.message.slice(0, 100) };
-      await new Promise(r => setTimeout(r, 2000 * Math.pow(1.5, attempt)));
+      if (attempt === 5) return { error: e.message.slice(0, 100) };
+      await new Promise(r => setTimeout(r, 4000 * Math.pow(1.5, attempt)));
     }
   }
   return { error: 'max_retries_exceeded' };
@@ -329,14 +330,31 @@ async function main() {
   const [user] = await sql`SELECT id FROM users ORDER BY created_at LIMIT 1`;
   const [matter] = await sql`INSERT INTO matters(user_id, name, jurisdictions) VALUES(${user.id}, 'Full 100 Raw-vs-Guarded Run', ARRAY['US']) RETURNING id`;
 
-  const itemResults = [];
-  const modificationLog = [];
+  let itemResults = [];
+  let modificationLog = [];
   let executionFailures = 0;
+
+  if (fs.existsSync(CHECKPOINT_FILE)) {
+    try {
+      const cp = JSON.parse(fs.readFileSync(CHECKPOINT_FILE, 'utf8'));
+      itemResults = cp.itemResults || [];
+      modificationLog = cp.modificationLog || [];
+      console.log(`Resuming from checkpoint: ${itemResults.length} questions already processed.`);
+    } catch (e) {
+      console.warn('Could not read checkpoint, starting fresh.');
+    }
+  }
+
+  const completedKeys = new Set(itemResults.filter(r => r.status === 'completed').map(r => r.key));
 
   console.log('\n--- Executing Full 100 Benchmark ---');
   for (let i = 0; i < dataset.length; i++) {
     const item = dataset[i];
     const num = i + 1;
+    if (completedKeys.has(item.key)) {
+      console.log(`[${String(num).padStart(3, ' ')}/100] ${item.key.padEnd(16)} (restored from checkpoint)`);
+      continue;
+    }
     process.stdout.write(`[${String(num).padStart(3, ' ')}/100] ${item.key.padEnd(16)} `);
 
     let evidence;
@@ -474,8 +492,12 @@ async function main() {
     const gd = guarded5D.dimensions;
     console.log(`✓ raw(misQ:${rd.quotationFidelity.missing}, dang:${rd.citationIntegrity.danglingCount}, unsup:${(rd.legalAccuracy.unsupportedRate * 100).toFixed(0)}%) -> guarded(misQ:${gd.quotationFidelity.missing}, dang:${gd.citationIntegrity.danglingCount}, unsup:${(gd.legalAccuracy.unsupportedRate * 100).toFixed(0)}%) [${utilityClass}]`);
 
-    // Brief delay between calls to avoid hitting rate limits
-    await new Promise(r => setTimeout(r, 600));
+    try {
+      fs.writeFileSync(CHECKPOINT_FILE, JSON.stringify({ itemResults, modificationLog }, null, 2));
+    } catch (e) {}
+
+    // Pacing delay (4200ms = 14.2 RPM) to strictly respect Google Gemini 15 RPM quota
+    await new Promise(r => setTimeout(r, 4200));
   }
 
   // Run Known Failure Corpus (24 tracked cases)

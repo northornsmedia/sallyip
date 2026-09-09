@@ -5,12 +5,19 @@
 import { neon } from '@neondatabase/serverless';
 import { STANFORD_BENCH } from './stanford-bench-dataset.mjs';
 import { ADV_BENCH } from '../benchmarks/adversarial-v1.mjs';
+import { HALLU100 } from '../benchmarks/hallucination-100.mjs';
 import { execSync } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 
 const SUITE = process.env.BENCH_SUITE === 'adversarial'
   ? { items: ADV_BENCH, name: 'adversarial v1', version: 'adv-v1' }
-  : { items: STANFORD_BENCH, name: 'stanford-bench v1 automated', version: 'sb-v1' };
+  : process.env.BENCH_SUITE === 'hallu100'
+    ? (() => {
+      const batches = Number(process.env.HALLU_BATCHES || 1), batch = Number(process.env.HALLU_BATCH || 0);
+      const size = Math.ceil(HALLU100.length / batches);
+      return { items: HALLU100.slice(batch * size, (batch + 1) * size), name: `hallucination-index 100 batch ${batch + 1}/${batches}`, version: 'hallu100' };
+    })()
+    : { items: STANFORD_BENCH, name: 'stanford-bench v1 automated', version: 'sb-v1' };
 
 function runContext() {
   let gitCommit = null;

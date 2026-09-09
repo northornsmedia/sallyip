@@ -57,6 +57,11 @@ import PricingPage from "@/components/pricing-page";
 import AuthPage from "@/components/auth-page";
 import TransparencyPage from "@/components/transparency-page";
 import HomePageRedesign from "@/components/home-page-redesign";
+import LifecyclePage from "@/components/lifecycle-page";
+import ModulesPage from "@/components/modules-page";
+import PerformancePage from "@/components/performance-page";
+import SecurityPage from "@/components/security-page";
+import BenchmarksPage from "@/components/benchmarks-page";
 import "./home-redesign.css";
 import "./styles.css";
 import "./brand.css";
@@ -1782,6 +1787,16 @@ function App() {
           onOpenPricing={() => go("pricing")}
           onOpenTransparency={() => go("transparency")}
         />
+      ) : page === "lifecycle" ? (
+        <LifecyclePage onHome={() => go("home")} onChat={() => go("chat")} onAuth={() => go("auth")} onPricing={() => go("pricing")} />
+      ) : page === "modules" ? (
+        <ModulesPage onHome={() => go("home")} onChat={() => go("chat")} onAuth={() => go("auth")} onPricing={() => go("pricing")} />
+      ) : page === "performance" ? (
+        <PerformancePage onHome={() => go("home")} onChat={() => go("chat")} onAuth={() => go("auth")} onPricing={() => go("pricing")} />
+      ) : page === "security" ? (
+        <SecurityPage onHome={() => go("home")} onChat={() => go("chat")} onAuth={() => go("auth")} onPricing={() => go("pricing")} />
+      ) : page === "benchmarks" ? (
+        <BenchmarksPage onHome={() => go("home")} onChat={() => go("chat")} onAuth={() => go("auth")} onPricing={() => go("pricing")} />
       ) : page === "accessadmin" ? (
         <BrainAdminPage onHome={() => go("home")} />
       ) : page === "auth" ? (
@@ -1797,7 +1812,7 @@ function App() {
       ) : page === "chat" ? (
         <ChatPage onHome={() => go("home")} onAuthRequired={() => go("auth")} />
       ) : page === "pricing" ? (
-        <PricingPage onHome={() => go("home")} onChat={() => go("chat")} />
+        <PricingPage onHome={() => go("home")} onChat={() => go("chat")} onAuth={() => go("auth")} />
       ) : (
         <ProtectedAppShell page={page} />
       )}
