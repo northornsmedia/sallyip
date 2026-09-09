@@ -155,9 +155,16 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   const [user, setUser] = useState(() => {
     try {
       const stored = localStorage.getItem("sallyip-user");
-      if (stored) return JSON.parse(stored);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed?.name && !parsed.name.toLowerCase().includes("judha")) {
+          return parsed;
+        }
+      }
     } catch {}
-    return { name: "Aman", email: "aman@sallyip.com", role: "Patent Practitioner" };
+    const defaultUser = { name: "Aman", email: "aman@sallyip.com", role: "Patent Practitioner" };
+    try { localStorage.setItem("sallyip-user", JSON.stringify(defaultUser)); } catch {}
+    return defaultUser;
   });
   const [selectedEngine, setSelectedEngine] = useState("auto");
   const [renamingId, setRenamingId] = useState(null);
@@ -686,10 +693,9 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   useEffect(() => {
     if (!messages.length) return;
     const frame = requestAnimationFrame(() => {
-      threadEndRef.current?.scrollIntoView({
-        behavior: "auto",
-        block: "end",
-      });
+      if (threadRef.current) {
+        threadRef.current.scrollTop = threadRef.current.scrollHeight;
+      }
     });
     return () => cancelAnimationFrame(frame);
   }, [activeId, messages.length, loading]);
@@ -706,12 +712,17 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   }, []);
 
   const displayName = useMemo(() => {
-    if (user?.name) return user.name.split(" ")[0];
+    if (user?.name && !user.name.toLowerCase().includes("judha")) {
+      return user.name.split(" ")[0];
+    }
     return "Aman";
   }, [user]);
 
   const userInitial = useMemo(() => {
-    if (user?.name) return user.name.trim()[0].toUpperCase();
+    if (user?.name && !user.name.toLowerCase().includes("judha")) {
+      const init = user.name.trim()[0]?.toUpperCase() || "A";
+      return init === "J" ? "A" : init;
+    }
     return "A";
   }, [user]);
 
@@ -1111,90 +1122,99 @@ export default function ChatPage({ onHome, onAuthRequired }) {
               </div>
             </div>
           ) : (
-            /* Active Message Thread */
-            <div className="beebotThread" ref={threadRef}>
-              {messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`beebotMessage ${message.role}`}
-                >
-                  {message.role === "assistant" && (
-                    <div className="beebotAvatar assistant">
-                      <img src="/sallyip-brand-mark.png" alt="SallyIP" className="w-4 h-4 object-contain" />
-                    </div>
-                  )}
-
-                  <div className="beebotMessageBody">
-                    <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 mb-1">
-                      <span>{message.role === "assistant" ? "SallyIP 4.2 Pro" : "You"}</span>
-                    </div>
-
-                    <div className="prose prose-slate max-w-none text-slate-800 text-xs leading-relaxed">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {sanitizeModelResponse(message.content)}
-                      </ReactMarkdown>
-                    </div>
-
-                    {message.attachments?.length > 0 && (
-                      <div className="mt-3 space-y-1.5 border-t border-slate-100 pt-2">
-                        {message.attachments.map((file) => (
-                          <a
-                            href={file.url}
-                            key={file.id}
-                            download={file.name}
-                            className="flex items-center justify-between p-2 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs border border-slate-200"
-                          >
-                            <span className="flex items-center gap-2">
-                              <FileText className="w-4 h-4 text-indigo-500" />
-                              <span className="font-medium">{file.name}</span>
-                            </span>
-                            <Download className="w-3.5 h-3.5 text-slate-400" />
-                          </a>
-                        ))}
-                      </div>
-                    )}
-
+            /* Active Message Thread Layout */
+            <div className="beebotActiveChatView">
+              <div className="beebotThread" ref={threadRef}>
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`beebotMessage ${message.role}`}
+                  >
                     {message.role === "assistant" && (
-                      <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-400">
-                        <button
-                          onClick={() => navigator.clipboard.writeText(message.content)}
-                          className="hover:text-indigo-600 flex items-center gap-1"
-                        >
-                          <Copy className="w-3 h-3" /> Copy
-                        </button>
+                      <div className="beebotAvatar assistant">
+                        <img src="/sallyip-brand-mark.png" alt="SallyIP" className="w-4 h-4 object-contain" />
+                      </div>
+                    )}
+
+                    {message.role === "user" ? (
+                      <div className="beebotUserBubble">
+                        {message.content}
+                      </div>
+                    ) : (
+                      <div className="beebotMessageBody">
+                        <div className="beebotAssistantHeader">
+                          <span className="beebotAssistantTitle">SallyIP 4.2 Pro</span>
+                        </div>
+
+                        <div className="beebotAssistantText">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {sanitizeModelResponse(message.content)}
+                          </ReactMarkdown>
+                        </div>
+
+                        {message.attachments?.length > 0 && (
+                          <div className="beebotAttachmentsList">
+                            {message.attachments.map((file) => (
+                              <a
+                                href={file.url}
+                                key={file.id}
+                                download={file.name}
+                                className="beebotAttachmentItem"
+                              >
+                                <span className="flex items-center gap-2">
+                                  <FileText className="w-4 h-4 text-indigo-500" />
+                                  <span className="font-medium">{file.name}</span>
+                                </span>
+                                <Download className="w-3.5 h-3.5 text-slate-400" />
+                              </a>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="beebotMessageActions">
+                          <button
+                            onClick={() => navigator.clipboard.writeText(message.content)}
+                            className="beebotActionBtn"
+                            title="Copy response"
+                          >
+                            <Copy className="w-3 h-3" /> <span>Copy</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {message.role === "user" && (
+                      <div className="beebotAvatar user" title={user?.name || "Aman"}>
+                        {userInitial}
                       </div>
                     )}
                   </div>
+                ))}
 
-                  {message.role === "user" && (
-                    <div className="beebotAvatar user">
-                      {user?.initials || "YOU"}
+                {loading && (
+                  <div className="beebotMessage assistant">
+                    <div className="beebotAvatar assistant">
+                      <Sparkles className="w-4 h-4" />
                     </div>
-                  )}
-                </div>
-              ))}
-
-              {loading && (
-                <div className="beebotMessage assistant">
-                  <div className="beebotAvatar assistant">
-                    <Sparkles className="w-4 h-4" />
-                  </div>
-                  <div className="beebotMessageBody flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full shrink-0 animate-pulse bg-gradient-to-tr from-indigo-500 via-purple-400 to-pink-300 shadow-md shadow-indigo-500/30 flex items-center justify-center">
-                      <div className="w-2 h-2 rounded-full bg-white/90" />
+                    <div className="beebotMessageBody">
+                      <div className="beebotThinkingRow">
+                        <div className="w-5 h-5 rounded-full shrink-0 animate-pulse bg-gradient-to-tr from-indigo-500 via-purple-400 to-pink-300 shadow-md shadow-indigo-500/30 flex items-center justify-center">
+                          <div className="w-1.5 h-1.5 rounded-full bg-white/90" />
+                        </div>
+                        <span className="text-xs text-slate-500 font-medium">
+                          {thinkingStages[thinkingStage]?.label || "Thinking…"}
+                        </span>
+                      </div>
                     </div>
-                    <span className="text-xs text-slate-500 font-medium">
-                      {thinkingStages[thinkingStage]?.label || "Thinking…"}
-                    </span>
                   </div>
-                </div>
-              )}
+                )}
 
-              <div ref={threadEndRef} />
+                <div ref={threadEndRef} />
+              </div>
 
-              {/* Bottom Sticky Composer when messages exist */}
-              <div className="sticky bottom-0 pt-4 pb-2 bg-gradient-to-t from-white via-white to-transparent">
-                <div className="beebotComposerCard max-w-3xl mx-auto shadow-lg">
+              {/* Persistent Pinned Bottom Composer */}
+              <div className="beebotBottomComposerWrap">
+                <div className="beebotComposerCard">
                   <textarea
                     className="beebotComposerInput"
                     placeholder="Ask SallyIP a follow-up or command..."
@@ -1214,6 +1234,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                         type="button"
                         className="beebotPillBtn"
                         onClick={() => uploadInputRef.current?.click()}
+                        title="Attach document"
                       >
                         <Paperclip />
                       </button>
@@ -1223,7 +1244,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                         onClick={() => setDeepResearch((v) => !v)}
                       >
                         <Telescope />
-                        <span>Reasoning</span>
+                        <span>{deepResearch ? "Reasoning On" : "Reasoning"}</span>
                       </button>
                       <button
                         type="button"

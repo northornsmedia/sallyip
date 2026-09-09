@@ -19,20 +19,22 @@
 
 /* App Outer Shell - Subtle desktop backdrop */
 .beebotLayout {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
+  position: fixed;
+  inset: 0;
   width: 100vw;
+  height: 100vh;
   background: var(--beebot-bg);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   color: var(--beebot-text-main);
   overflow: hidden;
-  padding: 10px 14px 14px;
+  padding: 8px 12px 12px;
   box-sizing: border-box;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   letter-spacing: -0.011em;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Top App Tabs Bar with Window Controls */
@@ -177,22 +179,27 @@
   display: flex;
   flex: 1;
   overflow: hidden;
-  gap: 16px;
+  gap: 14px;
   min-height: 0;
+  min-width: 0;
+  width: 100%;
 }
 
 /* Left Sidebar */
 .beebotSidebar {
-  width: 250px;
+  width: 240px;
+  min-width: 240px;
+  max-width: 240px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   background: var(--beebot-sidebar);
-  border-radius: 22px;
+  border-radius: 20px;
   border: 1px solid var(--beebot-card-border);
   box-shadow: var(--beebot-card-shadow);
-  padding: 18px 14px 14px;
+  padding: 16px 12px 12px;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .beebotBrand {
@@ -482,17 +489,20 @@
 /* Main Chat Canvas */
 .beebotMainArea {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   background: 
     radial-gradient(circle at 65% 35%, rgba(224, 231, 255, 0.35) 0%, rgba(245, 243, 255, 0.25) 35%, transparent 65%),
     radial-gradient(circle at 35% 65%, rgba(240, 249, 255, 0.35) 0%, transparent 50%),
     #ffffff;
-  border-radius: 22px;
+  border-radius: 20px;
   border: 1px solid var(--beebot-card-border);
   box-shadow: var(--beebot-card-shadow);
   position: relative;
   overflow: hidden;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 /* Top bar inside canvas */
@@ -839,46 +849,183 @@
   box-shadow: none;
 }
 
-/* Chat Thread Scroll (Active conversation) */
-.beebotThread {
+/* Active Message Thread & Pinned Composer Layout */
+.beebotActiveChatView {
   flex: 1;
-  overflow-y: auto;
-  padding: 84px 28px 24px;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
 }
 
+.beebotThread {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 76px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  max-width: 840px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.beebotBottomComposerWrap {
+  flex-shrink: 0;
+  padding: 10px 24px 18px;
+  display: flex;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #ffffff 35%);
+  z-index: 10;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.beebotBottomComposerWrap .beebotComposerCard {
+  width: min(840px, 100%);
+  margin: 0 auto;
+  box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(226, 232, 240, 0.9);
+}
+
+/* User Message */
 .beebotMessage {
   display: flex;
   gap: 12px;
-  max-width: 820px;
   width: 100%;
-  margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .beebotMessage.user {
-  flex-direction: row-reverse;
+  justify-content: flex-end;
+  align-self: flex-end;
 }
 
-.beebotMessage.user .beebotMessageBody {
-  background: #f1f5f9;
-  border: 1px solid rgba(226, 232, 240, 0.9);
+.beebotUserBubble {
+  max-width: 72%;
+  background: #4f46e5;
+  color: #ffffff;
+  padding: 12px 18px;
   border-radius: 18px 18px 4px 18px;
+  font-size: 14px;
+  line-height: 1.55;
+  box-shadow: 0 3px 12px rgba(79, 70, 229, 0.2);
+  word-break: break-word;
+  white-space: pre-wrap;
+  letter-spacing: -0.01em;
+}
+
+/* Assistant Message */
+.beebotMessage.assistant {
+  justify-content: flex-start;
+  align-self: flex-start;
+  max-width: 88%;
 }
 
 .beebotMessage.assistant .beebotMessageBody {
+  flex: 1;
+  min-width: 0;
   background: #ffffff;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  border-radius: 18px 18px 18px 4px;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.03);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 18px;
+  padding: 16px 20px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
+  box-sizing: border-box;
 }
 
-.beebotMessageBody {
-  padding: 14px 18px;
+.beebotAssistantHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.beebotAssistantTitle {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: 0.02em;
+}
+
+.beebotAssistantText {
   font-size: 13.5px;
   line-height: 1.65;
   color: #1e293b;
+}
+
+.beebotAssistantText p {
+  margin: 0 0 10px;
+}
+
+.beebotAssistantText p:last-child {
+  margin-bottom: 0;
+}
+
+.beebotMessageActions {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(241, 245, 249, 0.9);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.beebotActionBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.beebotActionBtn:hover {
+  color: #4f46e5;
+  background: #f1f5f9;
+}
+
+.beebotThinkingRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.beebotAttachmentsList {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid rgba(241, 245, 249, 0.9);
+  padding-top: 8px;
+}
+
+.beebotAttachmentItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  color: #334155;
+  font-size: 12px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.beebotAttachmentItem:hover {
+  background: #f1f5f9;
+  border-color: rgba(99, 102, 241, 0.3);
 }
 
 .beebotAvatar {
@@ -889,19 +1036,20 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 
 .beebotAvatar.assistant {
   background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
   color: #ffffff;
-  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.25);
+  box-shadow: 0 3px 10px rgba(99, 102, 241, 0.25);
 }
 
 .beebotAvatar.user {
-  background: #e2e8f0;
-  color: #475569;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.2);
 }
 
 /* Specialist Legal Workspaces Modal */
