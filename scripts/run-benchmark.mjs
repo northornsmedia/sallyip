@@ -5,7 +5,7 @@
 import { neon } from '@neondatabase/serverless';
 import fs from 'fs';
 import path from 'path';
-import { retrieveHybridEvidence } from '../src/lib/verification-service.js';
+import { finalizeVerifiedAnswer, retrieveHybridEvidence } from '../src/lib/verification-service.js';
 import { evaluateAnswer5D } from '../src/lib/benchmark-eval-framework.js';
 
 const MODEL = process.env.SALLYIP_PRIMARY_MODEL || 'gemini-flash-lite-latest';
@@ -36,7 +36,7 @@ async function ask(prompt, evidence) {
           temperature: 0,
           max_tokens: 600,
           messages: [
-            { role: 'system', content: `Answer ONLY from the sources below. Cite every material claim as [S1], [S2]. Quote key phrases exactly.\n\nSOURCES:\n${context}` },
+            { role: 'system', content: `You are Sally, a verification-first IP legal AI. You strictly follow the verification-first protocol:\n1. Answer ONLY using the retrieved sources below.\n2. Every material factual and legal assertion must be immediately followed by its supporting source citation [S1], [S2].\n3. Verbatim quotations MUST be exact substrings from the source passages without alterations, bracketed letters, or ellipses inside quotes. Always place citations OUTSIDE quotation marks (e.g. "exact text" [S1]).\n4. If the retrieved sources do not contain the answer, state: "I could not verify this proposition from the available authorities." Never invent authorities, dates, or sections.\n\nSOURCES:\n${context}` },
             { role: 'user', content: prompt }
           ]
         }),
@@ -90,11 +90,15 @@ async function run() {
 
   for (const item of dataset) {
     idx++;
+    process.stdout.write(`[${String(idx).padStart(3, ' ')}/${dataset.length}] ${item.key.padEnd(16)}: retrieving... `);
     const evidence = await retrieveHybridEvidence(sql, user.id, matter.id, item.prompt, { limit: 6, minOverlap: 0, packCodes: ['US'] });
-    const { answer = '', error = null } = await ask(item.prompt, evidence);
+    process.stdout.write(`asking ${MODEL}... `);
+    const generated = await ask(item.prompt, evidence);
+    const error = generated.error || null;
+    const answer = generated.answer ? finalizeVerifiedAnswer(generated.answer, evidence, { requires_primary_sources: true }, { highRisk: true }).answer : '';
 
     if (error || !answer) {
-      console.log(`[${String(idx).padStart(3, ' ')}/${dataset.length}] ${item.key.padEnd(16)}: ERROR ${error}`);
+      console.log(`ERROR ${error}`);
       results.push({ key: item.key, status: 'error', error });
       continue;
     }
@@ -137,6 +141,22 @@ async function run() {
 
   const avgEntailment = scored.reduce((sum, r) => sum + r.dimensions.citationEntailment.entailmentRate, 0) / (n || 1);
   const avgUnsupported = scored.reduce((sum, r) => sum + r.dimensions.legalAccuracy.unsupportedRate, 0) / (n || 1);
+  const rates = {
+    authority_recall: n ? totalGrounded / n : 0,
+    citation_integrity: n ? zeroDangling / n : 0,
+    exact_quote: qTotals.total ? qTotals.exact / qTotals.total : 0,
+    missing_quote: qTotals.total ? qTotals.missing / qTotals.total : 0,
+    citation_entailment: avgEntailment,
+    unsupported_proposition: avgUnsupported
+  };
+  const releaseGates = {
+    benchmark_completion: n === dataset.length,
+    citation_integrity: rates.citation_integrity === 1,
+    authority_recall: rates.authority_recall >= .98,
+    exact_quote_verification: rates.exact_quote >= .95,
+    citation_entailment: rates.citation_entailment >= .95,
+    unsupported_proposition_rate: rates.unsupported_proposition < .02
+  };
 
   const currentSummary = {
     total_evaluated: dataset.length,
@@ -150,7 +170,10 @@ async function run() {
       unsupported_rate: qTotals.total ? `${(qTotals.missing / qTotals.total * 100).toFixed(1)}% (${qTotals.missing}/${qTotals.total})` : '0%'
     },
     citation_entailment_rate: `${(avgEntailment * 100).toFixed(1)}%`,
-    unsupported_proposition_rate: `${(avgUnsupported * 100).toFixed(1)}%`
+    unsupported_proposition_rate: `${(avgUnsupported * 100).toFixed(1)}%`,
+    rates,
+    release_gates: releaseGates,
+    release_status: Object.values(releaseGates).every(Boolean) ? 'PASS' : 'BLOCKED'
   };
 
   console.log(`\n===============================================================`);
@@ -161,6 +184,7 @@ async function run() {
   console.log(`  3. Quotation Fidelity:            ${currentSummary.quote_fidelity.exact_rate} Exact, ${currentSummary.quote_fidelity.fuzzy_rate} Fuzzy, ${currentSummary.quote_fidelity.unsupported_rate} Missing`);
   console.log(`  4. Citation Entailment Rate:      ${currentSummary.citation_entailment_rate}`);
   console.log(`  5. Unsupported Proposition Rate:  ${currentSummary.unsupported_proposition_rate}`);
+  console.log(`  RELEASE:                           ${currentSummary.release_status}`);
   console.log(`===============================================================\n`);
 
   // Generate Regression Report against Baseline
@@ -189,12 +213,20 @@ function generateRegressionReport({ datasetFile, baseline, current, results }) {
   md += `## 1. Five-Dimensional Performance Comparison\n\n`;
   md += `| Evaluation Dimension | v1.0 Baseline | Current Build | Delta / Status |\n`;
   md += `| :--- | :--- | :--- | :--- |\n`;
-  md += `| **1. Authority Retrieval ($R@k$)** | ${baseSummary.authority_recall_rate || '100%'} | ${current.authority_retrieval_rate} | **Preserved (100%)** |\n`;
-  md += `| **2. Citation Integrity (0-Dangling)** | ${baseSummary.zero_dangling_rate || '100%'} | ${current.zero_dangling_rate} | **Preserved (Zero Dangling)** |\n`;
-  md += `| **3. Quotation Fidelity (Exact)** | ${baseSummary.quote_verification?.exact_rate || '72.5%'} | ${current.quote_fidelity.exact_rate} | Tracking |\n`;
-  md += `| **3b. Quotation Missing/Unverified** | ${baseSummary.quote_verification?.unsupported_rate || '22.5%'} | ${current.quote_fidelity.unsupported_rate} | Tracking |\n`;
-  md += `| **4. Citation Entailment** | *Added in 5D framework* | ${current.citation_entailment_rate} | **New Dimension Tracked** |\n`;
-  md += `| **5. Unsupported Proposition Rate** | *Added in 5D framework* | ${current.unsupported_proposition_rate} | **New Dimension Tracked** |\n\n`;
+  md += `| **1. Authority Retrieval ($R@k$)** | ${baseSummary.authority_recall_rate || 'Not recorded'} | ${current.authority_retrieval_rate} | ${current.release_gates.authority_recall ? 'PASS' : 'FAIL'} |\n`;
+  md += `| **2. Citation Integrity (0-Dangling)** | ${baseSummary.zero_dangling_rate || 'Not recorded'} | ${current.zero_dangling_rate} | ${current.release_gates.citation_integrity ? 'PASS' : 'FAIL'} |\n`;
+  md += `| **3. Quotation Fidelity (Exact)** | ${baseSummary.quote_verification?.exact_rate || 'Not recorded'} | ${current.quote_fidelity.exact_rate} | ${current.release_gates.exact_quote_verification ? 'PASS' : 'FAIL'} |\n`;
+  md += `| **3b. Quotation Missing/Unverified** | ${baseSummary.quote_verification?.unsupported_rate || 'Not recorded'} | ${current.quote_fidelity.unsupported_rate} | Tracked separately |\n`;
+  md += `| **4. Citation Entailment** | *Added in 5D framework* | ${current.citation_entailment_rate} | ${current.release_gates.citation_entailment ? 'PASS' : 'FAIL'} |\n`;
+  md += `| **5. Unsupported Proposition Rate** | *Added in 5D framework* | ${current.unsupported_proposition_rate} | ${current.release_gates.unsupported_proposition_rate ? 'PASS' : 'FAIL'} |\n\n`;
+  md += `## Release decision: ${current.release_status}\n\n`;
+  md += `Production release is permitted only when every release gate passes. Substantive legal correctness remains separately practitioner-graded and is not inferred from these metrics.\n\n`;
+  const errors=results.filter(result=>result.status==='error');
+  if(errors.length){
+    md += `### Benchmark execution failures\n\n`;
+    for(const error of errors)md += `- \`${error.key}\`: ${error.error}\n`;
+    md += `\nExecution failures block release and are not removed from the denominator.\n\n`;
+  }
 
   md += `## 2. Regression Tracking on v1.0 Failure Cases (27 Unverified Quotes)\n\n`;
   md += `Every missing quote from v1.0 is preserved as an immutable test case to prevent silent regressions and verify iterative improvements in future releases.\n\n`;
@@ -223,5 +255,14 @@ function generateRegressionReport({ datasetFile, baseline, current, results }) {
 }
 
 if (process.argv[1]?.endsWith('run-benchmark.mjs')) {
-  run().catch(console.error);
+  run().then(({ currentSummary }) => {
+    if (currentSummary.release_status !== 'PASS') {
+      console.error(`\n❌ Release Gate Failed. Status: ${currentSummary.release_status}`);
+      process.exit(1);
+    }
+    console.log('\n✔ All 5D release gates passed.');
+  }).catch(err => {
+    console.error(err);
+    process.exit(1);
+  });
 }

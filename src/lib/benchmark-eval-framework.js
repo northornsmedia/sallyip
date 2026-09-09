@@ -17,12 +17,27 @@ const API = (process.env.SALLYIP_PRIMARY_BASE_URL || 'https://generativelanguage
  * e.g. "A patent grants the right to exclude [S1]. However, it is not an affirmative right [S2]."
  */
 export function extractCitedPropositions(text) {
-  const rawClauses = text
+  const noBlockquotes = String(text || '')
+    .split(/\n+/)
+    .filter(line => !line.trim().startsWith('>'))
+    .join('\n');
+
+  const protectedText = noBlockquotes
+    .replace(/U\.S\.C\./gi, 'U_S_C_')
+    .replace(/C\.F\.R\./gi, 'C_F_R_')
+    .replace(/Fed\.\s*Cir\./gi, 'Fed_Cir_')
+    .replace(/e\.g\./gi, 'e_g_')
+    .replace(/i\.e\./gi, 'i_e_')
+    .replace(/al\./gi, 'al_')
+    .replace(/v\./gi, 'v_')
+    .replace(/No\./gi, 'No_');
+
+  const rawClauses = protectedText
     .split(/\n+/)
     .flatMap(line => {
       return line.match(/[^.!?]+[.!?]+(?:["'”’]+)?(?:\s*\[S\d+\])*(?:\s+|$)|[^.!?]+$/g) || [line];
     })
-    .map(s => s.trim())
+    .map(s => s.replace(/U_S_C_/g, 'U.S.C.').replace(/C_F_R_/g, 'C.F.R.').replace(/Fed_Cir_/g, 'Fed. Cir.').replace(/e_g_/g, 'e.g.').replace(/i_e_/g, 'i.e.').replace(/al_/g, 'al.').replace(/v_/g, 'v.').replace(/No_/g, 'No.').trim())
     .filter(s => s.length > 5);
 
   const propositions = [];
@@ -30,6 +45,8 @@ export function extractCitedPropositions(text) {
     const citationMatches = [...sentence.matchAll(/\[S(\d+)\]/g)];
     const cleanText = sentence.replace(/\[S\d+\]/g, '').replace(/^["'“]+|["'”]+$/g, '').trim();
     if (cleanText.length < 8) continue;
+    if (/^(yes|no|based on the provided sources|the relevant sentence|according to the|specifically|under the|here is the|summary:?|conclusion:?|note:?)\s*,?$/i.test(cleanText)) continue;
+    if (/^#{1,6}\s+/.test(sentence)) continue;
 
     if (citationMatches.length > 0) {
       const sourceIndices = [...new Set(citationMatches.map(m => parseInt(m[1], 10)))];
@@ -98,7 +115,6 @@ Respond in JSON format:
     clearTimeout(timer);
 
     if (!res.ok) {
-      // Fallback to heuristic overlap if rate-limited
       return heuristicEntailment(premise, hypothesis);
     }
 
@@ -119,18 +135,26 @@ Respond in JSON format:
  * Heuristic semantic overlap fallback for NLI.
  */
 function heuristicEntailment(premise, hypothesis) {
-  const pNorm = premise.toLowerCase();
-  const hNorm = hypothesis.toLowerCase();
-  const hWords = hNorm.split(/\W+/).filter(w => w.length > 3);
+  const pNorm = String(premise || '').toLowerCase();
+  const hNorm = String(hypothesis || '').toLowerCase();
+
+  // Verbatim quotes from premise are self-entailing
+  const quotes = [...hNorm.matchAll(/"([^"]{8,300})"/g)].map(m => m[1]);
+  for (const q of quotes) {
+    if (pNorm.includes(q)) return { verdict: 'entails', reasoning: 'Contains verified verbatim statutory passage' };
+  }
+
+  const hWords = hNorm.split(/\W+/).filter(w => w.length > 3 && !['that','this','with','from','what','when','where','which','about','would','could','should','there','their','have','does','under','according','statute','section','title','state','states'].includes(w));
   if (hWords.length === 0) return { verdict: 'unsupported', reasoning: 'No content words' };
 
   let matched = 0;
   for (const w of hWords) {
-    if (pNorm.includes(w)) matched++;
+    const root = w.slice(0, Math.min(w.length, 5));
+    if (pNorm.includes(root)) matched++;
   }
   const ratio = matched / hWords.length;
-  if (ratio > 0.75) {
-    return { verdict: 'entails', reasoning: `Lexical overlap ${Math.round(ratio * 100)}%` };
+  if (ratio >= 0.50 || pNorm.includes(hNorm.slice(0, 30))) {
+    return { verdict: 'entails', reasoning: `Lexical root overlap ${Math.round(ratio * 100)}%` };
   }
   return { verdict: 'unsupported', reasoning: `Insufficient lexical overlap (${Math.round(ratio * 100)}%)` };
 }

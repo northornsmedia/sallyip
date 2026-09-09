@@ -6,7 +6,7 @@ import {routeSpecialists} from '../../src/lib/specialist-router.js'
 import {draftGuidanceFor} from '../../src/lib/invention-interview.js'
 import {packCodesFor} from '../../src/lib/jurisdiction-pack-service.js'
 import {getMatterContext,matterContextPrompt} from '../../src/lib/matter-service.js'
-import {retrieveHybridEvidence,evidencePrompt,verificationSummary,guardAnswerCitations} from '../../src/lib/verification-service.js'
+import {retrieveHybridEvidence,evidencePrompt,verificationSummary,finalizeVerifiedAnswer,isHighRiskLegalRequest} from '../../src/lib/verification-service.js'
 
 export default async function handler(req,res){
   if(req.method!=='POST')return res.status(405).json({error:{message:'Method not allowed'}})
@@ -26,7 +26,7 @@ export default async function handler(req,res){
     const result=await orchestrateSally([contextMessage,...messages],process.env,`https://${req.headers.host}`,{preferredEngine:req.body?.engine})
     const [run]=await sql`INSERT INTO specialist_agent_runs(user_id,matter_id,conversation_id,task_class,specialists,jurisdictions,research_mode,source_basis,verification_status) VALUES(${user.id},${matter?.matter?.id||null},${conversation?.id||null},${route.task_class},${route.specialists},${route.jurisdictions},${route.research_mode},${verification.source_basis},${verification.status}) RETURNING id`
     await recordSallyTelemetry(process.env.DATABASE_URL,result.meta).catch(()=>{})
-    const guarded=guardAnswerCitations(result.answer,evidence,verification)
+    const guarded=finalizeVerifiedAnswer(result.answer,evidence,verification,{highRisk:isHighRiskLegalRequest(route,latest)})
     const answer=guarded.answer
     return res.status(200).json({id:`sally-${Date.now()}`,object:'chat.completion',model:'sallyip/4.1-pro',choices:[{index:0,message:{role:'assistant',content:answer},finish_reason:'stop'}],sally_meta:{...result.meta,agent_run_id:run.id,route,verification,sources:evidence.map(({content,...source})=>source),citation_guard:guarded.guard}})
   }catch(error){return res.status(503).json({error:{message:error.message}})}

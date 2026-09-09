@@ -3,7 +3,7 @@ import {recordSallyTelemetry} from './sally-telemetry.js'
 import {routeSpecialists} from './specialist-router.js'
 import {planLegalTask,automationSuggestions} from './legal-task-planner.js'
 import {getMatterContext,matterContextPrompt} from './matter-service.js'
-import {retrieveHybridEvidence,evidencePrompt,verificationSummary,enforceSourceDisclosure} from './verification-service.js'
+import {retrieveHybridEvidence,evidencePrompt,verificationSummary,finalizeVerifiedAnswer,isHighRiskLegalRequest} from './verification-service.js'
 import {runAutomatedLegalWorkflow} from './workflow-orchestrator.js'
 import {classifyDocumentIntent,resolveArtifactReference,buildGenerateFileToolCall} from './document-tool-service.js'
 
@@ -54,13 +54,14 @@ export async function orchestrateChat(sql,user,body,env){
       const contextMessage={role:'system',content:`SALLY TASK ROUTE\nTask: ${plan.task_class}\nSpecialists: ${route.specialists.join(', ')}\n\nAutomated workflow failed: ${error.message}\n\n${matterContextPrompt(matter)}\n\n${evidencePrompt(evidence)}\n\nProvide a helpful next-step answer. Explain what is missing, what Sally can still do in chat, and do not fabricate legal conclusions.`}
       const result=await orchestrateSally([contextMessage,...messages],env,`https://${body.host||'sallyip.com'}`)
       await recordSallyTelemetry(env.DATABASE_URL,result.meta).catch(()=>{})
+      const guarded=finalizeVerifiedAnswer(`${result.answer}\n\n---\n**Automation note:** ${error.message}\n\n**Try next:**\n${fallbackSuggestions(plan,route).map(item=>`- ${item}`).join('\n')}`,evidence,verification,{highRisk:isHighRiskLegalRequest(route,latest)})
       return{
         mode:'chat',
-        content:enforceSourceDisclosure(`${result.answer}\n\n---\n**Automation note:** ${error.message}\n\n**Try next:**\n${fallbackSuggestions(plan,route).map(item=>`- ${item}`).join('\n')}`,verification),
+        content:guarded.answer,
         artifact:null,
         workflow:{status:'failed',error:error.message,plan},
         tool_call:toolCall,
-        sally_meta:{route:{...route,task_class:plan.task_class},plan,verification,sources:evidence.map(({content,...source})=>source)}
+        sally_meta:{route:{...route,task_class:plan.task_class},plan,verification,citation_guard:guarded.guard,sources:evidence.map(({content,...source})=>source)}
       }
     }
   }
@@ -91,7 +92,8 @@ export async function orchestrateChat(sql,user,body,env){
   const result=await orchestrateSally([contextMessage,...requestMessages],env,`https://${body.host||'sallyip.com'}`)
   const [run]=await sql`INSERT INTO specialist_agent_runs(user_id,matter_id,conversation_id,task_class,specialists,jurisdictions,research_mode,source_basis,verification_status) VALUES(${user.id},${body.matter_id||null},${conversationId},${plan.task_class},${route.specialists},${route.jurisdictions},${body.deep_research?'deep':'quick'},${verification.source_basis},${verification.status}) RETURNING id`
   await recordSallyTelemetry(env.DATABASE_URL,result.meta).catch(()=>{})
-  let answer=enforceSourceDisclosure(result.answer,verification)
+  const guarded=finalizeVerifiedAnswer(result.answer,evidence,verification,{highRisk:isHighRiskLegalRequest(route,latest)})
+  let answer=guarded.answer
   if(route.task_class==='GENERAL_IP_RESEARCH'&&!documentRequest)answer=`${answer}\n\n---\n**Sally can also automate:**\n${suggestions}`
   return{
     mode:documentRequest?'document':'chat',
@@ -99,6 +101,6 @@ export async function orchestrateChat(sql,user,body,env){
     artifact:documentRequest?{title:artifact?.title||latest.slice(0,80),content:answer,document_type:artifact?.document_type||'legal_document',revision,id:artifact?.id,version:(artifact?.version||0)+1}:null,
     workflow:null,
     tool_call:toolCall,
-    sally_meta:{...result.meta,agent_run_id:run.id,route,plan,verification,sources:evidence.map(({content,...source})=>source)}
+    sally_meta:{...result.meta,agent_run_id:run.id,route,plan,verification,citation_guard:guarded.guard,sources:evidence.map(({content,...source})=>source)}
   }
 }

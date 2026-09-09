@@ -57,8 +57,12 @@ for (const q of QUESTIONS) {
   if (error || !answer) { rows.push({ key: q.key, status: 'model_error', error }); console.log(q.key + ': MODEL_ERROR ' + error); continue; }
   const guard = guardAnswerCitations(answer, evidence, {}).guard;
   const quotes = [...answer.matchAll(/"([^"]{20,400})"/g)].map(m => m[1]).slice(0, 4);
+  const norm = (s) => String(s || '').toLowerCase();
+  const promptBare = norm(q.prompt).replace(/[^a-z0-9 ]/g, ' ');
   let exact = 0, fuzzy = 0, missing = 0;
   for (const quote of quotes) {
+    const quoteBare = norm(quote).replace(/[^a-z0-9 ]/g, ' ');
+    if (quoteBare.length <= promptBare.length && promptBare.includes(quoteBare)) continue;
     let best = 'missing';
     for (const e of evidence) {
       const verdict = (() => { try { return verifyQuote(e.content, quote); } catch { return 'missing'; } })();

@@ -1,0 +1,25 @@
+{
+ "run_id": "0ec0bd51-44cd-4ffc-9453-ad6b81b61004",
+ "suite": "adv-v1",
+ "model": "gemini-flash-lite-latest",
+ "failures": [
+  {
+   "id": "adv-ai-quote",
+   "expect": "abstain",
+   "verdict": "hallucinated",
+   "reason": "fabricated evidence on unanswerable item",
+   "telemetry": {
+    "evidence_count": 2,
+    "cited": [
+     1
+    ],
+    "dangling": [],
+    "quotes_checked": 2,
+    "missing_quotes": [
+     "artificial intelligence."
+    ]
+   },
+   "excerpt": "Based on the provided sources, Section 101 does not mention \"artificial intelligence.\" The text of 35 U.S.C. § 101 states:\n\n> \"Whoever invents or discovers any new and useful process, machine, manufacture, or composition of matter, or any new and useful improvement thereof, may obtain a patent therefor, subject to the conditions and requirements of this title.\" [S1]"
+  }
+ ]
+}

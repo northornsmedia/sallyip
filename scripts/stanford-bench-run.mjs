@@ -4,6 +4,24 @@
 // incomplete (+ model_error excluded from denominators).
 import { neon } from '@neondatabase/serverless';
 import { STANFORD_BENCH } from './stanford-bench-dataset.mjs';
+import { ADV_BENCH } from '../benchmarks/adversarial-v1.mjs';
+import { execSync } from 'node:child_process';
+import { mkdir, writeFile } from 'node:fs/promises';
+
+const SUITE = process.env.BENCH_SUITE === 'adversarial'
+  ? { items: ADV_BENCH, name: 'adversarial v1', version: 'adv-v1' }
+  : { items: STANFORD_BENCH, name: 'stanford-bench v1 automated', version: 'sb-v1' };
+
+function runContext() {
+  let gitCommit = null;
+  try { gitCommit = execSync('git rev-parse --short HEAD', { timeout: 5000 }).toString().trim() || null; } catch { /* non-git or timeout: context stays partial */ }
+  return {
+    model: MODEL, bench_version: SUITE.version, git_commit: gitCommit,
+    retrieval: 'hybrid lexical + pack fallback + section refs + concept aliases',
+    prompt_contract: 'evidence-first system prompt with citation labels',
+    temperature: 0, max_tokens: 600, ran_at: new Date().toISOString(),
+  };
+}
 import { retrieveHybridEvidence, guardAnswerCitations } from '../src/lib/verification-service.js';
 import { verifyQuote } from '../src/lib/citation-service.js';
 
@@ -40,7 +58,12 @@ function grade(item, answer, evidence) {
   const quotes = [...assertive.matchAll(/"([^"]{20,400})"/g)].map(m => m[1]).slice(0, 4);
   let missing = 0;
   const missingQuotes = [];
+  const promptNorm = norm(item.prompt);
+  const promptBare = promptNorm.replace(/[^a-z0-9 ]/g, ' ');
   for (const quote of quotes) {
+    // Echoes of the user's own prompt wording are not evidentiary quotes.
+    const quoteBare = norm(quote).replace(/[^a-z0-9 ]/g, ' ');
+    if (quoteBare.length <= promptBare.length && promptBare.includes(quoteBare)) continue;
     let best = 'missing';
     for (const e of evidence) {
       try {
@@ -71,7 +94,7 @@ const [user] = await sql`SELECT id FROM users ORDER BY created_at LIMIT 1`;
 const [matter] = await sql`INSERT INTO matters(user_id, name, jurisdictions) VALUES(${user.id}, 'Stanford bench matter', ARRAY['US']) RETURNING id`;
 
 const rows = [];
-for (const item of STANFORD_BENCH) {
+for (const item of SUITE.items) {
   const evidence = await retrieveHybridEvidence(sql, user.id, matter.id, item.prompt, { limit: 6, minOverlap: 2, packCodes: ['US'] });
   const { answer = '', error = null } = await ask(item.prompt, evidence);
   if (error || !answer) { rows.push({ id: item.id, expect: item.expect, verdict: 'model_error', reason: error }); console.log(`${item.id}: MODEL_ERROR`); }
@@ -86,8 +109,9 @@ for (const item of STANFORD_BENCH) {
 const scored = rows.filter(r => r.verdict !== 'model_error');
 const rate = (f) => scored.length ? Math.round(scored.filter(f).length / scored.length * 1000) / 10 : null;
 const metrics = {
-  stanford_bench_v1_automated: {
-    model: MODEL, items: STANFORD_BENCH.length, scored: scored.length, model_errors: rows.length - scored.length,
+  [SUITE.version === 'adv-v1' ? 'adversarial_v1' : 'stanford_bench_v1_automated']: {
+    model: MODEL, items: SUITE.items.length, scored: scored.length, model_errors: rows.length - scored.length,
+    context: runContext(),
     accuracy_rate: rate(r => r.verdict === 'accurate'),
     hallucination_rate: rate(r => r.verdict === 'hallucinated'),
     incomplete_rate: rate(r => r.verdict === 'incomplete'),
@@ -100,7 +124,13 @@ const metrics = {
     rows,
   },
 };
-const [run] = await sql`INSERT INTO patentbench_runs(user_id, name, metrics) VALUES(${user.id}, 'stanford-bench v1 automated', ${JSON.stringify(metrics)}::jsonb) RETURNING id`;
+const [run] = await sql`INSERT INTO patentbench_runs(user_id, name, metrics) VALUES(${user.id}, ${SUITE.name}, ${JSON.stringify(metrics)}::jsonb) RETURNING id`;
 console.log('RUN:' + run.id);
+const failures = rows.filter(r => r.verdict === 'hallucinated');
+if (failures.length) {
+  await mkdir('benchmarks/failures', { recursive: true });
+  await writeFile(`benchmarks/failures/${run.id}.json`, JSON.stringify({ run_id: run.id, suite: SUITE.version, model: MODEL, failures }, null, 1));
+  console.log('FAILURES_LOGGED:' + failures.length);
+}
 await sql`DELETE FROM matters WHERE id=${matter.id}`;
 console.log('CLEANED:1');

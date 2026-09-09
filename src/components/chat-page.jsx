@@ -23,6 +23,7 @@ const PatentDraftingWorkspace=lazy(()=>import("./patent-drafting-workspace"));
 const OfficeActionWorkspace=lazy(()=>import("./oa-workspace"));
 const ClaimQaWorkspace=lazy(()=>import("./claim-qa-workspace"));
 const DocPanel=lazy(()=>import("./doc-panel"));
+const VerificationInspectorModal=lazy(()=>import("./verification-inspector-modal"));
 import {
   ArrowRight,
   BookOpen,
@@ -628,6 +629,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   const [activeWorkspace, setActiveWorkspace] = useState(null);
   const [viewingPassage, setViewingPassage] = useState(null);
   const [docPanel, setDocPanel] = useState(null);
+  const [verificationMessage, setVerificationMessage] = useState(null);
   const [libraryFiles, setLibraryFiles] = useState(() => {
     try {
       const saved = JSON.parse(localStorage.getItem("sallyip-docx-library") || "[]");
@@ -2127,6 +2129,13 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                           >
                             <Copy className="w-3 h-3" /> <span>Copy</span>
                           </button>
+                          <button
+                            onClick={() => setVerificationMessage(message)}
+                            className="beebotActionBtn"
+                            title="Inspect verification, citation audit, and proposition graph"
+                          >
+                            <ShieldCheck className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> <span>Verify</span>
+                          </button>
                           {message.artifact?.content && (
                             <button
                               onClick={() => setDocPanel({ title: message.artifact.title, content: message.artifact.content, version: message.artifact.version, live: false, artifact: message.artifact, conversationId: active?.id })}
@@ -2265,6 +2274,15 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                       recordToolResult?.(`## Document exported\n\n**${file.name}** ready for download.`, { task_class: "DOCUMENT_EXPORT", source_basis: "user_supplied" });
                       addLibraryFile({ ...file, content: docPanel?.content || "" });
                     }}
+                  />
+                </Suspense>
+              )}
+              {verificationMessage && (
+                <Suspense fallback={null}>
+                  <VerificationInspectorModal
+                    isOpen={Boolean(verificationMessage)}
+                    onClose={() => setVerificationMessage(null)}
+                    message={verificationMessage}
                   />
                 </Suspense>
               )}
