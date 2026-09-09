@@ -22,6 +22,7 @@ const ContractWorkspace=lazy(()=>import("./contract-workspace"));
 const PatentDraftingWorkspace=lazy(()=>import("./patent-drafting-workspace"));
 const OfficeActionWorkspace=lazy(()=>import("./oa-workspace"));
 const ClaimQaWorkspace=lazy(()=>import("./claim-qa-workspace"));
+const DocPanel=lazy(()=>import("./doc-panel"));
 import {
   ArrowRight,
   BookOpen,
@@ -134,6 +135,7 @@ const titleFor = (text) =>
 const isCutOffResponse = (text) => {
   if (!text || typeof text !== "string") return true;
   const t = text.trim();
+  if (t.toLowerCase() === "user safety: safe" || t.toLowerCase() === "safety: safe") return true;
   if (t.length < 120 && (t.endsWith(":") || t.endsWith("with:") || t.endsWith("with") || t.endsWith("..."))) return true;
   if (t.endsWith("Here's what I can help you with:") || t.endsWith("Here is what I can do:") || t.endsWith("I can help you with:")) return true;
   return false;
@@ -468,6 +470,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   const [toolsOpen, setToolsOpen] = useState(false);
   const [activeWorkspace, setActiveWorkspace] = useState(null);
   const [viewingPassage, setViewingPassage] = useState(null);
+  const [docPanel, setDocPanel] = useState(null);
   const openPassage = async (passageId, label) => {
     setViewingPassage({ loading: true, label });
     try {
@@ -889,7 +892,62 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       let answer = "";
       let data = {};
 
+      // True token streaming: render server deltas live (thread + doc panel).
+      // Falls back to buffered /api/chat below on any failure.
+      let sseAnswer = null;
       try {
+        const streamRes = await fetch("/api/chat-stream", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: requestMessages,
+            conversation_id: baseChat.id,
+            matter_id: activeMatterId || null,
+            deep_research: deepResearch,
+            engine: selectedEngine !== "auto" ? selectedEngine : null,
+          }),
+        });
+        const sseType = streamRes.headers.get("content-type") || "";
+        if (streamRes.ok && sseType.includes("text/event-stream") && streamRes.body) {
+          const reader = streamRes.body.getReader();
+          const decoder = new TextDecoder();
+          let buf = "";
+          let acc = "";
+          for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buf += decoder.decode(value, { stream: true });
+            const parts = buf.split("\n\n");
+            buf = parts.pop() || "";
+            for (const part of parts) {
+              const line = part.trim();
+              if (!line.startsWith("data:")) continue;
+              let evt = null;
+              try { evt = JSON.parse(line.slice(5)); } catch { continue; }
+              if (evt.type === "delta" && evt.delta) {
+                acc += evt.delta;
+                setIsWriting(true);
+                setStreamingAnswer(acc);
+                if (threadRef.current) threadRef.current.scrollTop = threadRef.current.scrollHeight;
+                setDocPanel((p) => (p?.live ? { ...p, content: acc } : p));
+              } else if (evt.type === "meta") {
+                if (evt.answer) {
+                  acc = evt.answer;
+                  setStreamingAnswer(acc);
+                }
+                data = { sally_meta: evt.sally_meta || {} };
+              } else if (evt.type === "error") {
+                throw new Error(evt.message || "Stream failed");
+              }
+            }
+          }
+          if (acc) sseAnswer = acc;
+        }
+      } catch {
+        sseAnswer = null;
+      }
+
+      if (!sseAnswer) try {
         const response = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -907,14 +965,21 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         }
       } catch (err) {}
 
+      if (sseAnswer) {
+        answer = sanitizeModelResponse(sseAnswer);
+        setStreamingAnswer(answer);
+      }
+
       if (!answer || isCutOffResponse(answer) || answer.includes("temporarily unavailable") || answer.includes("Not authenticated") || answer.includes("could not respond") || answer.includes("overloaded") || answer.includes("intermittent errors")) {
         answer = getFallbackLegalResponse(clean, user, baseChat.messages);
       }
 
-      // Model answer received: hit 99% immediately, hold for 2-3s at 100%, then stream line-by-line
+      // Model answer received: SSE path already streamed live; buffered path replays.
       clearInterval(progressTimer);
-      await transitionToComplete();
-      await streamResponseLineByLine(answer);
+      if (!sseAnswer) {
+        await transitionToComplete();
+        await streamResponseLineByLine(answer);
+      }
 
       let artifact = documentRequest || revisionRequest
         ? makeArtifact({

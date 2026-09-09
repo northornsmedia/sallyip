@@ -14,8 +14,17 @@ const INTERNAL_PROMPT=`You are an internal reasoning engine inside SallyIP 4.1 P
 
 OUTPUT AND ARTIFACT FORMAT: Sally's web application automatically generates downloadable files and artifacts from your response. Always write responses in standard, clean Markdown directly for the user. Never emit internal tool call syntax, pseudo-code functions, XML tags, or raw tokens such as <itool_call_begin>, <itool_call_end>, <tool_call>, or [generate_file(...)]. Do not escape text into single string arguments. Keep conversational chat clear, and structure legal agreements or guides using standard Markdown headings, lists, and tables. Supported downloadable formats handled by the application include PDF, DOCX, PPTX, XLSX, CSV, Markdown, HTML, JSON, and TXT. Never invent download links, never instruct the user to copy content into Word, Google Docs, or another application, and never claim file generation is unavailable. Keep chat text separate from artifact content. Resolve "this", "that", "the document", "the agreement", "the report", "previous draft", and bare requests such as "PDF please" to the active artifact. Existing artifacts must be exported without regeneration unless revisions are explicitly requested. When a prompt is marked DOCUMENT CONTENT REQUEST, return only the polished document content in Markdown: no capability disclaimers, file-generation instructions, conversational preface, or statements about being unable to generate files. Legal notices are rendered by the application UI and should not be inserted into drafted agreements or artifacts unless the user requests them or they are substantively required.`
 const OPENROUTER_CHAT_URL='https://openrouter.ai/api/v1/chat/completions'
-const engineUrl=(engine,env)=>engine.baseUrl&&env[engine.baseUrl]?`${String(env[engine.baseUrl]).replace(/\/+$/,'')}/chat/completions`:OPENROUTER_CHAT_URL
-const engineCredential=(engine,env)=>env[engine.key]||(!engine.baseUrl?env.OPENROUTER_API_KEY:null)
+const engineUrl=(engine,env)=>{
+  if(!engine.baseUrl) return OPENROUTER_CHAT_URL
+  const base = env[engine.baseUrl] || (engine.baseUrl.startsWith('http') ? engine.baseUrl : null)
+  return base ? `${String(base).replace(/\/+$/,'')}/chat/completions` : OPENROUTER_CHAT_URL
+}
+const engineCredential=(engine,env)=>{
+  if(!engine) return null
+  if(engine.key && env[engine.key]) return env[engine.key]
+  if(engine.key === 'GEMINI_API_KEY' || engine.key === 'GOOGLE_API_KEY') return env.GEMINI_API_KEY || env.GOOGLE_API_KEY || null
+  return !engine.baseUrl ? env.OPENROUTER_API_KEY : null
+}
 const RETRY_FAST_FAIL_MS=1000
 const STRAGGLER_ABORT_MS=25000
 const RACE_TIMEOUT=28000
@@ -28,8 +37,8 @@ export {OX_ALPHA_SLUG,RESCUE_THRESHOLD}
 export function isTruncatedOrCutOff(text) {
   if (!text || typeof text !== 'string') return true;
   const t = text.trim();
-  if (t.length < 50) return true;
-  if (t.endsWith(':') || t.endsWith('with:') || t.endsWith('with') || t.endsWith('and:') || t.endsWith('for:')) return true;
+  if (!t) return true;
+  if (t.endsWith(':') || t.endsWith('with:') || t.endsWith('and:') || t.endsWith('for:')) return true;
   if (t.includes("Here's what I can help you with:") && t.length < 120) return true;
   return false;
 }
@@ -46,7 +55,7 @@ export function resolveEngines(env={}){
       slug:primarySlug,
       name:String(env.SALLYIP_PRIMARY_NAME||'Primary flagship').slice(0,80),
       key:String(env.SALLYIP_PRIMARY_KEY||'OPENROUTER_API_KEY').slice(0,80),
-      baseUrl:env.SALLYIP_PRIMARY_BASE_URL?String(env.SALLYIP_PRIMARY_BASE_URL).slice(0,80):undefined,
+      baseUrl:env.SALLYIP_PRIMARY_BASE_URL?String(env.SALLYIP_PRIMARY_BASE_URL).slice(0,160):undefined,
       weight:Math.min(100,Math.max(1,Number(env.SALLYIP_PRIMARY_WEIGHT)||60)),
       role:'Primary flagship reasoning',
     })
@@ -238,7 +247,7 @@ export async function orchestrateSallyStreaming(messages,env,siteUrl='https://sa
   // === OX-ALPHA RESCUE: if fewer than RESCUE_THRESHOLD engines succeeded, run ox-alpha alone ===
   let rescueUsed=false
   let rescueResult=null
-  const rescueEngine=ENGINES.find(engine=>engine.slug===OX_ALPHA_SLUG)
+  const rescueEngine=ENGINES.find(engine=>engine.slug===OX_ALPHA_SLUG)||{slug:OX_ALPHA_SLUG,name:'OX Alpha',key:'OPENROUTER_OX_API_KEY'}
   const rescueCredential=engineCredential(rescueEngine,env)
   if(successes.length<RESCUE_THRESHOLD&&rescueCredential){
     rescueUsed=true

@@ -158,9 +158,11 @@ export function sanitizeModelResponse(input) {
 
   // 3. Fix unescaped literal `\n` in text that was rendered with literal backslash-n escapes
   if (text.includes('\\n') && !text.includes('```')) {
-    text = unescapeStringLiteral(text)
+    text = text.replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n')
   }
+
+  // 4. Strip leaked internal safety/classifier tags
+  text = text.replace(/^(?:User Safety:\s*safe\s*|Safety:\s*safe\s*|Assessment:\s*safe\s*)+/i, '').trim()
 
   return text.trim()
 }
-
