@@ -12,6 +12,7 @@ node --env-file=.env.local scripts/apply-migration.mjs database/046_security.sql
 node --env-file=.env.local scripts/apply-migration.mjs database/047_eval_harness.sql
 node --env-file=.env.local scripts/apply-migration.mjs database/048_draft_workflow.sql
 node --env-file=.env.local scripts/apply-migration.mjs database/049_draft_matter_optional.sql
+node --env-file=.env.local scripts/apply-migration.mjs database/050_jurisdiction_packs.sql
 ```
 
 What each adds:
@@ -26,6 +27,7 @@ What each adds:
 | 047_eval_harness | `eval_runs` |
 | 048_draft_workflow | `patent_drafting` workflow + playbook types |
 | 049_draft_matter_optional | optional matter on workflow runs |
+| 050_jurisdiction_packs | pack registry + 12 US/IN/GB authority records |
 
 New env keys for prod (search works without them; USPTO + CourtListener report "not configured" until added):
 
