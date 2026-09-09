@@ -17,6 +17,8 @@ import ipSpecialistsHandler from './_handlers/ip-specialists.js'
 import litigationEvidenceHandler from './_handlers/litigation-evidence.js'
 import mattersHandler from './_handlers/matters.js'
 import noveltyHandler from './_handlers/novelty.js'
+import officeActionsHandler from './_handlers/office-actions.js'
+import patentBenchHandler from './_handlers/patent-bench.js'
 import officialSearchHandler from './_handlers/official-search.js'
 import patentDraftsHandler from './_handlers/patent-drafts.js'
 import patentFamiliesHandler from './_handlers/patent-families.js'
@@ -51,6 +53,8 @@ const handlers = {
   'litigation-evidence': litigationEvidenceHandler,
   'matters': mattersHandler,
   'novelty': noveltyHandler,
+  'office-actions': officeActionsHandler,
+  'patent-bench': patentBenchHandler,
   'official-search': officialSearchHandler,
   'patent-drafts': patentDraftsHandler,
   'patent-families': patentFamiliesHandler,
