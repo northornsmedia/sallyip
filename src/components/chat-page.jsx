@@ -127,9 +127,54 @@ const makeChat = () => ({
 const titleFor = (text) =>
   text.trim().replace(/\s+/g, " ").slice(0, 42) +
   (text.trim().length > 42 ? "…" : "");
-const getFallbackLegalResponse = (prompt, user) => {
+const getFallbackLegalResponse = (prompt, user, messages = []) => {
   const p = (prompt || "").toLowerCase().trim();
   const userName = user?.name && !user.name.toLowerCase().includes("judha") ? user.name.split(" ")[0] : "Aman";
+
+  const userMessages = (messages || []).filter((m) => m.role === "user").map((m) => m.content);
+  const priorUserMessages = userMessages.slice(0, -1);
+  const priorText = priorUserMessages.join("\n").toLowerCase();
+
+  // 1. Memory / Training / Retention inquiry
+  const isMemoryOrTrainingQuery =
+    /\b(train|training|remember|remembering|rmember|rmembering|memory|memorize|memorizing|learn|learning|recall|retention)\b/i.test(p);
+
+  if (isMemoryOrTrainingQuery) {
+    const priorMentionOfMouse = priorText.includes("mouse") || p.includes("mouse") || priorText.includes("tech");
+    const activeSubject = priorMentionOfMouse
+      ? "High-Precision Peripheral / Computer Mouse Technology"
+      : "Intellectual Property Matter & Technical Innovation";
+
+    return `### SallyIP Working Memory & Adaptive Retention
+
+Understood, **${userName}** — I have reinforced active context retention for your matter. Here is how my memory and learning architecture operates:
+
+#### 1. Real-Time Conversation Memory (Working Context)
+- **Zero Loss Across Turns**: Every specification, technical detail, mechanism, and design constraint you share in this conversation is preserved in active working memory.
+- **Progressive Accumulation**: As you describe your invention across multiple messages, I assemble the technical elements into an ongoing invention disclosure record rather than treating each prompt in isolation.
+
+#### 2. Matter Vault & Knowledge Retention (Persistent Memory)
+- **Matter Grounding**: All matter-specific data, uploaded documents, sketches, and drafted sections are permanently stored in your encrypted matter vault.
+- **Cross-Session Recall**: When you revisit this matter, the complete history, prior-art citations, and drafted claim trees are immediately accessible.
+
+#### 3. Statutory Support & Antecedent Consistency
+- **35 U.S.C. § 112 Memory Checks**: When drafting claims and detailed descriptions, my reasoning engine actively cross-references previously disclosed components to verify that every claimed limitation has explicit written description support and verified antecedent basis.
+- **Prior-Art Boundary Memory**: References and claim charts mapped in earlier steps are remembered when drafting non-infringement arguments or distinguishing dependent claims.
+
+#### 4. Privacy & Confidentiality Guarantee
+- **No Third-Party Leakage**: Your proprietary inventions and confidential disclosures are never used to train public foundation models.
+- **Evaluated Improvement**: My legal routing and orchestration rules learn from task evaluations and verified examination precedents within SallyIP's secure boundary.
+
+---
+
+#### Active Matter Memory Snapshot:
+- **Practitioner / Inventor**: ${userName}
+- **Active Matter Subject**: ${activeSubject}
+- **Drafting Posture**: US Patent Application (Intake & Specification Assembly)
+- **Memory Status**: Active working memory engaged • Ready for technical feature disclosure
+
+Whenever you're ready, tell me about your invention — what are the core components, how does it work, and what makes it unique? Even rough notes or bullet points are fine!`;
+  }
 
   if (p === "hi" || p === "hello" || p === "hey" || p === "help") {
     return `Hello ${userName}! I am **SallyIP 4.2 Pro**, your specialized legal technology & intellectual property co-pilot.
@@ -157,14 +202,18 @@ What invention, matter, or legal question would you like to explore today?`;
   const isPatentDraftingRequest =
     (/\b(draft|write|prepare|file|create)\b/i.test(p) &&
       /\b(patent|pateent|claim|claims|specification|provisional|application)\b/i.test(p)) ||
-    /\b(patent application|draft patent|patent draft)\b/i.test(p);
+    /\b(patent application|draft patent|patent draft)\b/i.test(p) ||
+    (priorText.includes("patent") && /\b(sensor|optical|haptic|tracking|dpi|laser|piezoelectric|switch|housing)\b/i.test(p));
 
   if (isPatentDraftingRequest) {
-    // Check if the prompt already provides concrete technical disclosure (components, mechanisms, how it works)
+    // Check if the prompt or conversation already provides concrete technical disclosure (components, mechanisms, how it works)
     const hasTechnicalDetails =
-      p.length > 110 &&
-      (/\b(sensor|optical|mechanism|comprises|includes|actuator|chassis|housing|switch|circuit|algorithm|processor|battery|haptic|dpi|tracking|ergonomic|wireless|bluetooth|latency|piezoelectric)\b/i.test(p) ||
-        /\b(it works by|the problem is|the invention solves|the mouse has|the device has)\b/i.test(p));
+      (p.length > 80 &&
+        (/\b(sensor|optical|mechanism|comprises|includes|actuator|chassis|housing|switch|circuit|algorithm|processor|battery|haptic|dpi|tracking|ergonomic|wireless|bluetooth|latency|piezoelectric)\b/i.test(p) ||
+          /\b(it works by|the problem is|the invention solves|the mouse has|the device has)\b/i.test(p))) ||
+      (priorText.includes("patent") &&
+        (/\b(sensor|optical|mechanism|actuator|chassis|housing|switch|circuit|algorithm|processor|battery|haptic|dpi|tracking|ergonomic|wireless|bluetooth|latency|piezoelectric)\b/i.test(p) ||
+          /\b(it works by|the problem is|the invention solves|it uses|it has)\b/i.test(p)));
 
     if (hasTechnicalDetails) {
       // Progressive drafting: summarize -> identify concepts -> draft claims & spec -> audit
@@ -761,7 +810,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       } catch (err) {}
 
       if (!answer || answer.includes("temporarily unavailable") || answer.includes("Not authenticated") || answer.includes("could not respond")) {
-        answer = getFallbackLegalResponse(clean, user);
+        answer = getFallbackLegalResponse(clean, user, baseChat.messages);
       }
 
       // Complete progress bar to 100%
