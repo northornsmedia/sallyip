@@ -338,9 +338,13 @@ export async function orchestrateSallyStreaming(messages,env,siteUrl='https://sa
 
   for (const engine of pipeline) {
     const cred = engineCredential(engine, env)
-    if (!cred) continue
+    if (!cred) {
+      console.warn(`[Sally Orchestrator] Skipping ${engine.name} (${engine.slug}) - No API key found for '${engine.key}'`);
+      continue
+    }
 
     const started = Date.now()
+    console.log(`[Sally Orchestrator] Dispatching request to ${engine.name} (${engine.slug}) at ${engineUrl(engine, env)}`);
     trace.add('wire', `→ ${engine.name} (${engine.slug}) dispatched`, 'pending')
 
     try {
@@ -363,6 +367,7 @@ export async function orchestrateSallyStreaming(messages,env,siteUrl='https://sa
 
       const cleaned = sanitizeModelResponse(raw)
       if (cleaned && !isTruncatedOrCutOff(cleaned)) {
+        console.log(`[Sally Orchestrator] Success from ${engine.name} (${engine.slug}) · ${cleaned.length} chars in ${Date.now() - started}ms`);
         finalAnswer = cleaned
         primaryEngine = engine.slug
         attempts.push({ ...engine, content: cleaned, status: 'success', latency_ms: Date.now() - started, retried: false })
@@ -373,6 +378,7 @@ export async function orchestrateSallyStreaming(messages,env,siteUrl='https://sa
       }
     } catch (err) {
       const elapsed = Date.now() - started
+      console.error(`[Sally Orchestrator] ${engine.name} (${engine.slug}) error (${elapsed}ms):`, err.message);
       attempts.push({ ...engine, content: '', status: 'error', latency_ms: elapsed, error: err.message, retried: false })
       trace.add('node', `${engine.name} failed (${(err.message || '').slice(0, 60)}) → falling back`, 'warn')
     }

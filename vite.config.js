@@ -243,6 +243,7 @@ const route=routeSpecialists(latest,{deepResearch:Boolean(body.deep_research),ma
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
+  Object.assign(process.env, env)
   return {
   plugins: [react(), sallyChatApi(env.OPENROUTER_API_KEY, env.DATABASE_URL, env.SALLYIP_MODEL, env.OPENROUTER_EMBEDDING_API_KEY, env.SALLYIP_EMBEDDING_MODEL, env.OPENROUTER_LFM_CHAT_API_KEY, env.SALLYIP_LFM_CHAT_MODEL, env.OPENROUTER_DOTS_API_KEY, env.SALLYIP_DOTS_MODEL, env.OPENROUTER_GEMMA_API_KEY, env.SALLYIP_GEMMA_MODEL, env.OPENROUTER_RERANK_API_KEY, env.SALLYIP_RERANK_MODEL, env.OPENROUTER_OX_API_KEY, env.SALLYIP_OX_MODEL, env.EPO_OPS_KEY, env.EPO_OPS_SECRET, env.EUIPO_CLIENT_ID, env.EUIPO_CLIENT_SECRET, env.EUIPO_AUTH_URL || 'https://auth.euipo.europa.eu/oidc/accessToken', env.EUIPO_API_BASE || 'https://api.euipo.europa.eu', env.BRAIN_ADMIN_USERNAME, env.BRAIN_ADMIN_PASSWORD, env.OMNIROUTE_API_KEY, env.OMNIROUTE_BASE_URL, env.USPTO_API_KEY, env.USPTO_API_BASE, env.COURTLISTENER_TOKEN, env.COURTLISTENER_COURT)],
   resolve: {
