@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { finalizeVerifiedAnswer, gateRetrievedEvidence, guardAnswerCitations, INSUFFICIENT_AUTHORITY_MESSAGE } from '../src/lib/verification-service.js'
+import { blockUnsupportedPropositions, buildPropositionEvidenceGraph, finalizeVerifiedAnswer, gateRetrievedEvidence, guardAnswerCitations, INSUFFICIENT_AUTHORITY_MESSAGE } from '../src/lib/verification-service.js'
 
 const evidence = [{ title: 'A' }, { title: 'B' }]
 
@@ -63,4 +63,13 @@ test('answer mode derives from evidence signals', async () => {
   const { guard: g4, answer: a4 } = guardAnswerCitations('As shown in [S1].', [{ title: 'A' }], {})
   assert.equal(g4.answer_mode, 'QUALIFIED')
   assert.match(a4, /QUALIFIED/)
+})
+
+test('category E propositions are blocked rather than merely reported',()=>{
+  const raw='The statute permits a useful process [S1]. Unicorn patents automatically last forever.'
+  const graph=buildPropositionEvidenceGraph(raw,completeEvidence,{requires_primary_sources:true})
+  const gated=blockUnsupportedPropositions(raw,graph,{highRisk:true})
+  assert.doesNotMatch(gated.output,/Unicorn patents/)
+  assert.match(gated.output,/Unverified proposition blocked/)
+  assert.ok(gated.blocked>=1)
 })

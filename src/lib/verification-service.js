@@ -369,6 +369,27 @@ export function buildPropositionEvidenceGraph(text, evidence = [], verification 
   }
 }
 
+export function blockUnsupportedPropositions(text, graph, { highRisk = false } = {}) {
+  let output = String(text || '')
+  let blocked = 0
+  let partial = 0
+  for (const proposition of graph?.propositions || []) {
+    if (proposition.category === 'E. UNSUPPORTED' || proposition.verdict === 'UNSUPPORTED') {
+      output = output.replace(proposition.sentence, '')
+      blocked++
+      continue
+    }
+    if (proposition.verdict === 'PARTIALLY_SUPPORTS' && !/^Partially supported:/i.test(proposition.sentence)) {
+      output = output.replace(proposition.sentence, `Partially supported: ${proposition.sentence}`)
+      partial++
+    }
+  }
+  output = output.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').replace(/[ \t]{2,}/g, ' ').trim()
+  if (blocked > 0) output = `${output}${output ? '\n\n' : ''}> **Unverified proposition blocked:** ${INSUFFICIENT_AUTHORITY_MESSAGE}`
+  if (highRisk && !output.replace(/^>.*$/gm, '').trim()) output = INSUFFICIENT_AUTHORITY_MESSAGE
+  return { output, blocked, partial }
+}
+
 export function finalizeVerifiedAnswer(answer, evidence = [], verification = {}, options = {}) {
   const complete = evidence.filter(evidenceRecordIsComplete)
   const highRisk = Boolean(options.highRisk)
@@ -431,7 +452,10 @@ export function finalizeVerifiedAnswer(answer, evidence = [], verification = {},
     output = unprotectLegalAbbreviations(processedLines.join('\n'))
   }
 
-  const graphResult = buildPropositionEvidenceGraph(output, complete, verification)
+  let graphResult = buildPropositionEvidenceGraph(output, complete, verification)
+  const propositionGate = blockUnsupportedPropositions(output, graphResult, { highRisk })
+  output = propositionGate.output
+  graphResult = buildPropositionEvidenceGraph(output, complete, verification)
   const missingQuotes = quoteAudit.filter(item => item.status !== 'exact').length
   if (missingQuotes > 0) {
     output += `\n\n> **Quote verification:** ${missingQuotes} generated quotation(s) were not exact matches and quotation marks were removed.`
@@ -449,7 +473,7 @@ export function finalizeVerifiedAnswer(answer, evidence = [], verification = {},
       answer_mode: complete.length ? 'QUALIFIED_ANSWER' : 'RESEARCH_REQUIRED',
       quotes: quoteAudit,
       verification_graph: graphResult.propositions,
-      stats: graphResult.stats
+      stats: { ...graphResult.stats, blocked_unsupported: propositionGate.blocked, disclosed_partial: propositionGate.partial }
     }
   }
 }

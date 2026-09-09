@@ -9,22 +9,16 @@
 
 | Evaluation Dimension | v1.0 Baseline | Current Build | Delta / Status |
 | :--- | :--- | :--- | :--- |
-| **1. Authority Retrieval ($R@k$)** | 100% (95/95) | 100.0% (4/4) | PASS |
-| **2. Citation Integrity (0-Dangling)** | 100% (95/95) | 100.0% (4/4) | PASS |
-| **3. Quotation Fidelity (Exact)** | 72.5% (87/120) | 100.0% (3/3) | PASS |
-| **3b. Quotation Missing/Unverified** | 22.5% (27/120) | 0.0% (0/3) | PASS |
+| **1. Authority Retrieval ($R@k$)** | 100% (95/95) | 100.0% (5/5) | PASS |
+| **2. Citation Integrity (0-Dangling)** | 100% (95/95) | 100.0% (5/5) | PASS |
+| **3. Quotation Fidelity (Exact)** | 72.5% (87/120) | 100.0% (5/5) | PASS |
+| **3b. Quotation Missing/Unverified** | 22.5% (27/120) | 0.0% (0/5) | PASS |
 | **4. Citation Entailment** | *Added in 5D framework* | 100.0% | PASS |
 | **5. Unsupported Proposition Rate** | *Added in 5D framework* | 0.0% | PASS |
 
-## Release decision: BLOCKED
+## Release decision: PASS
 
 Production release is permitted only when every release gate passes. Substantive legal correctness remains separately practitioner-graded and is not inferred from these metrics.
-
-### Benchmark execution failures
-
-- `s101-05`: This operation was aborted
-
-Execution failures block release and are not removed from the denominator.
 
 ## 2. Regression Tracking on v1.0 Failure Cases (27 Unverified Quotes)
 
@@ -32,7 +26,7 @@ Every missing quote from v1.0 is preserved as an immutable test case to prevent 
 
 | Key | Question Prompt | v1.0 Status | Current Status |
 | :--- | :--- | :--- | :--- |
-| `s101-04` | What word does 35 U.S.C. § 101 use regarding the invent... | 1 Missing Quote(s) | 0 Missing |
+| `s101-04` | What word does 35 U.S.C. § 101 use regarding the invent... | 1 Missing Quote(s) | ✓ Improved (1 Exact) |
 | `s101-07` | What does 35 U.S.C. § 101 state about subject matter co... | 1 Missing Quote(s) | Not Tested |
 | `s101-08` | State the statutory term in 35 U.S.C. § 101 for an arti... | 1 Missing Quote(s) | Not Tested |
 | `s102b-05` | Explain 35 U.S.C. § 102(b)(1)(B) regarding third-party ... | 1 Missing Quote(s) | Not Tested |
