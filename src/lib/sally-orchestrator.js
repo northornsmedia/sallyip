@@ -2,13 +2,13 @@ import { sanitizeModelResponse } from './document-tool-service.js'
 
 const CHAT_ENGINES=[
   {slug:'nvidia/nemotron-3-ultra-550b-a55b:free',name:'Nemotron 3 Ultra 550B',key:'OPENROUTER_API_KEY',weight:50,role:'Primary flagship legal-technical synthesis and drafting'},
-  {slug:'openrouter/free',name:'OpenRouter Free Router',key:'OPENROUTER_API_KEY',weight:30,role:'Dynamic multi-provider reasoning'},
-  {slug:'nvidia/nemotron-3.5-lightning:free',name:'Nemotron 3.5 Lightning',key:'OPENROUTER_API_KEY',weight:25,role:'Fast legal-technical reasoning'},
-  {slug:'nex-agi/nex-n2.5-pro:free',name:'Nex N2.5 Pro',key:'OPENROUTER_API_KEY',weight:20,role:'Language clarity and legal drafting'},
-  {slug:'nvidia/nemotron-3-super-120b-a12b:free',name:'Nemotron 3 Super',key:'OPENROUTER_API_KEY',weight:15,role:'Deep technical synthesis and edge-case review'}
+  {slug:'openrouter/free',name:'OpenRouter Free Router',key:'OPENROUTER_API_KEY',weight:45,role:'Dynamic multi-provider reasoning'},
+  {slug:'nvidia/nemotron-3.5-lightning:free',name:'Nemotron 3.5 Lightning',key:'OPENROUTER_API_KEY',weight:40,role:'Fast legal-technical reasoning'},
+  {slug:'nvidia/nemotron-3-super-120b-a12b:free',name:'Nemotron 3 Super',key:'OPENROUTER_API_KEY',weight:35,role:'Deep technical synthesis and edge-case review'},
+  {slug:'nex-agi/nex-n2.5-pro:free',name:'Nex N2.5 Pro',key:'OPENROUTER_API_KEY',weight:10,role:'Language clarity and legal drafting'}
 ]
-// Designated rescue engine: openrouter/free dynamically routes to active free providers
-const OX_ALPHA_SLUG='openrouter/free'
+// Designated rescue engine: stealth/ox-alpha reserves fallback if racers fail
+const OX_ALPHA_SLUG='stealth/ox-alpha'
 const RESCUE_THRESHOLD=2
 const INTERNAL_PROMPT=`You are an internal reasoning engine inside SallyIP 4.1 Pro. Your public identity is strictly Sally. Never claim another model or provider name. Give accurate, practical intellectual-property research and drafting assistance. Distinguish facts from uncertainty. Return only useful output; never reveal hidden chain-of-thought.
 
@@ -24,6 +24,15 @@ const STREAM_CHUNK_DELAY_MS=12
 
 export const sallyEngineInfo=CHAT_ENGINES
 export {OX_ALPHA_SLUG,RESCUE_THRESHOLD}
+
+export function isTruncatedOrCutOff(text) {
+  if (!text || typeof text !== 'string') return true;
+  const t = text.trim();
+  if (t.length < 50) return true;
+  if (t.endsWith(':') || t.endsWith('with:') || t.endsWith('with') || t.endsWith('and:') || t.endsWith('for:')) return true;
+  if (t.includes("Here's what I can help you with:") && t.length < 120) return true;
+  return false;
+}
 
 // Env-driven engine extension: switching primary models is config-only.
 // SALLYIP_PRIMARY_MODEL=anthropic/claude-opus-4-6 (+ SALLYIP_PRIMARY_KEY,
@@ -61,7 +70,49 @@ export function resolveEngines(env={}){
 }
 
 const fetchJson=async(url,options,timeoutMs=5000)=>{const response=await fetch(url,{...options,signal:AbortSignal.timeout(Math.max(250,timeoutMs))});const data=await response.json();if(!response.ok)throw new Error(data?.error?.message||`${response.status} ${response.statusText}`);return data}
-const fetchStreamingContent=async(url,options,timeoutMs,onDelta)=>{const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeoutMs);let content='',buffer='';try{const response=await fetch(url,{...options,body:JSON.stringify({...JSON.parse(options.body),stream:true}),signal:controller.signal});if(!response.ok){const data=await response.json();throw new Error(data?.error?.message||`${response.status} ${response.statusText}`)}const reader=response.body.getReader(),decoder=new TextDecoder();while(true){const{done,value}=await reader.read();if(done)break;buffer+=decoder.decode(value,{stream:true});const lines=buffer.split('\n');buffer=lines.pop()||'';for(const line of lines){if(!line.startsWith('data: ')||line==='data: [DONE]')continue;try{const delta=JSON.parse(line.slice(6)).choices?.[0]?.delta?.content||'';content+=delta;if(delta&&onDelta)onDelta(delta)}catch{}}}}catch(error){if(!content&&error.name!=='AbortError')throw error}finally{clearTimeout(timer)}if(!content.trim())throw new Error('Empty response');return content.trim()}
+const fetchStreamingContent=async(url,options,timeoutMs,onDelta)=>{
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeoutMs);
+  let content='',buffer='',streamError=null;
+  try{
+    const response=await fetch(url,{...options,body:JSON.stringify({...JSON.parse(options.body),stream:true}),signal:controller.signal});
+    if(!response.ok){
+      const data=await response.json().catch(()=>({}));
+      throw new Error(data?.error?.message||`${response.status} ${response.statusText}`);
+    }
+    const reader=response.body.getReader(),decoder=new TextDecoder();
+    while(true){
+      const{done,value}=await reader.read();
+      if(done)break;
+      buffer+=decoder.decode(value,{stream:true});
+      const lines=buffer.split('\n');
+      buffer=lines.pop()||'';
+      for(const line of lines){
+        if(!line.startsWith('data: ')||line==='data: [DONE]')continue;
+        try{
+          const payload=JSON.parse(line.slice(6));
+          if(payload.error){
+            streamError=new Error(payload.error.message||'Stream error from model API');
+            throw streamError;
+          }
+          const delta=payload.choices?.[0]?.delta?.content||'';
+          content+=delta;
+          if(delta&&onDelta)onDelta(delta);
+        }catch(e){
+          if(streamError) throw streamError;
+        }
+      }
+    }
+  }catch(error){
+    if(streamError) throw streamError;
+    if(error.message?.includes('overloaded') || error.message?.includes('intermittent errors')) throw error;
+    if(!content && error.name!=='AbortError') throw error;
+  }finally{
+    clearTimeout(timer);
+  }
+  if(!content.trim())throw new Error('Empty response');
+  if(isTruncatedOrCutOff(content))throw new Error('Incomplete/truncated response received from model API');
+  return content.trim();
+}
 const emitInChunks=async(text,onDelta)=>{const clean=sanitizeModelResponse(text);for(let index=0;index<clean.length;index+=STREAM_CHUNK_SIZE){onDelta(clean.slice(index,index+STREAM_CHUNK_SIZE));await new Promise(resolve=>setTimeout(resolve,STREAM_CHUNK_DELAY_MS))}}
 
 function createWireTrace(){
@@ -83,7 +134,7 @@ function createEngineCollector(env,messages,headers,trace,engines=CHAT_ENGINES){
     try{
       const credential=engineCredential(engine,env)
       if(!credential)throw new Error('Model credential unavailable')
-      const content=await fetchStreamingContent(engineUrl(engine,env),{method:'POST',headers:headers(env[engine.key]),signal:controller.signal,body:JSON.stringify({model:engine.slug,temperature:.3,max_tokens:maxTokens,messages:requestMessages})}, STRAGGLER_ABORT_MS)
+      const content=await fetchStreamingContent(engineUrl(engine,env),{method:'POST',headers:headers(credential),signal:controller.signal,body:JSON.stringify({model:engine.slug,temperature:.3,max_tokens:maxTokens,messages:requestMessages})}, STRAGGLER_ABORT_MS)
       controllers.delete(engine.slug)
       trace.add('node',engine.name+' responded · '+content.length+' chars','success')
       return{...engine,content,status:'success',latency_ms:Date.now()-started,retried:!allowRetry}
@@ -244,6 +295,11 @@ export async function orchestrateSallyStreaming(messages,env,siteUrl='https://sa
     }
   }
   candidates.sort((a,b)=>b.weight-a.weight)
+  // Filter out any candidates that ended prematurely or were truncated
+  const completeCandidates = candidates.filter(c => c.content && !isTruncatedOrCutOff(c.content))
+  if (completeCandidates.length) {
+    candidates = completeCandidates
+  }
   if(!candidates.length){
     trace.add('error','all engines exhausted','error')
     throw new Error('Sally reasoning engines are temporarily unavailable')
@@ -253,7 +309,8 @@ export async function orchestrateSallyStreaming(messages,env,siteUrl='https://sa
   let reranked=false
   if(env.OPENROUTER_RERANK_API_KEY&&candidates.length>1){try{const ranked=await fetchJson('https://openrouter.ai/api/v1/rerank',{method:'POST',headers:headers(env.OPENROUTER_RERANK_API_KEY),body:JSON.stringify({model:env.SALLYIP_RERANK_MODEL||'nvidia/llama-nemotron-rerank-vl-1b-v2:free',query:latest.slice(0,4000),documents:candidates.map(candidate=>({text:candidate.content})),top_n:candidates.length})},Math.min(1200,Math.max(250,deadline-Date.now()-2300)));const scores=new Map((ranked.results||[]).map(result=>[result.index,result.relevance_score]));candidates=candidates.map((candidate,index)=>({...candidate,relevance:scores.get(index)||0})).sort((a,b)=>(b.relevance+b.adaptive_weight/100)-(a.relevance+a.adaptive_weight/100));reranked=true}catch{candidates.sort((a,b)=>b.adaptive_weight-a.adaptive_weight)}}
   const evidence=candidates.map((candidate,index)=>`CANDIDATE ${index+1} | orchestration weight ${candidate.adaptive_weight}% | relevance ${Number(candidate.relevance||0).toFixed(4)}\n${candidate.content.slice(0,7000)}`).join('\n\n')
-  const synthesisEngine=candidates.find(candidate=>engineCredential(candidate,env))||candidates[0]
+  // Prefer a fast/healthy engine for synthesis merge rather than an overloaded one
+  const synthesisEngine=candidates.find(candidate=>candidate.slug!=='nvidia/nemotron-3-ultra-550b-a55b:free'&&engineCredential(candidate,env))||candidates.find(candidate=>engineCredential(candidate,env))||candidates[0]
   let finalAnswer=sanitizeModelResponse(candidates[0].content)
   let synthesisStatus=candidates.length===1?'single-engine':'fallback'
   trace.add('synthesis','merging '+candidates.length+' candidate(s) via '+synthesisEngine.name,'ok')
@@ -270,9 +327,10 @@ export async function orchestrateSallyStreaming(messages,env,siteUrl='https://sa
       trace.add('synthesis','single-engine answer streamed · '+finalAnswer.length+' chars','success')
     }
   }catch(error){
-    if(!finalAnswer)throw error
     synthesisStatus='fallback'
-    finalAnswer=sanitizeModelResponse(candidates[0].content)
+    const bestComplete=candidates.find(c=>!isTruncatedOrCutOff(c.content))||candidates[0]
+    finalAnswer=sanitizeModelResponse(bestComplete?.content||'')
+    if(!finalAnswer)throw error
     trace.add('synthesis','merge failed → top candidate used ('+(error.message||'').slice(0,60)+')','warn')
     if(onToken)await emitInChunks(finalAnswer,onToken)
   }

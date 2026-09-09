@@ -20,6 +20,8 @@ const VerificationDeskWorkspace=lazy(()=>import("./verification-desk-workspace")
 const PlaybookWorkspace=lazy(()=>import("./playbook-workspace"));
 const ContractWorkspace=lazy(()=>import("./contract-workspace"));
 const PatentDraftingWorkspace=lazy(()=>import("./patent-drafting-workspace"));
+const OfficeActionWorkspace=lazy(()=>import("./oa-workspace"));
+const ClaimQaWorkspace=lazy(()=>import("./claim-qa-workspace"));
 import {
   ArrowRight,
   BookOpen,
@@ -30,6 +32,7 @@ import {
   Check,
   Download,
   FileText,
+  FileWarning,
   FolderKanban,
   Home,
   Layers3,
@@ -127,6 +130,15 @@ const makeChat = () => ({
 const titleFor = (text) =>
   text.trim().replace(/\s+/g, " ").slice(0, 42) +
   (text.trim().length > 42 ? "…" : "");
+
+const isCutOffResponse = (text) => {
+  if (!text || typeof text !== "string") return true;
+  const t = text.trim();
+  if (t.length < 120 && (t.endsWith(":") || t.endsWith("with:") || t.endsWith("with") || t.endsWith("..."))) return true;
+  if (t.endsWith("Here's what I can help you with:") || t.endsWith("Here is what I can do:") || t.endsWith("I can help you with:")) return true;
+  return false;
+};
+
 const getFallbackLegalResponse = (prompt, user, messages = []) => {
   const p = (prompt || "").toLowerCase().trim();
   const userName = user?.name && !user.name.toLowerCase().includes("judha") ? user.name.split(" ")[0] : "Aman";
@@ -135,7 +147,50 @@ const getFallbackLegalResponse = (prompt, user, messages = []) => {
   const priorUserMessages = userMessages.slice(0, -1);
   const priorText = priorUserMessages.join("\n").toLowerCase();
 
-  // 1. Memory / Training / Retention inquiry
+  // 1. Capabilities & Features inquiry
+  const isCapabilitiesQuery =
+    /\b(capabilities|capability|features?|what can you do|who are you|overview|what are your skills|what do you do)\b/i.test(p);
+
+  if (isCapabilitiesQuery) {
+    return `### SallyIP 4.2 Pro • Legal Technology & IP Co-Pilot
+
+Hello **${userName}**! I am **SallyIP 4.2 Pro**, your specialized legal technology & intellectual property co-pilot. Here is an overview of my core legal-technical capabilities:
+
+---
+
+#### 1. Structured US Patent Drafting (35 U.S.C. §§ 111 & 112)
+- **Section-by-Section Specification**: Autonomous drafting of Title, Field of Invention, Background, Summary, Detailed Description, and Abstract.
+- **Claims Architecture**: Numbered claim tree drafting (independent apparatus/system claims, method claims, and dependent claims).
+- **Provisional & Nonprovisional Posture**: Clear statutory distinction between 35 U.S.C. § 111(b) provisional disclosures and 35 U.S.C. § 111(a) nonprovisional applications.
+- **Suggested Patent Drawings**: Detailed FIG. 1–FIG. 5 drawing descriptions, isometric views, and flowcharts.
+
+#### 2. Statutory Examination & Eligibility Screening
+- **35 U.S.C. § 101 *Alice/Mayo* Screening**: Scans technical disclosures and claims for mathematical concepts, mental processes, or abstract ideas under USPTO 2019 Revised Guidance, providing concrete hardware-anchoring recommendations.
+- **35 U.S.C. § 112(a) Enablement & Written Description**: Audits detailed descriptions to verify that every claimed limitation has explicit specification support.
+- **35 U.S.C. § 112(b) Live Antecedent Basis Check**: Automatically flags missing antecedent basis (*"the sensor"* without prior introduction of *"a sensor"*).
+
+#### 3. Prior-Art Searching & Novelty Analysis (35 U.S.C. § 102)
+- **Multi-Jurisdictional Retrieval**: Cross-database search strategies across USPTO, EPO (Espacenet), and WIPO databases.
+- **Limitation-by-Limitation Claim Charting**: Maps proposed invention features against closest prior-art citations.
+- **Inventive-Step Evaluation (Graham Factors & KSR)**: Analysis of non-obviousness under 35 U.S.C. § 103 and EPO problem-solution approach.
+
+#### 4. Freedom to Operate (FTO) & Risk Mapping
+- **Product Feature Infringement Clearance**: Literal infringement and Doctrine of Equivalents analysis against competitor patent portfolios.
+- **Design-Around Strategies**: Actionable engineering recommendations to avoid unexpired competitor claims.
+
+#### 5. Trademark Clearance & Brand Protection
+- **Comprehensive Mark Clearance**: Multi-register screening across USPTO, EUIPO, and common-law marks.
+- **Likelihood of Confusion Analysis**: Multi-dimensional phonetic, visual, and conceptual similarity evaluations across Nice Classes.
+
+#### 6. Official Document Export & Formatting
+- **Instant Multi-Format Export**: Generates professional, download-ready \`.docx\`, \`.pdf\`, \`.pptx\`, \`.xlsx\`, and \`.md\` documents directly from the matter vault.
+
+---
+
+**What invention, matter, or legal question would you like to explore today?**`;
+  }
+
+  // 2. Memory / Training / Retention inquiry
   const isMemoryOrTrainingQuery =
     /\b(train|training|remember|remembering|rmember|rmembering|memory|memorize|memorizing|learn|learning|recall|retention)\b/i.test(p);
 
@@ -852,7 +907,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         }
       } catch (err) {}
 
-      if (!answer || answer.includes("temporarily unavailable") || answer.includes("Not authenticated") || answer.includes("could not respond")) {
+      if (!answer || isCutOffResponse(answer) || answer.includes("temporarily unavailable") || answer.includes("Not authenticated") || answer.includes("could not respond") || answer.includes("overloaded") || answer.includes("intermittent errors")) {
         answer = getFallbackLegalResponse(clean, user, baseChat.messages);
       }
 
@@ -1718,6 +1773,42 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                 className="beebotWorkspaceTile"
                 onClick={() => {
                   setToolsOpen(false);
+                  setActiveWorkspace("office_action");
+                }}
+              >
+                <div className="beebotTileHeader">
+                  <div className="beebotTileIcon">
+                    <FileWarning className="w-4 h-4 text-orange-600" />
+                  </div>
+                  <div className="beebotTileName">Office Action Response</div>
+                </div>
+                <div className="beebotTileDesc">
+                  Parse rejections, map to claims, draft audited amendments with new-matter checks.
+                </div>
+              </button>
+
+              <button
+                className="beebotWorkspaceTile"
+                onClick={() => {
+                  setToolsOpen(false);
+                  setActiveWorkspace("claim_qa");
+                }}
+              >
+                <div className="beebotTileHeader">
+                  <div className="beebotTileIcon">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <div className="beebotTileName">Claim QA Audit</div>
+                </div>
+                <div className="beebotTileDesc">
+                  One-click antecedent, dependency, terminology, and support audit — instant, in-browser.
+                </div>
+              </button>
+
+              <button
+                className="beebotWorkspaceTile"
+                onClick={() => {
+                  setToolsOpen(false);
                   setActiveWorkspace("knowledge_graph");
                 }}
               >
@@ -1800,6 +1891,21 @@ export default function ChatPage({ onHome, onAuthRequired }) {
             isOpen={true}
             onClose={() => setActiveWorkspace(null)}
             matterId={activeMatterId}
+          />
+        )}
+        {activeWorkspace === "office_action" && (
+          <OfficeActionWorkspace
+            isOpen={true}
+            onClose={() => setActiveWorkspace(null)}
+            matterId={activeMatterId}
+            onResult={recordToolResult}
+          />
+        )}
+        {activeWorkspace === "claim_qa" && (
+          <ClaimQaWorkspace
+            isOpen={true}
+            onClose={() => setActiveWorkspace(null)}
+            onResult={recordToolResult}
           />
         )}
       </Suspense>
