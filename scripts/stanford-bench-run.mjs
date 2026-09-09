@@ -34,7 +34,10 @@ async function ask(prompt, evidence) {
 
 function grade(item, answer, evidence) {
   const guard = guardAnswerCitations(answer, evidence, {}).guard;
-  const quotes = [...answer.matchAll(/"([^"]{20,400})"/g)].map(m => m[1]).slice(0, 4);
+  // Scare quotes in refusal sentences ("cannot verify X") are not evidentiary
+  // quotes: only check spans from assertive sentences.
+  const assertive = String(answer || '').split(/(?<=[.!?])\s+/).filter(s => !ABSTAIN_SIGNALS.test(s)).join(' ');
+  const quotes = [...assertive.matchAll(/"([^"]{20,400})"/g)].map(m => m[1]).slice(0, 4);
   let missing = 0;
   const missingQuotes = [];
   for (const quote of quotes) {
