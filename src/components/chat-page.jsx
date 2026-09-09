@@ -41,6 +41,7 @@ import {
   Plus,
   Search,
   Send,
+  Scale,
   ShieldCheck,
   SlidersHorizontal,
   Sparkles,
@@ -138,6 +139,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   const threadRef = useRef(null);
   const threadEndRef = useRef(null);
   const uploadInputRef = useRef(null);
+  const searchInputRef = useRef(null);
   const [chats, setChats] = useState(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
@@ -157,7 +159,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
     } catch {}
     return { name: "Aman", email: "aman@sallyip.com", role: "Patent Practitioner" };
   });
-  const [selectedEngine, setSelectedEngine] = useState("sally-4.2-pro");
+  const [selectedEngine, setSelectedEngine] = useState("auto");
   const [renamingId, setRenamingId] = useState(null);
   const [renameValue, setRenameValue] = useState("");
   const [editingMessage, setEditingMessage] = useState(null);
@@ -285,6 +287,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
     };
   }, []);
   const logout = async () => {
+    if (!window.confirm("Log out of SallyIP? Unsent input will be lost.")) return;
     await fetch("/api/auth", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -592,7 +595,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
           : await fetch("/api/chat", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ messages: requestMessages, conversation_id: baseChat.id, matter_id: activeMatterId || null, deep_research: deepResearch }),
+        body: JSON.stringify({ messages: requestMessages, conversation_id: baseChat.id, matter_id: activeMatterId || null, deep_research: deepResearch, engine: selectedEngine !== "auto" ? selectedEngine : null }),
             });
         data = await response.json();
         if (!response.ok)
@@ -805,6 +808,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
 
           <div className="beebotSearchWrap">
             <input
+              ref={searchInputRef}
               type="text"
               className="beebotSearchInput"
               placeholder="Search"
@@ -848,7 +852,8 @@ export default function ChatPage({ onHome, onAuthRequired }) {
             </button>
             <button
               className={`beebotNavItem ${activeNav === "history" ? "active" : ""}`}
-              onClick={() => setActiveNav("history")}
+              onClick={() => { setActiveNav("history"); setSearchQuery(""); searchInputRef.current?.focus(); }}
+              title="Search conversation history"
             >
               <Clock3 className="w-4 h-4" />
               <span>History</span>
@@ -916,7 +921,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                 <div className="beebotModelIcon">
                   <img src="/sallyip-brand-mark.png" alt="" className="w-3.5 h-3.5 object-contain" />
                 </div>
-                <span>{selectedEngine === "nemotron" ? "Nemotron 3.5" : selectedEngine === "nex" ? "Nex N2.5 Pro" : "SallyIP 4.2 Pro"}</span>
+                <span>{selectedEngine === "nvidia/nemotron-3.5-lightning:free" ? "Nemotron 3.5" : selectedEngine === "google/gemma-4-26b-a4b-it:free" ? "Gemma 4 26B" : selectedEngine === "liquid/lfm-2.5-2.6b:free" ? "Liquid LFM Fast" : "SallyIP 4.2 Pro"}</span>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
               </button>
 
@@ -925,36 +930,47 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                   <div className="beebotDropdownHeader">Active AI Engines</div>
                   <button
                     type="button"
-                    className={`beebotDropdownItem ${selectedEngine === "sally-4.2-pro" ? "active" : ""}`}
+                    className={`beebotDropdownItem ${selectedEngine === "auto" ? "active" : ""}`}
                     onClick={() => {
-                      setSelectedEngine("sally-4.2-pro");
+                      setSelectedEngine("auto");
                       setModelMenuOpen(false);
                     }}
                   >
-                    <span>⚡ SallyIP 4.2 Pro (Default)</span>
-                    {selectedEngine === "sally-4.2-pro" && <Check className="w-3.5 h-3.5 text-indigo-600" />}
+                    <span>⚡ SallyIP 4.2 Pro (Auto fleet)</span>
+                    {selectedEngine === "auto" && <Check className="w-3.5 h-3.5 text-indigo-600" />}
                   </button>
                   <button
                     type="button"
-                    className={`beebotDropdownItem ${selectedEngine === "nemotron" ? "active" : ""}`}
+                    className={`beebotDropdownItem ${selectedEngine === "nvidia/nemotron-3.5-lightning:free" ? "active" : ""}`}
                     onClick={() => {
-                      setSelectedEngine("nemotron");
+                      setSelectedEngine("nvidia/nemotron-3.5-lightning:free");
                       setModelMenuOpen(false);
                     }}
                   >
                     <span>🔬 Nemotron 3.5 (Legal reasoning)</span>
-                    {selectedEngine === "nemotron" && <Check className="w-3.5 h-3.5 text-indigo-600" />}
+                    {selectedEngine === "nvidia/nemotron-3.5-lightning:free" && <Check className="w-3.5 h-3.5 text-indigo-600" />}
                   </button>
                   <button
                     type="button"
-                    className={`beebotDropdownItem ${selectedEngine === "nex" ? "active" : ""}`}
+                    className={`beebotDropdownItem ${selectedEngine === "google/gemma-4-26b-a4b-it:free" ? "active" : ""}`}
                     onClick={() => {
-                      setSelectedEngine("nex");
+                      setSelectedEngine("google/gemma-4-26b-a4b-it:free");
                       setModelMenuOpen(false);
                     }}
                   >
-                    <span>📄 Nex N2.5 Pro (Drafting)</span>
-                    {selectedEngine === "nex" && <Check className="w-3.5 h-3.5 text-indigo-600" />}
+                    <span>💬 Gemma 4 26B (Explanation)</span>
+                    {selectedEngine === "google/gemma-4-26b-a4b-it:free" && <Check className="w-3.5 h-3.5 text-indigo-600" />}
+                  </button>
+                  <button
+                    type="button"
+                    className={`beebotDropdownItem ${selectedEngine === "liquid/lfm-2.5-2.6b:free" ? "active" : ""}`}
+                    onClick={() => {
+                      setSelectedEngine("liquid/lfm-2.5-2.6b:free");
+                      setModelMenuOpen(false);
+                    }}
+                  >
+                    <span>🚀 Liquid LFM (Fast draft)</span>
+                    {selectedEngine === "liquid/lfm-2.5-2.6b:free" && <Check className="w-3.5 h-3.5 text-indigo-600" />}
                   </button>
                 </div>
               )}
@@ -1072,6 +1088,27 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                   </span>
                 </div>
               )}
+
+              {/* Capability suggestions */}
+              <div className="beebotSuggestions">
+                {[
+                  { icon: <Telescope className="w-3.5 h-3.5" />, title: "Prior-art search", prompt: "Search prior art for the uploaded invention and rank the closest references." },
+                  { icon: <ShieldCheck className="w-3.5 h-3.5" />, title: "FTO analysis", prompt: "Run an FTO analysis for my product in the US. Ask me for anything missing." },
+                  { icon: <FileText className="w-3.5 h-3.5" />, title: "Draft US patent", prompt: "Draft a US provisional patent application scaffold from my invention disclosure, section by section." },
+                  { icon: <Scale className="w-3.5 h-3.5" />, title: "Clear a trademark", prompt: "Check whether my mark is clear for SaaS in the EU. Ask me for the mark first." },
+                ].map((s) => (
+                  <button
+                    key={s.title}
+                    type="button"
+                    className="beebotSuggestionCard"
+                    disabled={loading}
+                    onClick={() => { setInput(s.prompt); }}
+                  >
+                    {s.icon}
+                    <span>{s.title}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           ) : (
             /* Active Message Thread */

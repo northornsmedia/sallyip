@@ -170,6 +170,10 @@ export async function orchestrateSallyStreaming(messages,env,siteUrl='https://sa
   const statsMap=await loadAdaptiveStats(options.sql)
   const weightedEngines=computeAdaptiveWeights(statsMap,ENGINES).sort((a,b)=>b.adaptive_weight-a.adaptive_weight)
   trace.add('request','adaptive weights loaded: '+weightedEngines.map(e=>e.name.split(' ')[0]+' '+e.adaptive_weight.toFixed(1)).join(', '),'ok')
+  // Explicit user preference from the model picker (config slug must match a resolved engine).
+  let preferredApplied=null
+  const preferredSlug=String(options.preferredEngine||'').trim()
+  if(preferredSlug){const hit=weightedEngines.find(engine=>engine.slug===preferredSlug);if(hit){hit.adaptive_weight=Math.round((hit.adaptive_weight*3+50)*100)/100;preferredApplied=hit.slug;weightedEngines.sort((a,b)=>b.adaptive_weight-a.adaptive_weight);trace.add('request','preferred engine boosted: '+hit.name,'ok')}}
 
   // Race all engines EXCEPT the ox-alpha reserve
   const racers=weightedEngines.filter(engine=>engine.slug!==OX_ALPHA_SLUG)
@@ -271,13 +275,13 @@ export async function orchestrateSallyStreaming(messages,env,siteUrl='https://sa
   }
   finalAnswer=sanitizeModelResponse(finalAnswer)
   const embedding=await embeddingPromise
-  const meta={engines_requested:ENGINES.length,engines_completed:candidates.length,fast_fail_retries:retries,stragglers_aborted:attempts.filter(item=>item.status!=='success'&&item.latency_ms>=8000).length,rescue_used:rescueUsed,primary_engine:candidates[0]?.slug||null,embedding_dimensions:embedding.data?.data?.[0]?.embedding?.length||0,embedding_status:embedding.status,embedding_latency_ms:embedding.latency_ms,reranked,synthesis_status:synthesisStatus,total_latency_ms:Date.now()-totalStarted,engines:attempts.map(({slug,name,weight,status,latency_ms,retried})=>({slug,name,weight,status,latency_ms,retried})),sally_version:onToken?'4.2 Pro Stream':'4.1 Pro'}
+  const meta={engines_requested:ENGINES.length,engines_completed:candidates.length,preferred_engine:preferredApplied,fast_fail_retries:retries,stragglers_aborted:attempts.filter(item=>item.status!=='success'&&item.latency_ms>=8000).length,rescue_used:rescueUsed,primary_engine:candidates[0]?.slug||null,embedding_dimensions:embedding.data?.data?.[0]?.embedding?.length||0,embedding_status:embedding.status,embedding_latency_ms:embedding.latency_ms,reranked,synthesis_status:synthesisStatus,total_latency_ms:Date.now()-totalStarted,engines:attempts.map(({slug,name,weight,status,latency_ms,retried})=>({slug,name,weight,status,latency_ms,retried})),sally_version:onToken?'4.2 Pro Stream':'4.1 Pro'}
   trace.add('response','answer delivered · '+finalAnswer.length+' chars · '+meta.total_latency_ms+'ms','success')
   if(options.sql)persistBrainOutcome(options.sql,{conversation_id:options.conversation_id,task_class:options.task_class,prompt:latest,answer:finalAnswer,total_latency_ms:meta.total_latency_ms,engines_completed:candidates.length,engines_requested:ENGINES.length,primary_engine:meta.primary_engine,rescue_used:rescueUsed,events:trace.events,attempts}).catch(()=>{})
   return{answer:finalAnswer,meta}
 }
 
-export async function orchestrateSally(messages,env,siteUrl='https://sallyip.com'){
-  return orchestrateSallyStreaming(messages,env,siteUrl,null)
+export async function orchestrateSally(messages,env,siteUrl='https://sallyip.com',options={}){
+  return orchestrateSallyStreaming(messages,env,siteUrl,null,options)
 }
 
