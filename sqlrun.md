@@ -10,6 +10,8 @@ node --env-file=.env.local scripts/apply-migration.mjs database/044_citation_led
 node --env-file=.env.local scripts/apply-migration.mjs database/045_vault_scale.sql
 node --env-file=.env.local scripts/apply-migration.mjs database/046_security.sql
 node --env-file=.env.local scripts/apply-migration.mjs database/047_eval_harness.sql
+node --env-file=.env.local scripts/apply-migration.mjs database/048_draft_workflow.sql
+node --env-file=.env.local scripts/apply-migration.mjs database/049_draft_matter_optional.sql
 ```
 
 What each adds:
@@ -22,6 +24,8 @@ What each adds:
 | 045_vault_scale | pg_trgm indexes, `vault_review_tables`, `vault_review_rows` |
 | 046_security | `security_events`, `login_attempts`, role check |
 | 047_eval_harness | `eval_runs` |
+| 048_draft_workflow | `patent_drafting` workflow + playbook types |
+| 049_draft_matter_optional | optional matter on workflow runs |
 
 New env keys for prod (search works without them; USPTO + CourtListener report "not configured" until added):
 

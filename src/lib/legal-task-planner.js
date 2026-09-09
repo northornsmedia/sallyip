@@ -4,7 +4,7 @@ export const WORKFLOW_TYPES=[
   'invention_intake','patent_dispute','document_review','official_search','verification_desk',
   'trademark_intelligence','trademark_similarity','trademark_clearance','prosecution_history','patent_family',
   'novelty','inventive_step','prior_art','fto','claim_chart','patentability','evidence_chronology',
-  'copyright_analysis','ip_transaction'
+  'copyright_analysis','ip_transaction','patent_drafting'
 ]
 
 const TASK_CLASS={
@@ -26,7 +26,8 @@ const TASK_CLASS={
   patentability:'PATENT_PATENTABILITY',
   evidence_chronology:'IP_LITIGATION',
   copyright_analysis:'COPYRIGHT_ANALYSIS',
-  ip_transaction:'IP_TRANSACTION'
+  ip_transaction:'IP_TRANSACTION',
+  patent_drafting:'PATENT_DRAFTING'
 }
 
 const matchers=[
@@ -45,6 +46,7 @@ const matchers=[
   {type:'prior_art',test:text=>/\b(prior art search|search prior art|find prior art|prior-art project)\b/.test(text)},
   {type:'fto',test:text=>/\b(fto|freedom[- ]to[- ]operate)\b/.test(text)},
   {type:'claim_chart',test:text=>/\b(claim chart|infringement chart|map claim|element.?by.?element)\b/.test(text)||(/\b(infring(e|ement))\b/.test(text)&&/\b(claim|product|feature)\b/.test(text))},
+  {type:'patent_drafting',test:text=>/\b(draft|write|prepare)\b/.test(text)&&(/\b(patent application|patent specification|provisional( application)?|non-?provisional|utility patent|complete(.{0,20})?us patent)\b/.test(text)||/\bpatent\b\s*[.?!]?\s*$/.test(text))},
   {type:'patentability',test:text=>/\b(patentab\w*|assess patentability|can we patent)\b/.test(text)},
   {type:'evidence_chronology',test:text=>/\b(chronology|timeline|evidence matrix|litigation evidence|dispute matrix)\b/.test(text)},
   {type:'copyright_analysis',test:text=>/\b(copyright|authorship|fair use|fair dealing)\b/.test(text)},
@@ -61,8 +63,8 @@ export function planLegalTask(instruction,{matterJurisdictions=[]}={}){
   const product=text.match(/(?:for|of)\s+([A-Z][\w.-]*(?:\s+[A-Z][\w.-]*){0,4})\s+(?:in|against|under)\b/i)?.[1]||null
   const goods=/\bsaas\b/i.test(text)?'Software as a service (SaaS); hosted software platforms':null
   const query=text.match(/\b(?:search|query)\s*[:\-]?\s*(.+)$/i)?.[1]?.trim()||text.match(/\b(?:ti|pa|in)=.+$/i)?.[0]||null
-  const requires_matter=Boolean(workflow_type&&workflow_type!=='copyright_analysis'&&workflow_type!=='ip_transaction')
-  const requires_clarification=Boolean(workflow_type&&['fto','claim_chart','trademark_clearance','official_search'].includes(workflow_type)&&((workflow_type==='trademark_clearance'&&!mark)||(workflow_type==='official_search'&&!query)||(['fto','claim_chart'].includes(workflow_type)&&!jurisdiction)))
+  const requires_matter=Boolean(workflow_type&&workflow_type!=='copyright_analysis'&&workflow_type!=='ip_transaction'&&workflow_type!=='patent_drafting')
+  const requires_clarification=Boolean(workflow_type&&['fto','claim_chart','trademark_clearance','official_search'].includes(workflow_type)&&((workflow_type==='trademark_clearance'&&!mark)||(workflow_type==='official_search'&&!query)||(['fto','claim_chart'].includes(workflow_type)&&!jurisdiction))||(workflow_type==='patent_drafting'&&text.length<80))
   const fallback_hint=workflow_type?null:'Ask about patents, trademarks, copyright, transactions, litigation evidence, or upload a document and tell Sally what to do.'
   return{
     workflow_type,

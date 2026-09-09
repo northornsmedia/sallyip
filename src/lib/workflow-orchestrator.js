@@ -6,6 +6,7 @@ import {createClearanceProject,screenMatterTrademarks} from './trademark-clearan
 import {proposeChronologyFromSources} from './litigation-evidence-service.js'
 import {officialPatentAuthority} from './jurisdiction-registry.js'
 import {runIpSpecialist} from './ip-specialist-service.js'
+import {buildDraftScaffold,detectAttorneyPersona,detectFilingPosture,extractDraftFeatures,screenSection101} from './patent-draft-service.js'
 
 const clean=value=>String(value||'').replace(/\s+/g,' ').trim()
 const title=value=>clean(value).slice(0,180)
@@ -162,13 +163,45 @@ async function automateTrademark(sql,userId,matterId,plan,step){
   return{title:`${plan.mark} trademark clearance`,type:'trademark_clearance_report',jurisdiction:plan.jurisdiction||'EU',summary:`Sally created the clearance scope, suggested Nice classes ${nice.join(', ')||'pending'}, and screened ${screened.candidates.length} matter candidates.`,warnings:['Official registry, common-law, company-name, domain, social and marketplace channels remain incomplete.'],links:{clearance_project_id:screened.project.id},content:`# Preliminary trademark clearance — ${plan.mark}\n\n- Jurisdiction: ${plan.jurisdiction||'EU'}\n- Goods/services: ${plan.goods||plan.instruction}\n- Suggested Nice classes: ${nice.join(', ')||'Requires review'}\n- Matter candidates screened: ${screened.candidates.length}\n\nExternal clearance channels remain clearly recorded as research gaps.`}
 }
 
+async function automatePatentDraft(sql,userId,matterId,plan,step){
+  const instruction=plan.instruction||'',attorneyPersona=detectAttorneyPersona(instruction),posture=detectFilingPosture(instruction)
+  await step('classify_posture','patent-draft-service','completed',{posture:posture.posture,attorney_persona:attorneyPersona,corrections:posture.corrections.length},'instruction')
+  let features=[],sources=[],grounded=false
+  if(matterId){
+    const inputs=await matterInputs(sql,userId,matterId),roles=partitionFtoSources(inputs.passages)
+    const pool=roles.productPassages.length?roles.productPassages:inputs.passages
+    features=productFeatures(pool).slice(0,10).map(item=>item.text)
+    sources=pool.slice(0,8).map(item=>({passage_id:item.id,title:item.source_title,locator:item.locator}))
+    grounded=features.length>0
+    await step('extract_invention','document-ingestion','completed',{features:features.length,passages:inputs.passages.length},grounded?'uploaded_document':'none')
+  }
+  if(!features.length)features=extractDraftFeatures(instruction.replace(/^.*?invention for\s+/i,'').slice(0,2000))
+  const section101=screenSection101(instruction+(grounded?'':'')+features.join(' '))
+  await step('screen_subject_matter','patent-draft-service',section101?'needs_review':'completed',{software_signals:Boolean(section101)},'instruction')
+  const gaps=[]
+  if(!grounded)gaps.push('Upload an invention disclosure and run intake + prior-art search before relying on any claim scope.')
+  if(posture.posture==='unresolved')gaps.push('Confirm provisional (§ 111(b)) vs nonprovisional (§ 111(a)) filing posture.')
+  if(section101)gaps.push('Obtain § 101 subject-matter clearance from a registered practitioner (software-implemented subject matter).')
+  gaps.push('Supply drawings with Figure references; a filing without drawings is incomplete where needed to understand the invention.')
+  gaps.push('Map every claim limitation to literal § 112 support in Section 5 before filing.')
+  const draftTitle=title(instruction.match(/invention for\s+(.+?)(?:\.|that uses|using)/i)?.[1]||'AI-prepared patent draft scaffold')
+  const content=buildDraftScaffold({title:draftTitle,posture:posture.posture,corrections:posture.corrections,attorneyPersona,section101,features,gaps})
+  await step('assemble_scaffold','patent-draft-service','needs_review',{sections:7,claims:2+Math.min(5,Math.max(0,features.length-1)),gaps:gaps.length},grounded?'matter_sources':'none')
+  const warnings=['AI-prepared scaffold only: not filed, not legal advice, not attorney work product.',...posture.corrections]
+  if(section101)warnings.push('§ 101 subject-matter risk flagged for software-implemented subject matter.')
+  if(!grounded)warnings.push('Drafted from the instruction text alone; no uploaded invention disclosure was available.')
+  return{title:`Patent draft scaffold — ${draftTitle}`,type:'patent_draft',jurisdiction:plan.jurisdiction||'US',summary:`Sally prepared a 7-section ${posture.posture} draft scaffold with ${gaps.length} inventor gaps requiring closure${attorneyPersona?' (attorney persona declined)':''}.`,warnings,links:matterId?{matter_id:matterId}:{},sources,content}
+}
+
 async function automateEvidence(sql,userId,matterId,plan,step){const result=await proposeChronologyFromSources(sql,userId,{matter_id:matterId});await step('extract_chronology','litigation-evidence-service','needs_review',{events:result.events.length,passages:result.passages.length},'uploaded_document');return{title:'Automated evidence chronology',type:'litigation_chronology',jurisdiction:plan.jurisdiction,summary:`Sally parsed matter evidence and prepared ${result.events.length} chronology candidates for review.`,warnings:result.events.length?[]:['No dated passages were detected.'],links:{matter_id:matterId},content:`# Evidence chronology candidate\n\n- Source passages processed: ${result.passages.length}\n- Dated event candidates: ${result.events.length}\n\nEvents remain proposed until lawyer review.`}}
 
 export async function runAutomatedLegalWorkflow(sql,userId,{matterId,conversationId,instruction,matterJurisdictions=[]}){
   const plan=planLegalTask(instruction,{matterJurisdictions});if(!plan.workflow_type)return null
-  const[matter]=await sql`SELECT id FROM matters WHERE id=${matterId} AND user_id=${userId}`;if(!matter)throw new Error('Select a matter before running an automated legal workflow')
-  const[run]=await sql`INSERT INTO legal_workflow_runs(user_id,matter_id,conversation_id,workflow_type,instruction) VALUES(${userId},${matter.id},${conversationId||null},${plan.workflow_type},${instruction}) RETURNING id`,steps=[]
+  const[matter]=matterId?await sql`SELECT id FROM matters WHERE id=${matterId} AND user_id=${userId}`:[]
+  if(!matter&&plan.workflow_type!=='patent_drafting')throw new Error('Select a matter before running an automated legal workflow')
+  const matterKey=matter?.id||null
+  const[run]=await sql`INSERT INTO legal_workflow_runs(user_id,matter_id,conversation_id,workflow_type,instruction) VALUES(${userId},${matterKey},${conversationId||null},${plan.workflow_type},${instruction}) RETURNING id`,steps=[]
   const step=async(key,service,status,details,basis)=>{const item={ordinal:steps.length+1,key,service,status,details,source_basis:basis};steps.push(item);await recordStep(sql,run.id,item.ordinal,key,service,status,details,basis)}
-  try{let result;if(plan.workflow_type==='invention_intake')result=await automateInventionIntake(sql,userId,matter.id,plan,step);else if(plan.workflow_type==='claim_chart')result=await automateClaimChart(sql,userId,matter.id,plan,step);else if(plan.workflow_type==='fto')result=await automateFto(sql,userId,matter.id,plan,step);else if(plan.workflow_type==='patentability')result=await automatePatentability(sql,userId,matter.id,plan,step);else if(plan.workflow_type==='trademark_clearance')result=await automateTrademark(sql,userId,matter.id,plan,step);else result=await automateEvidence(sql,userId,matter.id,plan,step);const artifactId=await createArtifact(sql,userId,conversationId,result);const status=result.warnings.length?'partial':'completed';await sql`UPDATE legal_workflow_runs SET status=${status},result_summary=${result.summary},warnings=${JSON.stringify(result.warnings)}::jsonb,generated_artifact_id=${artifactId},verification_status=${result.warnings.length?'qualified':'prepared'},completed_at=now() WHERE id=${run.id}`;return{run_id:run.id,status,plan,steps,artifact_id:artifactId,...result}}
+  try{let result;if(plan.workflow_type==='invention_intake')result=await automateInventionIntake(sql,userId,matterKey,plan,step);else if(plan.workflow_type==='claim_chart')result=await automateClaimChart(sql,userId,matterKey,plan,step);else if(plan.workflow_type==='fto')result=await automateFto(sql,userId,matterKey,plan,step);else if(plan.workflow_type==='patentability')result=await automatePatentability(sql,userId,matterKey,plan,step);else if(plan.workflow_type==='trademark_clearance')result=await automateTrademark(sql,userId,matterKey,plan,step);else if(plan.workflow_type==='patent_drafting')result=await automatePatentDraft(sql,userId,matterKey,plan,step);else result=await automateEvidence(sql,userId,matterKey,plan,step);const artifactId=await createArtifact(sql,userId,conversationId,result);const status=result.warnings.length?'partial':'completed';await sql`UPDATE legal_workflow_runs SET status=${status},result_summary=${result.summary},warnings=${JSON.stringify(result.warnings)}::jsonb,generated_artifact_id=${artifactId},verification_status=${result.warnings.length?'qualified':'prepared'},completed_at=now() WHERE id=${run.id}`;return{run_id:run.id,status,plan,steps,artifact_id:artifactId,...result}}
   catch(error){await recordStep(sql,run.id,steps.length+1,'workflow_failure','workflow-orchestrator','failed',{},'none',error.message);await sql`UPDATE legal_workflow_runs SET status='failed',failed_steps=${JSON.stringify([{step:steps.length+1,error:error.message}])}::jsonb,result_summary=${error.message},completed_at=now() WHERE id=${run.id}`;throw error}
 }

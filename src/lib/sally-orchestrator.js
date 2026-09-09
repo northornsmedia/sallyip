@@ -1,17 +1,14 @@
 import { sanitizeModelResponse } from './document-tool-service.js'
 
 const CHAT_ENGINES=[
-  {slug:'nvidia/nemotron-3.5-lightning:free',name:'Nemotron 3.5 Lightning',key:'OPENROUTER_API_KEY',weight:16,role:'Fast legal-technical reasoning'},
-  {slug:'google/gemma-4-26b-a4b-it:free',name:'Gemma 4 26B',key:'OPENROUTER_GEMMA_API_KEY',weight:13,role:'Language clarity and explanation'},
-  {slug:'stealth/ox-alpha',name:'OX Alpha',key:'OPENROUTER_OX_API_KEY',weight:50,role:'Primary deep synthesis and edge-case review'},
-  {slug:'liquid/lfm-2.5-2.6b:free',name:'Liquid LFM 2.5 2.6B',key:'OPENROUTER_LFM_CHAT_API_KEY',weight:12,role:'Efficient structured reasoning'},
-  {slug:'openrouter/google/gemini-3.5-flash-lite',name:'OmniRoute Gemini Flash',key:'OMNIROUTE_API_KEY',baseUrl:'OMNIROUTE_BASE_URL',weight:14,role:'Fast gateway routing across providers'}
+  {slug:'openrouter/free',name:'OpenRouter Free Router',key:'OPENROUTER_API_KEY',weight:30,role:'Dynamic multi-provider reasoning'},
+  {slug:'nvidia/nemotron-3.5-lightning:free',name:'Nemotron 3.5 Lightning',key:'OPENROUTER_API_KEY',weight:25,role:'Fast legal-technical reasoning'},
+  {slug:'nex-agi/nex-n2.5-pro:free',name:'Nex N2.5 Pro',key:'OPENROUTER_API_KEY',weight:25,role:'Language clarity and legal drafting'},
+  {slug:'nvidia/nemotron-3-super-120b-a12b:free',name:'Nemotron 3 Super',key:'OPENROUTER_API_KEY',weight:20,role:'Deep technical synthesis and edge-case review'}
 ]
-// OX_ALPHA_RESERVE: ox-alpha is the designated rescue engine. It is excluded from
-// the initial parallel race and held back; if fewer than RESCUE_THRESHOLD engines
-// succeed, ox-alpha runs alone as the primary brain so Sally never goes silent.
-const OX_ALPHA_SLUG='stealth/ox-alpha'
-const RESCUE_THRESHOLD=3
+// Designated rescue engine: openrouter/free dynamically routes to active free providers
+const OX_ALPHA_SLUG='openrouter/free'
+const RESCUE_THRESHOLD=2
 const INTERNAL_PROMPT=`You are an internal reasoning engine inside SallyIP 4.1 Pro. Your public identity is strictly Sally. Never claim another model or provider name. Give accurate, practical intellectual-property research and drafting assistance. Distinguish facts from uncertainty. Return only useful output; never reveal hidden chain-of-thought.
 
 OUTPUT AND ARTIFACT FORMAT: Sally's web application automatically generates downloadable files and artifacts from your response. Always write responses in standard, clean Markdown directly for the user. Never emit internal tool call syntax, pseudo-code functions, XML tags, or raw tokens such as <itool_call_begin>, <itool_call_end>, <tool_call>, or [generate_file(...)]. Do not escape text into single string arguments. Keep conversational chat clear, and structure legal agreements or guides using standard Markdown headings, lists, and tables. Supported downloadable formats handled by the application include PDF, DOCX, PPTX, XLSX, CSV, Markdown, HTML, JSON, and TXT. Never invent download links, never instruct the user to copy content into Word, Google Docs, or another application, and never claim file generation is unavailable. Keep chat text separate from artifact content. Resolve "this", "that", "the document", "the agreement", "the report", "previous draft", and bare requests such as "PDF please" to the active artifact. Existing artifacts must be exported without regeneration unless revisions are explicitly requested. When a prompt is marked DOCUMENT CONTENT REQUEST, return only the polished document content in Markdown: no capability disclaimers, file-generation instructions, conversational preface, or statements about being unable to generate files. Legal notices are rendered by the application UI and should not be inserted into drafted agreements or artifacts unless the user requests them or they are substantively required.`

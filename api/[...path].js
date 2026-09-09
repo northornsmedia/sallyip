@@ -18,6 +18,7 @@ import litigationEvidenceHandler from './_handlers/litigation-evidence.js'
 import mattersHandler from './_handlers/matters.js'
 import noveltyHandler from './_handlers/novelty.js'
 import officialSearchHandler from './_handlers/official-search.js'
+import patentDraftsHandler from './_handlers/patent-drafts.js'
 import patentFamiliesHandler from './_handlers/patent-families.js'
 import playbooksHandler from './_handlers/playbooks.js'
 import priorArtHandler from './_handlers/prior-art.js'
@@ -51,6 +52,7 @@ const handlers = {
   'matters': mattersHandler,
   'novelty': noveltyHandler,
   'official-search': officialSearchHandler,
+  'patent-drafts': patentDraftsHandler,
   'patent-families': patentFamiliesHandler,
   'playbooks': playbooksHandler,
   'prior-art': priorArtHandler,

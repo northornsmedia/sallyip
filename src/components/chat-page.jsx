@@ -20,6 +20,7 @@ const LitigationEvidenceWorkspace=lazy(()=>import("./litigation-evidence-workspa
 const VerificationDeskWorkspace=lazy(()=>import("./verification-desk-workspace"));
 const PlaybookWorkspace=lazy(()=>import("./playbook-workspace"));
 const ContractWorkspace=lazy(()=>import("./contract-workspace"));
+const PatentDraftingWorkspace=lazy(()=>import("./patent-drafting-workspace"));
 import {
   ArrowRight,
   ChevronDown,
@@ -959,6 +960,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                   <VerificationDeskWorkspace matterId={activeMatterId} onResult={recordToolResult}/>
                   <PlaybookWorkspace matterId={activeMatterId} conversationId={active?.id} onResult={recordToolResult}/>
                   <ContractWorkspace matterId={activeMatterId} onResult={recordToolResult}/>
+                  <PatentDraftingWorkspace matterId={activeMatterId} onResult={recordToolResult}/>
                 </Suspense>
               </motion.div>
             )}
