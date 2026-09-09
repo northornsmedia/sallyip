@@ -38,7 +38,11 @@ export default function SallyTopNav({
           title="SallyIP Home"
         >
           <div className="sh-brand-icon">
-            <Sparkles size={18} color="#ffffff" />
+            <img
+              src="/sallyip-brand-mark.png"
+              alt="SallyIP"
+              className="sh-brand-logo-img"
+            />
           </div>
           <span className="sh-brand-name">SallyIP</span>
           <span className="sh-brand-badge">2026</span>

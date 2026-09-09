@@ -46,11 +46,22 @@
   width: 32px;
   height: 32px;
   border-radius: 9px;
-  background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+  background: #0f0f15;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 16px rgba(99, 102, 241, 0.35);
+  padding: 4px;
+  box-shadow: 0 0 16px rgba(99, 102, 241, 0.25);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.sh-brand-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .sh-brand-name {
