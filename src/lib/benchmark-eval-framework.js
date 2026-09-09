@@ -34,6 +34,7 @@ export function extractCitedPropositions(text) {
 
   const rawClauses = protectedText
     .split(/\n+/)
+    .filter(line => !line.trim().startsWith('>'))
     .flatMap(line => {
       return line.match(/[^.!?]+[.!?]+(?:["'”’]+)?(?:\s*\[S\d+\])*(?:\s+|$)|[^.!?]+$/g) || [line];
     })
@@ -44,8 +45,8 @@ export function extractCitedPropositions(text) {
   for (const sentence of rawClauses) {
     const citationMatches = [...sentence.matchAll(/\[S(\d+)\]/g)];
     const cleanText = sentence.replace(/\[S\d+\]/g, '').replace(/^["'“]+|["'”]+$/g, '').trim();
-    if (cleanText.length < 8) continue;
-    if (/I could not verify this proposition from the available authorities/i.test(cleanText) || /^(?:Partially supported|Inference|User-provided fact|Drafting suggestion|Analytical suggestion)\s*:/i.test(cleanText)) continue;
+    if (sentence.startsWith('>') || /^>\s*/.test(sentence)) continue;
+    if (/I could not verify this proposition from the available authorities/i.test(cleanText) || /Unverified proposition blocked/i.test(cleanText) || /Quote verification:/i.test(cleanText) || /^(?:Partially supported|Inference|User-provided fact|Drafting suggestion|Analytical suggestion)\s*:/i.test(cleanText)) continue;
     if (cleanText.endsWith(':') || /^(yes|no|based on the provided sources|the relevant (?:statutory )?(?:text|sentence|provision|section)(?:\s+is)?|according to the|specifically|under the|here is the|summary|conclusion|note)\s*:?,?$/i.test(cleanText)) continue;
     if (/^#{1,6}\s+/.test(sentence)) continue;
 

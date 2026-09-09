@@ -132,6 +132,7 @@ async function run() {
 
   const totalGrounded = scored.filter(r => r.dimensions.grounding.retrievedExpected).length;
   const zeroDangling = scored.filter(r => r.dimensions.citationIntegrity.danglingCount === 0).length;
+  const answersWithCitations = scored.filter(r => r.dimensions.citationIntegrity.validCount > 0).length;
   
   const qTotals = scored.reduce((acc, r) => {
     const q = r.dimensions.quotationFidelity;
@@ -151,10 +152,12 @@ async function run() {
     exact_quote: qTotals.total ? qTotals.exact / qTotals.total : 0,
     missing_quote: qTotals.total ? qTotals.missing / qTotals.total : 0,
     citation_entailment: avgEntailment,
-    unsupported_proposition: avgUnsupported
+    unsupported_proposition: avgUnsupported,
+    verified_answer_coverage: n ? answersWithCitations / n : 0
   };
   const releaseGates = {
     benchmark_completion: n === dataset.length,
+    verified_answer_coverage: rates.verified_answer_coverage >= .95,
     citation_integrity: rates.citation_integrity === 1,
     authority_recall: rates.authority_recall >= .98,
     exact_quote_verification: rates.exact_quote >= .95,
@@ -176,6 +179,7 @@ async function run() {
     },
     citation_entailment_rate: `${(avgEntailment * 100).toFixed(1)}%`,
     unsupported_proposition_rate: `${(avgUnsupported * 100).toFixed(1)}%`,
+    verified_answer_coverage: `${(rates.verified_answer_coverage * 100).toFixed(1)}% (${answersWithCitations}/${n})`,
     rates,
     release_gates: releaseGates,
     release_status: Object.values(releaseGates).every(Boolean) ? 'PASS' : 'BLOCKED'
@@ -189,6 +193,7 @@ async function run() {
   console.log(`  3. Quotation Fidelity:            ${currentSummary.quote_fidelity.exact_rate} Exact, ${currentSummary.quote_fidelity.fuzzy_rate} Fuzzy, ${currentSummary.quote_fidelity.unsupported_rate} Missing`);
   console.log(`  4. Citation Entailment Rate:      ${currentSummary.citation_entailment_rate}`);
   console.log(`  5. Unsupported Proposition Rate:  ${currentSummary.unsupported_proposition_rate}`);
+  console.log(`  6. Verified Answer Coverage:       ${currentSummary.verified_answer_coverage}`);
   console.log(`  RELEASE:                           ${currentSummary.release_status}`);
   console.log(`===============================================================\n`);
 
@@ -224,6 +229,7 @@ function generateRegressionReport({ datasetFile, baseline, current, results }) {
   md += `| **3b. Quotation Missing/Unverified** | ${baseSummary.quote_verification?.unsupported_rate || 'Not recorded'} | ${current.quote_fidelity.unsupported_rate} | ${current.release_gates.missing_quote_rate ? 'PASS' : 'FAIL'} |\n`;
   md += `| **4. Citation Entailment** | *Added in 5D framework* | ${current.citation_entailment_rate} | ${current.release_gates.citation_entailment ? 'PASS' : 'FAIL'} |\n`;
   md += `| **5. Unsupported Proposition Rate** | *Added in 5D framework* | ${current.unsupported_proposition_rate} | ${current.release_gates.unsupported_proposition_rate ? 'PASS' : 'FAIL'} |\n\n`;
+  md += `| **6. Verified Answer Coverage** | ${baseSummary.answers_with_citations || 'Not recorded'} | ${current.verified_answer_coverage} | ${current.release_gates.verified_answer_coverage ? 'PASS' : 'FAIL'} |\n\n`;
   md += `## Release decision: ${current.release_status}\n\n`;
   md += `Production release is permitted only when every release gate passes. Substantive legal correctness remains separately practitioner-graded and is not inferred from these metrics.\n\n`;
   const errors=results.filter(result=>result.status==='error');

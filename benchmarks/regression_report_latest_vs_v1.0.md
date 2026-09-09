@@ -2,17 +2,17 @@
 
 **Date:** 2026-09-09  
 **Evaluated Model:** `gemini-flash-lite-latest`  
-**Benchmark Test Suite:** `dataset.json` (5 questions)  
+**Benchmark Test Suite:** `dataset.json` (10 questions)  
 **Baseline Version:** `v1.0` (Run ID: `f8dfe146-4400-49b9-a206-72c8607622d3`)  
 
 ## 1. Five-Dimensional Performance Comparison
 
 | Evaluation Dimension | v1.0 Baseline | Current Build | Delta / Status |
 | :--- | :--- | :--- | :--- |
-| **1. Authority Retrieval ($R@k$)** | 100% (95/95) | 100.0% (5/5) | PASS |
-| **2. Citation Integrity (0-Dangling)** | 100% (95/95) | 100.0% (5/5) | PASS |
-| **3. Quotation Fidelity (Exact)** | 72.5% (87/120) | 100.0% (5/5) | PASS |
-| **3b. Quotation Missing/Unverified** | 22.5% (27/120) | 0.0% (0/5) | PASS |
+| **1. Authority Retrieval ($R@k$)** | 100% (95/95) | 100.0% (10/10) | PASS |
+| **2. Citation Integrity (0-Dangling)** | 100% (95/95) | 100.0% (10/10) | PASS |
+| **3. Quotation Fidelity (Exact)** | 72.5% (87/120) | 100.0% (9/9) | PASS |
+| **3b. Quotation Missing/Unverified** | 22.5% (27/120) | 0.0% (0/9) | PASS |
 | **4. Citation Entailment** | *Added in 5D framework* | 100.0% | PASS |
 | **5. Unsupported Proposition Rate** | *Added in 5D framework* | 0.0% | PASS |
 
@@ -27,8 +27,8 @@ Every missing quote from v1.0 is preserved as an immutable test case to prevent 
 | Key | Question Prompt | v1.0 Status | Current Status |
 | :--- | :--- | :--- | :--- |
 | `s101-04` | What word does 35 U.S.C. § 101 use regarding the invent... | 1 Missing Quote(s) | ✓ Improved (1 Exact) |
-| `s101-07` | What does 35 U.S.C. § 101 state about subject matter co... | 1 Missing Quote(s) | Not Tested |
-| `s101-08` | State the statutory term in 35 U.S.C. § 101 for an arti... | 1 Missing Quote(s) | Not Tested |
+| `s101-07` | What does 35 U.S.C. § 101 state about subject matter co... | 1 Missing Quote(s) | ✓ Improved (1 Exact) |
+| `s101-08` | State the statutory term in 35 U.S.C. § 101 for an arti... | 1 Missing Quote(s) | 0 Missing |
 | `s102b-05` | Explain 35 U.S.C. § 102(b)(1)(B) regarding third-party ... | 1 Missing Quote(s) | Not Tested |
 | `s102b-07` | Does the 1-year grace period in 35 U.S.C. § 102(b)(1) a... | 1 Missing Quote(s) | Not Tested |
 | `s103-06` | Quote the sentence in 35 U.S.C. § 103: "Patentability s... | 1 Missing Quote(s) | Not Tested |

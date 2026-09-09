@@ -1,0 +1,10 @@
+{
+ "at": "2026-09-09T13:22:50.584Z",
+ "failures": [
+  {
+   "id": "ret-001",
+   "metric": "family-resolution",
+   "detail": "3 families for 3 members"
+  }
+ ]
+}

@@ -253,6 +253,7 @@ export function buildPropositionEvidenceGraph(text, evidence = [], verification 
   const protectedText = protectLegalAbbreviations(text)
   const rawClauses = protectedText
     .split(/\n+/)
+    .filter(line => !line.trim().startsWith('>'))
     .flatMap(line => {
       return line.match(/[^.!?]+[.!?]+(?:["'”’]+)?(?:\s*\[S\d+\])*(?:\s+|$)|[^.!?]+$/g) || [line]
     })
@@ -269,6 +270,9 @@ export function buildPropositionEvidenceGraph(text, evidence = [], verification 
     const sourceIndices = [...new Set(citationMatches.map(m => parseInt(m[1], 10)))]
     const cleanText = sentence.replace(/\[S\d+\]/g, '').replace(/^["'“]+|["'”]+$/g, '').trim()
     if (cleanText.length < 8) continue
+
+    if (sentence.startsWith('>') || /^>\s*/.test(sentence)) continue
+    if (/I could not verify this proposition/i.test(cleanText) || /Unverified proposition blocked/i.test(cleanText) || /Quote verification:/i.test(cleanText)) continue
 
     const isFraming = cleanText.endsWith(':') ||
                       /^(yes|no|based on the provided sources|the relevant (?:statutory )?(?:text|sentence|provision|section)(?:\s+is)?|according to the|specifically|under the|here is the|summary|conclusion|note)\s*:?,?$/i.test(cleanText) ||

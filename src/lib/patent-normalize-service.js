@@ -39,7 +39,16 @@ const normNum = (v) => String(v || '').replace(/[^A-Z0-9]/gi, '').toUpperCase()
 export function groupIntoFamilies(records) {
   const families = new Map()
   const solo = []
+  // Exact duplicates (same normalized number, e.g. harvested twice) collapse.
+  const deduped = []
+  const seenNumbers = new Set()
   for (const record of records) {
+    const key = record.normalized_number || record.external_id
+    if (key && seenNumbers.has(key)) continue
+    if (key) seenNumbers.add(key)
+    deduped.push(record)
+  }
+  for (const record of deduped) {
     const prios = (record.priority_numbers || []).map(normNum).filter(Boolean)
     let key = null, method = 'unresolved'
     if (prios.length) {
@@ -47,7 +56,11 @@ export function groupIntoFamilies(records) {
       method = 'shared-priority'
     } else if (record.pub_number || record.normalized_number) {
       const stem = normNum(record.pub_number || record.normalized_number).replace(/^[A-Z]{2}/, '').replace(/[A-Z]\d?$/, '')
-      const siblings = records.filter(r => r !== record && (normNum(r.pub_number || r.normalized_number).replace(/^[A-Z]{2}/, '').replace(/[A-Z]\d?$/, '') === stem) && (r.country || parseCountry(r)) !== (record.country || parseCountry(record)))
+      const siblings = deduped.filter(r => r !== record && normNum(r.pub_number || r.normalized_number).replace(/^[A-Z]{2}/, '').replace(/[A-Z]\d?$/, '') === stem)
+      // Same number stem = same application lineage (pub/grant stages, or
+      // national phases sharing PCT digits). Cross-country stem matches are
+      // coincidental more often, but merging aids recall and the false-merge
+      // metric watches precision; method is always recorded.
       if (stem.length >= 6 && siblings.length) {
         key = 'stem:' + stem
         method = 'same-number-stem'
@@ -82,6 +95,8 @@ export function canonicalizeResult(provider, result, providerVersion = 'v1') {
     const p = parsePublicationNumber(c) || (typeof c === 'object' ? parsePublicationNumber(c.number || c.docNumber) : null)
     if (p) prios.push(normalizedNumber(p))
   }
+  const rawInventors = Array.isArray(result.inventors) ? result.inventors : Array.isArray(raw.inventors) ? raw.inventors : []
+  const rawAssignees = Array.isArray(result.assignees) ? result.assignees : Array.isArray(raw.assignees) ? raw.assignees : []
   return {
     provider,
     provider_version: providerVersion,
@@ -91,12 +106,12 @@ export function canonicalizeResult(provider, result, providerVersion = 'v1') {
     kind: parsed?.kind || result.kind || null,
     normalized_number: normalizedNumber(parsed),
     title: result.title || null,
-    publication_date: normalizeDate(result.patent_date || raw.publicationDate || raw.publication_date),
-    filing_date: normalizeDate(raw.filingDate || raw.filing_date),
-    priority_date: null,
+    publication_date: normalizeDate(result.patent_date || result.publication_date || raw.publicationDate || raw.publication_date),
+    filing_date: normalizeDate(result.filing_date || raw.filingDate || raw.filing_date),
+    priority_date: normalizeDate(result.priority_date || raw.priorityDate || raw.priority_date),
     priority_numbers: [...new Set(prios)],
-    inventors: Array.isArray(raw.inventors) ? raw.inventors.slice(0, 20) : [],
-    assignees: Array.isArray(raw.assignees) ? raw.assignees.slice(0, 20) : [],
+    inventors: rawInventors.slice(0, 20).map(String),
+    assignees: rawAssignees.slice(0, 20).map(String),
     legal_status: result.status || null,
     official_url: result.official_url || null,
     raw,
