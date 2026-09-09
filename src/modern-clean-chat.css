@@ -24,11 +24,15 @@
   height: 100vh;
   width: 100vw;
   background: var(--beebot-bg);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   color: var(--beebot-text-main);
   overflow: hidden;
   padding: 10px 14px 14px;
   box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  letter-spacing: -0.011em;
 }
 
 /* Top App Tabs Bar with Window Controls */
@@ -629,8 +633,8 @@
 }
 
 .beebotHeroGreeting {
-  font-size: 27px;
-  font-weight: 700;
+  font-size: 26px;
+  font-weight: 600;
   color: #0f172a;
   letter-spacing: -0.025em;
   margin-bottom: 6px;
@@ -638,14 +642,15 @@
 
 .beebotHeroHeadline {
   font-size: 32px;
-  font-weight: 700;
+  font-weight: 600;
   color: #0f172a;
   letter-spacing: -0.03em;
-  margin-bottom: 32px;
+  margin-bottom: 30px;
 }
 
 .beebotHeroHeadline span {
   color: #4353ff;
+  font-weight: 600;
 }
 
 /* Floating Center Composer */
