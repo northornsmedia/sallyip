@@ -32,6 +32,7 @@ What each adds:
 | 050_jurisdiction_packs | pack registry + 12 US/IN/GB authority records |
 | 051_office_actions | `office_actions`, `oa_rejections`, `oa_amendments` |
 | 052_patentbench | `patentbench_runs` |
+| 053_workflow_type_open | drops closed workflow_type enum (was killing NDA-with-matter requests) |
 
 New env keys for prod (search works without them; USPTO + CourtListener report "not configured" until added):
 
