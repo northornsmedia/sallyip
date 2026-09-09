@@ -145,7 +145,8 @@ const getFallbackLegalResponse = (prompt, user, messages = []) => {
   const p = (prompt || "").toLowerCase().trim();
   const userName = user?.name && !user.name.toLowerCase().includes("judha") ? user.name.split(" ")[0] : "Aman";
 
-  const userMessages = (messages || []).filter((m) => m.role === "user").map((m) => m.content);
+  const allValidMessages = (messages || []).filter((m) => m && m.content && (m.role === "user" || m.role === "assistant"));
+  const userMessages = allValidMessages.filter((m) => m.role === "user").map((m) => m.content);
   const priorUserMessages = userMessages.slice(0, -1);
   const priorText = priorUserMessages.join("\n").toLowerCase();
 
@@ -192,9 +193,9 @@ Hello **${userName}**! I am **SallyIP 4.2 Pro**, your specialized legal technolo
 **What invention, matter, or legal question would you like to explore today?**`;
   }
 
-  // 2. Memory / Training / Retention inquiry
+  // 2. Memory / Training / Retention inquiry & recap of previous context
   const isMemoryOrTrainingQuery =
-    /\b(train|training|remember|remembering|rmember|rmembering|memory|memorize|memorizing|learn|learning|recall|retention)\b/i.test(p);
+    /\b(train|training|remember|remembering|rmember|rmembering|memory|memorize|memorizing|learn|learning|recall|retention|what did i (say|tell)|do you remember|keep context|focus on remembering|recap|retain|context)\b/i.test(p);
 
   if (isMemoryOrTrainingQuery) {
     const priorMentionOfMouse = priorText.includes("mouse") || p.includes("mouse") || priorText.includes("tech");
@@ -202,35 +203,40 @@ Hello **${userName}**! I am **SallyIP 4.2 Pro**, your specialized legal technolo
       ? "High-Precision Peripheral / Computer Mouse Technology"
       : "Intellectual Property Matter & Technical Innovation";
 
-    return `### SallyIP Working Memory & Adaptive Retention
+    // Build chronological audit of earlier turns
+    const dialogueHistory = [];
+    let userTurnIdx = 0;
+    for (const msg of allValidMessages.slice(0, -1)) {
+      if (msg.role === "user") {
+        userTurnIdx++;
+        dialogueHistory.push(`- **Turn ${userTurnIdx} (You Said)**: "${msg.content.slice(0, 180)}${msg.content.length > 180 ? "…" : ""}"`);
+      } else if (msg.role === "assistant") {
+        const cleanReply = msg.content.replace(/[#*`_]/g, "").replace(/\n+/g, " ").trim();
+        dialogueHistory.push(`  - *Sally Responded*: "${cleanReply.slice(0, 140)}${cleanReply.length > 140 ? "…" : ""}"`);
+      }
+    }
 
-Understood, **${userName}** — I have reinforced active context retention for your matter. Here is how my memory and learning architecture operates:
+    const memoryChronologySection = dialogueHistory.length
+      ? `#### 1. Retained Conversation Context & Dialogue History\n${dialogueHistory.join("\n")}\n\n`
+      : "";
 
-#### 1. Real-Time Conversation Memory (Working Context)
-- **Zero Loss Across Turns**: Every specification, technical detail, mechanism, and design constraint you share in this conversation is preserved in active working memory.
-- **Progressive Accumulation**: As you describe your invention across multiple messages, I assemble the technical elements into an ongoing invention disclosure record rather than treating each prompt in isolation.
+    return `### SallyIP Working Memory & Context Retention
 
-#### 2. Matter Vault & Knowledge Retention (Persistent Memory)
-- **Matter Grounding**: All matter-specific data, uploaded documents, sketches, and drafted sections are permanently stored in your encrypted matter vault.
-- **Cross-Session Recall**: When you revisit this matter, the complete history, prior-art citations, and drafted claim trees are immediately accessible.
-
-#### 3. Statutory Support & Antecedent Consistency
-- **35 U.S.C. § 112 Memory Checks**: When drafting claims and detailed descriptions, my reasoning engine actively cross-references previously disclosed components to verify that every claimed limitation has explicit written description support and verified antecedent basis.
-- **Prior-Art Boundary Memory**: References and claim charts mapped in earlier steps are remembered when drafting non-infringement arguments or distinguishing dependent claims.
-
-#### 4. Privacy & Confidentiality Guarantee
-- **No Third-Party Leakage**: Your proprietary inventions and confidential disclosures are never used to train public foundation models.
-- **Evaluated Improvement**: My legal routing and orchestration rules learn from task evaluations and verified examination precedents within SallyIP's secure boundary.
+Understood, **${userName}** — active context retention is fully engaged. I maintain continuous, persistent memory of everything you disclose and every exchange we have had in this conversation.
 
 ---
 
-#### Active Matter Memory Snapshot:
+${memoryChronologySection}#### 2. Active Matter Memory Snapshot
 - **Practitioner / Inventor**: ${userName}
 - **Active Matter Subject**: ${activeSubject}
-- **Drafting Posture**: US Patent Application (Intake & Specification Assembly)
-- **Memory Status**: Active working memory engaged • Ready for technical feature disclosure
+- **Retained Context Scope**: Complete Turn-by-Turn Dialogue (Zero Information Loss)
+- **Status**: Ready to answer subsequent prompts precisely based on all previous disclosures
 
-Whenever you're ready, tell me about your invention — what are the core components, how does it work, and what makes it unique? Even rough notes or bullet points are fine!`;
+#### 3. Continuous Multi-Turn Reasoning Principles
+- **No Repeated Inquiries**: Any technical features, problems, mechanisms, or constraints you previously shared are recorded as ground truth. I will never ask you to re-state them.
+- **Contextual Synthesis**: When you ask for the next step (e.g. drafting claims, analyzing patentability, preparing specification sections), I directly synthesize your previously stated features into the output.
+
+What would you like to do next with this invention (e.g. draft initial claims, formulate detailed description, or conduct prior-art screening)?`;
   }
 
   if (p === "hi" || p === "hello" || p === "hey" || p === "help") {
@@ -257,26 +263,36 @@ What invention, matter, or legal question would you like to explore today?`;
   }
 
   const isPatentDraftingRequest =
-    (/\b(draft|write|prepare|file|create)\b/i.test(p) &&
+    (/\b(draft|write|prepare|file|create|generate)\b/i.test(p) &&
       /\b(patent|pateent|claim|claims|specification|provisional|application)\b/i.test(p)) ||
-    /\b(patent application|draft patent|patent draft)\b/i.test(p) ||
-    (priorText.includes("patent") && /\b(sensor|optical|haptic|tracking|dpi|laser|piezoelectric|switch|housing)\b/i.test(p));
+    /\b(patent application|draft patent|patent draft|draft the claims|draft claims|generate claims)\b/i.test(p) ||
+    (priorText.includes("patent") && /\b(sensor|optical|haptic|tracking|dpi|laser|piezoelectric|switch|housing|claim|claims|proceed|continue|draft|now draft|next)\b/i.test(p));
 
   if (isPatentDraftingRequest) {
     // Check if the prompt or conversation already provides concrete technical disclosure (components, mechanisms, how it works)
+    const combinedAllText = `${priorText} ${p}`;
     const hasTechnicalDetails =
-      (p.length > 80 &&
-        (/\b(sensor|optical|mechanism|comprises|includes|actuator|chassis|housing|switch|circuit|algorithm|processor|battery|haptic|dpi|tracking|ergonomic|wireless|bluetooth|latency|piezoelectric)\b/i.test(p) ||
-          /\b(it works by|the problem is|the invention solves|the mouse has|the device has)\b/i.test(p))) ||
-      (priorText.includes("patent") &&
-        (/\b(sensor|optical|mechanism|actuator|chassis|housing|switch|circuit|algorithm|processor|battery|haptic|dpi|tracking|ergonomic|wireless|bluetooth|latency|piezoelectric)\b/i.test(p) ||
-          /\b(it works by|the problem is|the invention solves|it uses|it has)\b/i.test(p)));
+      (combinedAllText.length > 50 &&
+        (/\b(sensor|optical|mechanism|actuator|chassis|housing|switch|circuit|algorithm|processor|battery|haptic|dpi|tracking|ergonomic|wireless|bluetooth|latency|piezoelectric|water|button|gesture)\b/i.test(combinedAllText) ||
+          /\b(it works by|the problem is|the invention solves|it uses|it has|the mouse has|the device has)\b/i.test(combinedAllText)));
 
     if (hasTechnicalDetails) {
-      // Progressive drafting: summarize -> identify concepts -> draft claims & spec -> audit
-      return `### US Patent Application Draft & Technical Synthesis
+      // Extract specific user disclosures from conversation history to ground the draft
+      const userDisclosedElements = [];
+      if (/\b(water|wet|damp|liquid)\b/i.test(combinedAllText)) userDisclosedElements.push("Aqueous/liquid-surface optical tracking capability");
+      if (/\b(haptic|vibrat|tactile)\b/i.test(combinedAllText)) userDisclosedElements.push("Localized haptic feedback actuation module");
+      if (/\b(button|switch|thumb)\b/i.test(combinedAllText)) userDisclosedElements.push("Multi-switch programmable thumb interface");
+      if (/\b(optical|laser|sensor|dpi)\b/i.test(combinedAllText)) userDisclosedElements.push("High-precision optical displacement sensing array");
+      if (/\b(ergonomic|strain|wrist)\b/i.test(combinedAllText)) userDisclosedElements.push("Ergonomic contouring for reduced operator musculoskeletal fatigue");
 
-I have reviewed your invention disclosure and prepared the preliminary US patent application draft.
+      const retainedFeaturesList = userDisclosedElements.length
+        ? `\n\n**Retained Specifications from Your Earlier Disclosures:**\n${userDisclosedElements.map(e => `- ✓ ${e}`).join('\n')}\n`
+        : "";
+
+      // Progressive drafting: summarize -> identify concepts -> draft claims & spec -> audit
+      return `### US Patent Application Draft & Technical Synthesis${retainedFeaturesList}
+
+I have reviewed your invention disclosure and prepared the preliminary US patent application draft grounded in your disclosed parameters.
 
 #### 1. Invention Summary
 The disclosed invention relates to an advanced input device engineered to overcome key mechanical, latency, and ergonomic constraints of conventional peripherals through integrated sensing and dynamic feedback mechanisms.

@@ -89,7 +89,9 @@ export function buildReadyBrief(analysis) {
 // Single entry point for chat pipelines: returns the system-prompt addition
 // (or '') for the latest user turn given the full message history.
 export function draftGuidanceFor(messages, latest) {
-  if (planLegalTask(latest || '', {}).workflow_type !== 'patent_drafting') return ''
+  const isDrafting = planLegalTask(latest || '', {}).workflow_type === 'patent_drafting' ||
+    (Array.isArray(messages) && messages.some(m => m?.role === 'user' && planLegalTask(String(m.content || ''), {}).workflow_type === 'patent_drafting'))
+  if (!isDrafting) return ''
   const interview = analyzeInterview(messages)
   if (interview.phase === 'interview') return `\n\n${buildInterviewContract(interview)}`
   return `\n\n${DRAFT_RESPONSE_CONTRACT}\n\n${buildReadyBrief(interview)}`

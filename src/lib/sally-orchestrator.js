@@ -10,6 +10,12 @@ const OX_ALPHA_SLUG='nvidia/nemotron-3.5-lightning:free'
 const RESCUE_THRESHOLD=1
 const INTERNAL_PROMPT=`You are an internal reasoning engine inside SallyIP 4.1 Pro. Your public identity is strictly Sally. Never claim another model or provider name. Give accurate, practical intellectual-property research and drafting assistance. Distinguish facts from uncertainty. Return only useful output; never reveal hidden chain-of-thought.
 
+HIGH-FIDELITY CONVERSATION MEMORY & CONTINUOUS CONTEXT RETENTION:
+You maintain permanent, active working memory of everything the user said and what you responded throughout this entire conversation.
+- Retain all facts: Every invention detail, technical specification, component, mechanism, constraint, goal, and instruction previously disclosed by the user is verified ground truth.
+- Never forget or re-ask: Never ask the user to re-state or re-describe information they already provided in prior turns.
+- Direct continuity: Seamlessly connect the user's latest message with earlier exchanges. If the user refers to "it", "the device", "my invention", "what I said earlier", "continue", or asks for the next step (e.g. drafting claims, patentability analysis, specification), build directly and precisely upon the accumulated details from the conversation history.
+
 OUTPUT AND ARTIFACT FORMAT: Sally's web application automatically generates downloadable files and artifacts from your response. Always write responses in standard, clean Markdown directly for the user. Never emit internal tool call syntax, pseudo-code functions, XML tags, or raw tokens such as <itool_call_begin>, <itool_call_end>, <tool_call>, or [generate_file(...)]. Do not escape text into single string arguments. Keep conversational chat clear, and structure legal agreements or guides using standard Markdown headings, lists, and tables. Supported downloadable formats handled by the application include PDF, DOCX, PPTX, XLSX, CSV, Markdown, HTML, JSON, and TXT. Never invent download links, never instruct the user to copy content into Word, Google Docs, or another application, and never claim file generation is unavailable. Keep chat text separate from artifact content. Resolve "this", "that", "the document", "the agreement", "the report", "previous draft", and bare requests such as "PDF please" to the active artifact. Existing artifacts must be exported without regeneration unless revisions are explicitly requested. When a prompt is marked DOCUMENT CONTENT REQUEST, return only the polished document content in Markdown: no capability disclaimers, file-generation instructions, conversational preface, or statements about being unable to generate files. Legal notices are rendered by the application UI and should not be inserted into drafted agreements or artifacts unless the user requests them or they are substantively required.`
 const OPENROUTER_CHAT_URL='https://openrouter.ai/api/v1/chat/completions'
 const engineUrl=(engine,env)=>{
@@ -133,6 +139,59 @@ const fetchStreamingContent=async(url,options,timeoutMs,onDelta)=>{
 }
 const emitInChunks=async(text,onDelta)=>{const clean=sanitizeModelResponse(text);for(let index=0;index<clean.length;index+=STREAM_CHUNK_SIZE){onDelta(clean.slice(index,index+STREAM_CHUNK_SIZE));await new Promise(resolve=>setTimeout(resolve,STREAM_CHUNK_DELAY_MS))}}
 
+export function prepareChatMessages(messages, internalPrompt = INTERNAL_PROMPT) {
+  const systemParts = [internalPrompt.trim()];
+  const dialogTurns = [];
+
+  for (const m of messages || []) {
+    if (!m) continue;
+    const role = m.role === 'system' ? 'system' : m.role === 'assistant' ? 'assistant' : 'user';
+    const content = typeof m.content === 'string' ? m.content.trim() : String(m.content || '').trim();
+    if (!content) continue;
+
+    if (role === 'system') {
+      if (!systemParts.includes(content)) {
+        systemParts.push(content);
+      }
+    } else {
+      dialogTurns.push({ role, content });
+    }
+  }
+
+  // Active Context & Working Memory Injection:
+  // If there are prior conversation turns, extract an explicit turn-by-turn memory brief
+  const priorTurns = dialogTurns.slice(0, -1);
+  if (priorTurns.length > 0) {
+    const memoryLines = [];
+    let turnCount = 0;
+    for (const turn of priorTurns) {
+      if (turn.role === 'user') {
+        turnCount++;
+        memoryLines.push(`• USER (Turn ${turnCount}): "${turn.content.slice(0, 500)}"`);
+      } else if (turn.role === 'assistant') {
+        const snippet = turn.content.replace(/\n+/g, ' ').slice(0, 300);
+        memoryLines.push(`• SALLY (Response ${turnCount}): "${snippet}..."`);
+      }
+    }
+
+    systemParts.push(
+      `ACTIVE CONVERSATION MEMORY & ACCUMULATED CONTEXT:\n` +
+      `You are in an ongoing multi-turn dialogue with the user. You must maintain continuous, precise awareness of everything said previously in this session.\n` +
+      `Chronology of earlier exchanges in this thread:\n` +
+      memoryLines.join('\n') + `\n\n` +
+      `MANDATORY RETENTION RULES:\n` +
+      `1. Ground all reasoning in the facts, specifications, mechanisms, problems, and decisions established above.\n` +
+      `2. Never ask the user to repeat or re-describe information they already provided in prior messages.\n` +
+      `3. When the user asks to continue, draft claims, or references earlier details, connect seamlessly to the accumulated disclosures.`
+    );
+  }
+
+  return [
+    { role: 'system', content: systemParts.join('\n\n---\n\n') },
+    ...dialogTurns
+  ];
+}
+
 function createWireTrace(){
   const events=[]
   return{
@@ -142,7 +201,7 @@ function createWireTrace(){
 }
 
 function createEngineCollector(env,messages,headers,trace,engines=CHAT_ENGINES){
-  const requestMessages=[{role:'system',content:INTERNAL_PROMPT},...messages]
+  const requestMessages=prepareChatMessages(messages, INTERNAL_PROMPT)
   const maxTokens=Number(env.SALLYIP_MAX_TOKENS)||4096
   const controllers=new Map()
   const runAttempt=async(engine,allowRetry)=>{
@@ -238,7 +297,7 @@ export async function orchestrateSallyStreaming(messages,env,siteUrl='https://sa
 
   const ENGINES=resolveEngines(env)
   const maxTokens=Number(env.SALLYIP_MAX_TOKENS)||4096
-  const requestMessages=[{role:'system',content:INTERNAL_PROMPT},...messages]
+  const requestMessages=prepareChatMessages(messages, INTERNAL_PROMPT)
 
   const attempts=[]
   let finalAnswer=''
