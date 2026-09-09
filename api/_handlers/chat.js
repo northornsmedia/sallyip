@@ -5,6 +5,7 @@ import {getSessionUser} from '../../src/lib/auth.js'
 import {routeSpecialists} from '../../src/lib/specialist-router.js'
 import {planLegalTask} from '../../src/lib/legal-task-planner.js'
 import {DRAFT_RESPONSE_CONTRACT} from '../../src/lib/patent-draft-service.js'
+import {packCodesFor} from '../../src/lib/jurisdiction-pack-service.js'
 import {getMatterContext,matterContextPrompt} from '../../src/lib/matter-service.js'
 import {retrieveHybridEvidence,evidencePrompt,verificationSummary,guardAnswerCitations} from '../../src/lib/verification-service.js'
 
@@ -19,7 +20,7 @@ export default async function handler(req,res){
     const [conversation]=req.body?.conversation_id?await sql`SELECT id FROM conversations WHERE id=${req.body.conversation_id} AND user_id=${user.id}`:[]
     if(conversation&&matter)await sql`UPDATE conversations SET matter_id=${matter.matter.id},updated_at=now() WHERE id=${conversation.id}`
     const route=routeSpecialists(latest,{deepResearch:Boolean(req.body?.deep_research),matterJurisdictions:matter?.matter?.jurisdictions||[]})
-    const evidence=await retrieveHybridEvidence(sql,user.id,matter?.matter?.id,latest,{limit:req.body?.deep_research?14:8,embeddingKey:process.env.OPENROUTER_EMBEDDING_API_KEY,embeddingModel:process.env.SALLYIP_EMBEDDING_MODEL})
+    const evidence=await retrieveHybridEvidence(sql,user.id,matter?.matter?.id,latest,{limit:req.body?.deep_research?14:8,embeddingKey:process.env.OPENROUTER_EMBEDDING_API_KEY,embeddingModel:process.env.SALLYIP_EMBEDDING_MODEL,packCodes:packCodesFor([...matter?.matter?.jurisdictions||[],...route.jurisdictions||[]])})
     const verification=verificationSummary(evidence,route)
     const drafting=planLegalTask(latest,{}).workflow_type==='patent_drafting'
     const contextMessage={role:'system',content:`SALLY TASK ROUTE\nTask: ${route.task_class}\nSpecialists: ${route.specialists.join(', ')}\nJurisdictions: ${route.jurisdictions.join(', ')||'unresolved'}\nResearch mode: ${route.research_mode}\n\n${matterContextPrompt(matter)}\n\n${evidencePrompt(evidence)}\n\nQUALITY GATE: Identify jurisdiction and material dates; distinguish recorded facts, retrieved sources, model knowledge, and inference. Do not fabricate a search. Do not present unverified citations as verified. For professional analysis include counterarguments, research gaps, proposition-level confidence, and recommended next steps.${drafting?`\n\n${DRAFT_RESPONSE_CONTRACT}`:''}`}
