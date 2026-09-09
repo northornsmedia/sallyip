@@ -1419,6 +1419,175 @@
   color: #34d399;
 }
 
+/* Live document side panel */
+.beebotActiveChatView.doc-open {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 0 12px;
+}
+
+.beebotActiveChatView.doc-open .beebotThread {
+  grid-column: 1;
+  grid-row: 1;
+  max-width: none;
+  min-width: 0;
+}
+
+.beebotActiveChatView.doc-open .beebotBottomComposerWrap {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.docPanel {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+  max-height: 100%;
+}
+
+.docPanelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+  background: #f8fafc;
+}
+
+.docPanelTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.docPanelTitle svg {
+  width: 16px;
+  height: 16px;
+  color: #6366f1;
+  flex-shrink: 0;
+}
+
+.docPanelTitle strong {
+  display: block;
+  font-size: 13px;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}
+
+.docPanelTitle small {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.docPanelClose {
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.docPanelClose:hover {
+  background: #eef2ff;
+  color: #0f172a;
+}
+
+.docPanelBody {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 14px 16px;
+  min-height: 120px;
+}
+
+.docPanelFoot {
+  border-top: 1px solid rgba(226, 232, 240, 0.9);
+  padding: 10px 14px;
+  display: grid;
+  gap: 8px;
+  background: #f8fafc;
+}
+
+.docPanelExports {
+  display: flex;
+  gap: 8px;
+}
+
+.docPanelExports button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+  border: 0;
+  cursor: pointer;
+}
+
+.docPanelExports button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.docPanelError {
+  font-size: 12px;
+  color: #b91c1c;
+}
+
+.docPanelFiles {
+  display: grid;
+  gap: 6px;
+}
+
+.docPanelFiles a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #4338ca;
+  text-decoration: none;
+}
+
+.docPanelFiles a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .beebotActiveChatView.doc-open {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto auto;
+  }
+
+  .beebotActiveChatView.doc-open .beebotBottomComposerWrap {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .docPanel {
+    grid-column: 1;
+    grid-row: 3;
+    max-height: 46vh;
+  }
+}
+
 /* Hero capability suggestion cards */
 .beebotSuggestions {
   display: grid;

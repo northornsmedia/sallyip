@@ -834,6 +834,16 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         (referencesPreviousArtifact(clean) || isBareFileRequest(clean)) && !revisionRequest
       ));
       const documentRequest = Boolean(fileRequest || detectDocumentRequest(clean));
+      if (documentRequest || revisionRequest) {
+        setDocPanel({
+          title: fileRequest?.title || previousArtifact?.title || titleFor(clean),
+          content: revisionRequest && previousArtifact?.content ? previousArtifact.content : "",
+          version: revisionRequest && previousArtifact ? (previousArtifact.version || 0) + 1 : 1,
+          live: true,
+          artifact: revisionRequest ? previousArtifact : null,
+          conversationId: baseChat.id,
+        });
+      }
 
       if (exportPrevious) {
         const generated = await fetch("/api/generate-file", {
@@ -860,12 +870,15 @@ export default function ChatPage({ onHome, onAuthRequired }) {
             ...next,
             {
               role: "assistant",
-              content: exportMsg,
+              content: `Your ${fileRequest.format.toUpperCase()} has been created.`,
               artifact: previousArtifact,
               attachments: generatedData.file ? [generatedData.file] : [],
             },
           ],
         };
+        if (previousArtifact?.content) {
+          setDocPanel({ title: previousArtifact.title, content: previousArtifact.content, version: previousArtifact.version, live: false, artifact: previousArtifact, conversationId: baseChat.id });
+        }
         updateActive(() => finalChat);
         await persistChat(finalChat);
         return;
@@ -972,6 +985,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
 
       if (!answer || isCutOffResponse(answer) || answer.includes("temporarily unavailable") || answer.includes("Not authenticated") || answer.includes("could not respond") || answer.includes("overloaded") || answer.includes("intermittent errors")) {
         answer = getFallbackLegalResponse(clean, user, baseChat.messages);
+        setStreamingAnswer(answer);
       }
 
       // Model answer received: SSE path already streamed live; buffered path replays.
@@ -991,9 +1005,10 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       if (artifact) {
         artifact = await persistArtifact({
           artifact,
-          conversationId: baseChat.id,
+          conversation_id: baseChat.id,
           revision: revisionRequest,
         });
+        setDocPanel((p) => p ? { ...p, title: artifact.title, content: artifact.content, version: artifact.version, live: false, artifact, conversationId: baseChat.id } : p);
       }
       let attachments = [];
       if (fileRequest) {
@@ -1504,7 +1519,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
             </div>
           ) : (
             /* Active Message Thread Layout */
-            <div className="beebotActiveChatView">
+            <div className={`beebotActiveChatView${docPanel ? " doc-open" : ""}`}>
               <div className="beebotThread" ref={threadRef}>
                 {messages.map((message, index) => (
                   <div
@@ -1560,6 +1575,15 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                           >
                             <Copy className="w-3 h-3" /> <span>Copy</span>
                           </button>
+                          {message.artifact?.content && (
+                            <button
+                              onClick={() => setDocPanel({ title: message.artifact.title, content: message.artifact.content, version: message.artifact.version, live: false, artifact: message.artifact, conversationId: active?.id })}
+                              className="beebotActionBtn"
+                              title="Open document in side panel"
+                            >
+                              <FileText className="w-3 h-3" /> <span>Open document</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                     )}
@@ -1680,6 +1704,15 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                   </div>
                 </div>
               </div>
+              {docPanel && (
+                <Suspense fallback={null}>
+                  <DocPanel
+                    doc={docPanel}
+                    onClose={() => setDocPanel(null)}
+                    onExported={(file) => recordToolResult?.(`## Document exported\n\n**${file.name}** ready for download.`, { task_class: "DOCUMENT_EXPORT", source_basis: "user_supplied" })}
+                  />
+                </Suspense>
+              )}
             </div>
           )}
 

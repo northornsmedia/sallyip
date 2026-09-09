@@ -1,15 +1,13 @@
 import { sanitizeModelResponse } from './document-tool-service.js'
 
 const CHAT_ENGINES=[
-  {slug:'nvidia/nemotron-3-ultra-550b-a55b:free',name:'Nemotron 3 Ultra 550B',key:'OPENROUTER_API_KEY',weight:50,role:'Primary flagship legal-technical synthesis and drafting'},
-  {slug:'openrouter/free',name:'OpenRouter Free Router',key:'OPENROUTER_API_KEY',weight:45,role:'Dynamic multi-provider reasoning'},
-  {slug:'nvidia/nemotron-3.5-lightning:free',name:'Nemotron 3.5 Lightning',key:'OPENROUTER_API_KEY',weight:40,role:'Fast legal-technical reasoning'},
-  {slug:'nvidia/nemotron-3-super-120b-a12b:free',name:'Nemotron 3 Super',key:'OPENROUTER_API_KEY',weight:35,role:'Deep technical synthesis and edge-case review'},
-  {slug:'nex-agi/nex-n2.5-pro:free',name:'Nex N2.5 Pro',key:'OPENROUTER_API_KEY',weight:10,role:'Language clarity and legal drafting'}
+  {slug:'gemini-3.7-flash',name:'Gemini 3.7 Flash',key:'GEMINI_API_KEY',baseUrl:'https://generativelanguage.googleapis.com/v1beta/openai',weight:100,role:'Primary flagship legal reasoning & drafting'},
+  {slug:'nvidia/nemotron-3-ultra-550b-a55b:free',name:'Nemotron 3 Ultra 550B',key:'OPENROUTER_API_KEY',weight:80,role:'Secondary fallback legal-technical synthesis and drafting'},
+  {slug:'nvidia/nemotron-3.5-lightning:free',name:'Nemotron 3.5 Lightning',key:'OPENROUTER_API_KEY',weight:60,role:'Fast Nemotron fallback'}
 ]
-// Designated rescue engine: stealth/ox-alpha reserves fallback if racers fail
-const OX_ALPHA_SLUG='stealth/ox-alpha'
-const RESCUE_THRESHOLD=2
+// Designated rescue engine: Nemotron 3.5 Lightning
+const OX_ALPHA_SLUG='nvidia/nemotron-3.5-lightning:free'
+const RESCUE_THRESHOLD=1
 const INTERNAL_PROMPT=`You are an internal reasoning engine inside SallyIP 4.1 Pro. Your public identity is strictly Sally. Never claim another model or provider name. Give accurate, practical intellectual-property research and drafting assistance. Distinguish facts from uncertainty. Return only useful output; never reveal hidden chain-of-thought.
 
 OUTPUT AND ARTIFACT FORMAT: Sally's web application automatically generates downloadable files and artifacts from your response. Always write responses in standard, clean Markdown directly for the user. Never emit internal tool call syntax, pseudo-code functions, XML tags, or raw tokens such as <itool_call_begin>, <itool_call_end>, <tool_call>, or [generate_file(...)]. Do not escape text into single string arguments. Keep conversational chat clear, and structure legal agreements or guides using standard Markdown headings, lists, and tables. Supported downloadable formats handled by the application include PDF, DOCX, PPTX, XLSX, CSV, Markdown, HTML, JSON, and TXT. Never invent download links, never instruct the user to copy content into Word, Google Docs, or another application, and never claim file generation is unavailable. Keep chat text separate from artifact content. Resolve "this", "that", "the document", "the agreement", "the report", "previous draft", and bare requests such as "PDF please" to the active artifact. Existing artifacts must be exported without regeneration unless revisions are explicitly requested. When a prompt is marked DOCUMENT CONTENT REQUEST, return only the polished document content in Markdown: no capability disclaimers, file-generation instructions, conversational preface, or statements about being unable to generate files. Legal notices are rendered by the application UI and should not be inserted into drafted agreements or artifacts unless the user requests them or they are substantively required.`
