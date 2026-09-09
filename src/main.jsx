@@ -37,7 +37,6 @@ import {
   Zap,
 } from "lucide-react";
 import { DotmCircular7 } from "@/components/ui/dotm-circular-7";
-import { SmoothCursor } from "@/registry/magicui/smooth-cursor";
 import { ResearchLiveSectionV2 as ResearchLiveSection } from "@/components/ui/research-live-section-v2";
 import { PixelImage } from "@/registry/magicui/pixel-image";
 import { WarpBackground } from "@/registry/magicui/warp-background";
@@ -61,6 +60,7 @@ import "./styles.css";
 import "./brand.css";
 import "./premium.css";
 import "./chat-workspace.css";
+import "./modern-clean-chat.css";
 
 const jobs = [
   {
@@ -1773,7 +1773,6 @@ function App() {
   }, []);
   return (
     <>
-      <SmoothCursor />
       {page === "home" ? (
         <Landing />
       ) : page === "accessadmin" ? (

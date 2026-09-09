@@ -212,15 +212,7 @@ export default function PatentDraftingWorkspace({ matterId, onResult, isOpen, on
   }
 
   if (!open) {
-    return (
-      <button
-        onClick={() => setOpen(true)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 text-xs font-medium border border-emerald-500/30 transition-all shadow-sm"
-      >
-        <FileText className="w-3.5 h-3.5 text-emerald-400" />
-        Patent Drafter
-      </button>
-    )
+    return null
   }
 
   const screening = selected?.draft?.screening_results || {}
@@ -229,10 +221,10 @@ export default function PatentDraftingWorkspace({ matterId, onResult, isOpen, on
   const verification112 = selected?.verification_112
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="relative w-full max-w-5xl bg-[#0d1117] border border-emerald-500/30 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="pdwModalBackdrop" onClick={() => { setOpen(false); onClose?.() }}>
+      <div className="pdwModalCard" onClick={e => e.stopPropagation()}>
         {/* Workspace Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-white/[0.02]">
+        <div className="pdwHeader">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300">
               <Layers className="w-5 h-5" />
@@ -263,14 +255,14 @@ export default function PatentDraftingWorkspace({ matterId, onResult, isOpen, on
         </div>
 
         {/* Workspace Body */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="pdwBody">
           {/* Left Sidebar: Projects list */}
-          <div className="w-64 border-r border-white/10 bg-black/20 p-4 flex flex-col gap-3 overflow-y-auto">
-            <div className="flex items-center justify-between text-xs font-semibold text-white/70 uppercase tracking-wider">
+          <div className="pdwSidebar">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               <span>Your Drafts</span>
               <button
                 onClick={() => setSelected(null)}
-                className="p-1 rounded hover:bg-white/10 text-emerald-400"
+                style={{ padding: '4px', borderRadius: '4px', background: 'transparent', border: 'none', color: '#10b981', cursor: 'pointer' }}
                 title="New Draft"
               >
                 <Plus className="w-4 h-4" />
@@ -278,23 +270,28 @@ export default function PatentDraftingWorkspace({ matterId, onResult, isOpen, on
             </div>
 
             {drafts.length === 0 ? (
-              <div className="text-xs text-white/40 py-4 text-center">No drafts yet. Create your first draft.</div>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', padding: '16px 0', textAlign: 'center' }}>No drafts yet. Create your first draft.</div>
             ) : (
-              <div className="flex flex-col gap-1.5">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {drafts.map(d => (
                   <button
                     key={d.id}
                     onClick={() => openDraft(d.id)}
-                    className={`text-left p-2.5 rounded-xl text-xs transition-all border ${
-                      selected?.draft?.id === d.id
-                        ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-200'
-                        : 'bg-white/[0.02] border-white/5 text-white/70 hover:bg-white/[0.05]'
-                    }`}
+                    style={{
+                      textAlign: 'left',
+                      padding: '10px 12px',
+                      borderRadius: '10px',
+                      fontSize: '12px',
+                      border: selected?.draft?.id === d.id ? '1px solid rgba(16,185,129,0.5)' : '1px solid rgba(255,255,255,0.06)',
+                      background: selected?.draft?.id === d.id ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.02)',
+                      color: selected?.draft?.id === d.id ? '#a7f3d0' : 'rgba(255,255,255,0.8)',
+                      cursor: 'pointer'
+                    }}
                   >
-                    <div className="font-medium truncate">{d.title}</div>
-                    <div className="flex items-center justify-between mt-1 text-[10px] text-white/40">
+                    <div style={{ fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.title}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px', fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>
                       <span>{d.filing_type === 'nonprovisional_111a' ? '§ 111(a) Nonprov' : '§ 111(b) Prov'}</span>
-                      <span className={d.is_approved ? 'text-blue-400' : 'text-amber-400'}>
+                      <span style={{ color: d.is_approved ? '#60a5fa' : '#fbbf24' }}>
                         {d.is_approved ? 'Approved' : d.status}
                       </span>
                     </div>
@@ -305,9 +302,9 @@ export default function PatentDraftingWorkspace({ matterId, onResult, isOpen, on
           </div>
 
           {/* Main Work Area */}
-          <div className="flex-1 flex flex-col overflow-y-auto p-6 bg-black/10">
+          <div className="pdwMain">
             {error && (
-              <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs flex items-center gap-2">
+              <div style={{ marginBottom: '16px', padding: '12px', borderRadius: '10px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <AlertTriangle className="w-4 h-4 shrink-0" />
                 <span>{error}</span>
               </div>
@@ -315,76 +312,67 @@ export default function PatentDraftingWorkspace({ matterId, onResult, isOpen, on
 
             {!selected ? (
               /* Create New Draft Form */
-              <div className="max-w-xl mx-auto my-auto w-full">
-                <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 space-y-4">
-                  <div className="flex items-center gap-2 text-emerald-400 font-semibold text-sm">
-                    <Plus className="w-4 h-4" /> Initialize New US Patent Specification
+              <div className="pdwCard">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981', fontWeight: 600, fontSize: '14px', marginBottom: '18px' }}>
+                  <Plus className="w-4 h-4" /> Initialize New US Patent Specification
+                </div>
+
+                <form onSubmit={handleCreateDraft} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Invention Title</label>
+                    <input
+                      type="text"
+                      value={newTitle}
+                      onChange={e => setNewTitle(e.target.value)}
+                      placeholder="e.g., Decentralized Cryptographic Key Recovery Over Ephemeral Channels"
+                      className="pdwInput"
+                      required
+                    />
                   </div>
 
-                  <form onSubmit={handleCreateDraft} className="space-y-4">
-                    <div>
-                      <label className="block text-xs text-white/60 mb-1">Invention Title</label>
-                      <input
-                        type="text"
-                        value={newTitle}
-                        onChange={e => setNewTitle(e.target.value)}
-                        placeholder="e.g., Decentralized Cryptographic Key Recovery Over Ephemeral Channels"
-                        className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white text-xs focus:outline-none focus:border-emerald-500/50"
-                        required
-                      />
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Filing Category</label>
+                    <div className="pdwGrid2">
+                      <button
+                        type="button"
+                        onClick={() => setFilingType('provisional_111b')}
+                        className={`pdwOptionBtn ${filingType === 'provisional_111b' ? 'selected' : ''}`}
+                      >
+                        <div style={{ fontWeight: 600, color: '#ffffff' }}>Provisional (§ 111(b))</div>
+                        <div style={{ fontSize: '10.5px', color: 'rgba(255,255,255,0.5)', marginTop: '4px' }}>Establishes 12-month priority date. No claim set required by law, but recommended.</div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFilingType('nonprovisional_111a')}
+                        className={`pdwOptionBtn ${filingType === 'nonprovisional_111a' ? 'selected' : ''}`}
+                      >
+                        <div style={{ fontWeight: 600, color: '#ffffff' }}>Nonprovisional (§ 111(a))</div>
+                        <div style={{ fontSize: '10.5px', color: 'rgba(255,255,255,0.5)', marginTop: '4px' }}>Full examination application. Requires complete claim set, formal spec, and abstract.</div>
+                      </button>
                     </div>
+                  </div>
 
-                    <div>
-                      <label className="block text-xs text-white/60 mb-1">Filing Category</label>
-                      <div className="grid grid-cols-2 gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setFilingType('provisional_111b')}
-                          className={`p-3 rounded-xl border text-left text-xs transition-all ${
-                            filingType === 'provisional_111b'
-                              ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-200'
-                              : 'bg-white/[0.02] border-white/10 text-white/60'
-                          }`}
-                        >
-                          <div className="font-semibold text-white">Provisional (§ 111(b))</div>
-                          <div className="text-[10px] text-white/50 mt-1">Establishes 12-month priority date. No claim set required by law, but recommended.</div>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setFilingType('nonprovisional_111a')}
-                          className={`p-3 rounded-xl border text-left text-xs transition-all ${
-                            filingType === 'nonprovisional_111a'
-                              ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-200'
-                              : 'bg-white/[0.02] border-white/10 text-white/60'
-                          }`}
-                        >
-                          <div className="font-semibold text-white">Nonprovisional (§ 111(a))</div>
-                          <div className="text-[10px] text-white/50 mt-1">Full examination application. Requires complete claim set, formal spec, and abstract.</div>
-                        </button>
-                      </div>
-                    </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginBottom: '6px' }}>Invention Disclosure / Technical Notes</label>
+                    <textarea
+                      rows={6}
+                      value={disclosureText}
+                      onChange={e => setDisclosureText(e.target.value)}
+                      placeholder="Paste your technical invention description, system architecture notes, and novel concepts here. This grounds the AI so it doesn't hallucinate embodiments."
+                      className="pdwInput"
+                      style={{ resize: 'vertical' }}
+                    />
+                  </div>
 
-                    <div>
-                      <label className="block text-xs text-white/60 mb-1">Invention Disclosure / Technical Notes</label>
-                      <textarea
-                        rows={6}
-                        value={disclosureText}
-                        onChange={e => setDisclosureText(e.target.value)}
-                        placeholder="Paste your technical invention description, system architecture notes, and novel concepts here. This grounds the AI so it doesn't hallucinate embodiments."
-                        className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white text-xs focus:outline-none focus:border-emerald-500/50"
-                      />
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={busy}
-                      className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black font-semibold text-xs transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                    >
-                      {busy ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                      Create Patent Draft Workspace
-                    </button>
-                  </form>
-                </div>
+                  <button
+                    type="submit"
+                    disabled={busy}
+                    className="pdwBtnPrimary"
+                  >
+                    {busy ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                    Create Patent Draft Workspace
+                  </button>
+                </form>
               </div>
             ) : (
               /* Active Draft Workspace */

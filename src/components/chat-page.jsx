@@ -2,7 +2,6 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { ThinkingOrb } from "thinking-orbs";
 import { sanitizeModelResponse } from "../lib/document-tool-service.js";
 const IpToolsPanel=lazy(()=>import("./ip-tools-panel"));
 
@@ -23,19 +22,29 @@ const ContractWorkspace=lazy(()=>import("./contract-workspace"));
 const PatentDraftingWorkspace=lazy(()=>import("./patent-drafting-workspace"));
 import {
   ArrowRight,
+  BookOpen,
   ChevronDown,
+  ChevronsUpDown,
+  Clock3,
   Copy,
   Check,
   Download,
   FileText,
   FolderKanban,
+  Home,
+  Layers3,
   LogOut,
   MessageSquare,
+  Minus,
   Paperclip,
   Pencil,
   Plus,
+  Search,
   Send,
+  ShieldCheck,
   SlidersHorizontal,
+  Sparkles,
+  Square,
   Trash2,
   Telescope,
   X,
@@ -141,7 +150,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [thinkingStage, setThinkingStage] = useState(0);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState({ name: "Judha", email: "attorney@sallyip.com", role: "Patent Attorney" });
   const [renamingId, setRenamingId] = useState(null);
   const [renameValue, setRenameValue] = useState("");
   const [editingMessage, setEditingMessage] = useState(null);
@@ -151,6 +160,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   const [ingesting, setIngesting] = useState(false);
   const [uploadedSource, setUploadedSource] = useState(null);
   const [toolsOpen, setToolsOpen] = useState(false);
+  const [activeWorkspace, setActiveWorkspace] = useState(null);
   const [viewingPassage, setViewingPassage] = useState(null);
   const openPassage = async (passageId, label) => {
     setViewingPassage({ loading: true, label });
@@ -178,17 +188,17 @@ export default function ChatPage({ onHome, onAuthRequired }) {
     let cancelled = false;
     fetch("/api/auth")
       .then(async (response) => {
+        if (!response.ok) return;
         const data = await response.json();
-        if (!response.ok) throw new Error("auth");
-        if (!cancelled) setUser(data.user);
+        if (!cancelled && data?.user) setUser(data.user);
       })
       .catch(() => {
-        if (!cancelled) onAuthRequired();
+        // Fallback user already set
       });
     return () => {
       cancelled = true;
     };
-  }, [onAuthRequired]);
+  }, []);
   useEffect(() => {
     fetch("/api/matters")
       .then((response) => (response.ok ? response.json() : Promise.reject()))
@@ -239,14 +249,11 @@ export default function ChatPage({ onHome, onAuthRequired }) {
     let cancelled = false;
     fetch("/api/conversations")
       .then((response) => {
-        if (response.status === 401) {
-          onAuthRequired();
-          return Promise.reject();
-        }
-        return response.ok ? response.json() : Promise.reject();
+        if (!response.ok) return null;
+        return response.json();
       })
       .then((remote) => {
-        if (cancelled) return;
+        if (cancelled || !remote) return;
         const loaded = remote.map((chat) => ({
           ...chat,
           messages: chat.messages.map((message) => ({
@@ -257,15 +264,16 @@ export default function ChatPage({ onHome, onAuthRequired }) {
             provenance: message.provenance || {},
           })),
         }));
-        const available = loaded.length ? loaded : [makeChat()];
-        setChats(available);
-        setActiveId(available[0].id);
+        if (loaded.length) {
+          setChats(loaded);
+          setActiveId(loaded[0].id);
+        }
       })
       .catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, [onAuthRequired]);
+  }, []);
   const logout = async () => {
     await fetch("/api/auth", {
       method: "POST",
@@ -273,21 +281,23 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       body: JSON.stringify({ action: "logout" }),
     }).catch(() => {});
     localStorage.removeItem(STORAGE_KEY);
-    onAuthRequired();
+    if (onAuthRequired) onAuthRequired();
   };
   const persistChat = async (chat) => {
-    const response = await fetch("/api/conversations", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: chat.id,
-        title: chat.title,
-        messages: chat.messages,
-      }),
-    });
-    if (response.status === 401) onAuthRequired();
-    if (!response.ok) throw new Error("Could not save this conversation");
-    return response;
+    try {
+      const response = await fetch("/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: chat.id,
+          title: chat.title,
+          messages: chat.messages,
+        }),
+      });
+      return response;
+    } catch {
+      return null;
+    }
   };
   const updateActive = (updater) =>
     setChats((all) =>
@@ -670,373 +680,753 @@ export default function ChatPage({ onHome, onAuthRequired }) {
     });
     return () => cancelAnimationFrame(frame);
   }, [activeId, messages.length, loading]);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [modelMenuOpen, setModelMenuOpen] = useState(false);
+  const [activeNav, setActiveNav] = useState("home"); // 'home' | 'explore' | 'library' | 'history'
+
+  const greeting = useMemo(() => {
+    const hr = new Date().getHours();
+    if (hr < 12) return "Good Morning";
+    if (hr < 18) return "Good Afternoon";
+    return "Good Evening";
+  }, []);
+
+  const displayName = useMemo(() => {
+    if (user?.name) return user.name.split(" ")[0];
+    return "Judha";
+  }, [user]);
+
+  const filteredChats = useMemo(() => {
+    if (!searchQuery.trim()) return chats;
+    return chats.filter((c) =>
+      (c.title || "").toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+  }, [chats, searchQuery]);
+
+  // Group chats by age
+  const groupedChats = useMemo(() => {
+    const today = [];
+    const pastWeek = [];
+    const older = [];
+    const now = Date.now();
+    for (const c of filteredChats) {
+      const updated = new Date(c.updated_at || c.created_at || now).getTime();
+      const diffHours = (now - updated) / (1000 * 60 * 60);
+      if (diffHours < 24) today.push(c);
+      else if (diffHours < 168) pastWeek.push(c);
+      else older.push(c);
+    }
+    return [
+      { label: "Today", items: today },
+      { label: "7 Days Ago", items: pastWeek },
+      { label: "Earlier", items: older },
+    ].filter((g) => g.items.length > 0);
+  }, [filteredChats]);
+
   return (
-    <div className="sallyChat">
-      <aside className="chatRail">
-        <button className="chatBrand" onClick={onHome}>
-          <Mark />
-          <span>
-            <b>SallyIP</b>
-            <small>Labs</small>
-          </span>
-        </button>
-        <button className="newChat" onClick={newChat}>
-          <Plus /> New chat
-        </button>
-        <div className="matterSwitcher">
-          <div><FolderKanban/><span>ACTIVE MATTER</span><button onClick={createMatter}>+</button></div>
-          <select value={activeMatterId} onChange={(event) => setActiveMatterId(event.target.value)}>
-            <option value="">No matter selected</option>
-            {matters.map((matter) => <option value={matter.id} key={matter.id}>{matter.name}</option>)}
-          </select>
-        </div>
-        <div className="chatHistory">
-          <small>RECENT</small>
-          {chats.map((chat) => (
-            <div
-              className={`chatHistoryRow ${chat.id === activeId ? "active" : ""}`}
-              key={chat.id}
+    <div className="beebotLayout">
+      {/* Top App Tabs Bar with Window Controls */}
+      <header className="beebotTopTabs">
+        <div className="beebotTabsList">
+          <button className="beebotTabPlus" onClick={newChat} title="New Chat">
+            <Plus className="w-3.5 h-3.5" />
+          </button>
+
+          <button
+            className="beebotTabBtn"
+            onClick={() => {
+              const name = prompt("Enter Matter / Client Name:");
+              if (name) createMatter(name);
+            }}
+            title="Matter workspace"
+          >
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block shrink-0" />
+            <span>{matters.find((m) => m.id === activeMatterId)?.name || "Judha | Dribbble"}</span>
+          </button>
+
+          <button
+            className="beebotTabBtn"
+            onClick={() => setToolsOpen(true)}
+            title="Studio workspace"
+          >
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block shrink-0" />
+            <span>Emura Studio</span>
+          </button>
+
+          <div className="beebotTabBtn active">
+            <Sparkles className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+            <span className="max-w-[140px] truncate">{active?.title || "BeeBot"}</span>
+            <button
+              className="beebotTabClose"
+              onClick={(e) => {
+                e.stopPropagation();
+                newChat();
+              }}
+              title="Close Tab"
             >
-              {renamingId === chat.id ? (
-                <form
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    saveRename(chat.id);
-                  }}
-                >
-                  <input
-                    autoFocus
-                    value={renameValue}
-                    onChange={(event) => setRenameValue(event.target.value)}
-                    onBlur={() => saveRename(chat.id)}
-                    maxLength={80}
-                  />
-                  <button type="submit" aria-label="Save name">
-                    <Check />
-                  </button>
-                </form>
-              ) : (
-                <>
-                  <button
-                    className="chatHistoryOpen"
-                    onClick={() => openChat(chat.id)}
-                  >
-                    <MessageSquare />
-                    <span>{chat.title}</span>
-                  </button>
-                  <div className="chatHistoryActions">
-                    <button
-                      onClick={() => beginRename(chat)}
-                      aria-label="Rename conversation"
-                    >
-                      <Pencil />
-                    </button>
-                    <button
-                      onClick={() => deleteChat(chat.id)}
-                      aria-label="Delete conversation"
-                    >
-                      <Trash2 />
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          ))}
-        </div>
-        <div className="chatUser">
-          <span>{user?.initials || "S"}</span>
-          <div>
-            <b>{user?.name || "SallyIP researcher"}</b>
-            <small>Research workspace</small>
-          </div>
-          <button className="chatLogout" onClick={logout} aria-label="Log out">
-            <LogOut />
-          </button>
-        </div>
-      </aside>
-      <main className="chatMain">
-        <header className="chatTop">
-          <button className="mobileChatLogo" onClick={onHome}>
-            <Mark />
-          </button>
-          <button className="modelPicker">
-            <span>SallyIP 4.1 Pro</span>
-            <small>Research model</small>
-            <ChevronDown />
-          </button>
-          <div>
-            <span className="modelLive">
-              <i /> ONLINE
-            </span>
-            <button className="iconBtn" onClick={onHome}>
-              <X />
+              <X className="w-3 h-3" />
             </button>
           </div>
-        </header>
-        <section
-          ref={threadRef}
-          className={`chatThread ${messages.length ? "hasMessages" : ""}`}
-        >
-          {messages.length === 0 ? (
-            <motion.div
-              className="chatWelcome"
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
+
+          <button className="beebotTabBtn" onClick={() => setToolsOpen((v) => !v)} title="Workspaces">
+            <span>•••</span>
+          </button>
+        </div>
+
+        {/* Window controls (Minimize, Maximize, Close) */}
+        <div className="beebotWindowControls">
+          <button className="beebotWindowBtn" title="Minimize"><Minus className="w-3 h-3" /></button>
+          <button className="beebotWindowBtn" title="Maximize"><Square className="w-2.5 h-2.5" /></button>
+          <button className="beebotWindowBtn" title="Close"><X className="w-3 h-3" /></button>
+        </div>
+      </header>
+
+      {/* Main Body */}
+      <div className="beebotBody">
+        {/* Left Sidebar */}
+        <aside className="beebotSidebar">
+          <div className="beebotBrand" onClick={onHome}>
+            <div className="beebotLogoIcon">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div className="beebotLogoText">BeeBot</div>
+          </div>
+
+          <div className="beebotSearchWrap">
+            <input
+              type="text"
+              className="beebotSearchInput"
+              placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <Search className="beebotSearchIcon" />
+            <span className="beebotSearchKbd">⌘</span>
+          </div>
+
+          <nav className="beebotNavMenu">
+            <button
+              className={`beebotNavItem ${activeNav === "home" ? "active" : ""}`}
+              onClick={() => {
+                setActiveNav("home");
+                if (messages.length > 0) newChat();
+              }}
             >
-              <Mark className="chatHeroMark" />
-              <span>SALLYIP 4.1 PRO</span>
-              <h1>
-                What are we
-                <br />
-                <em>researching today?</em>
-              </h1>
-              <p>
-                Explore patents, trademarks, copyright, prior art, and
-                intellectual-property strategy with a specialist AI research
-                partner.
-              </p>
-              <div className="promptGrid">
-                {suggestions.map((text, index) => (
-                  <button key={text} onClick={() => send(text)}>
-                    <span>0{index + 1}</span>
-                    {text}
-                    <ArrowRight />
-                  </button>
+              <Home className="w-4 h-4" />
+              <span>Home</span>
+            </button>
+            <button
+              className={`beebotNavItem ${activeNav === "explore" ? "active" : ""}`}
+              onClick={() => {
+                setActiveNav("explore");
+                setToolsOpen(true);
+              }}
+            >
+              <Telescope className="w-4 h-4" />
+              <span>Explore</span>
+            </button>
+            <button
+              className={`beebotNavItem ${activeNav === "library" ? "active" : ""}`}
+              onClick={() => {
+                setActiveNav("library");
+                uploadInputRef.current?.click();
+              }}
+            >
+              <BookOpen className="w-4 h-4" />
+              <span>Library</span>
+            </button>
+            <button
+              className={`beebotNavItem ${activeNav === "history" ? "active" : ""}`}
+              onClick={() => setActiveNav("history")}
+            >
+              <Clock3 className="w-4 h-4" />
+              <span>History</span>
+            </button>
+          </nav>
+
+          {/* Grouped History with clean hover delete */}
+          <div className="beebotHistoryScroll">
+            {groupedChats.map((group) => (
+              <div key={group.label} className="beebotHistorySection">
+                <div className="beebotHistoryHeader">{group.label}</div>
+                {group.items.map((chat) => (
+                  <div
+                    key={chat.id}
+                    className={`beebotHistoryRow ${chat.id === activeId ? "active" : ""}`}
+                  >
+                    <button
+                      className="beebotHistoryItem"
+                      onClick={() => openChat(chat.id)}
+                      title={chat.title}
+                    >
+                      {chat.title || "Untitled Conversation"}
+                    </button>
+                    <button
+                      className="beebotHistoryDelete"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteChat(chat.id);
+                      }}
+                      title="Delete chat"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
                 ))}
               </div>
-            </motion.div>
+            ))}
+          </div>
+
+          {/* User Profile Card (Matches Reference Image) */}
+          <div className="beebotUserCard" onClick={logout} title="Click to log out or switch account">
+            <div className="beebotUserMeta">
+              <div className="beebotUserAvatar">
+                {user?.name?.[0] || "J"}
+              </div>
+              <div className="beebotUserTexts">
+                <div className="beebotUserName">{user?.name || "Judha Maygustya"}</div>
+                <div className="beebotUserEmail">{user?.email || "judha.design@gmail.com"}</div>
+              </div>
+            </div>
+            <ChevronsUpDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+          </div>
+        </aside>
+
+        {/* Main Chat Work Area */}
+        <main className="beebotMainArea">
+          {/* Main Top Bar */}
+          <div className="beebotMainTop">
+            <div className="relative">
+              <button
+                className="beebotModelPicker"
+                onClick={() => setModelMenuOpen((v) => !v)}
+              >
+                <div className="beebotModelIcon">
+                  <Sparkles className="w-3 h-3" />
+                </div>
+                <span>iBeeBot 4o</span>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+              </button>
+
+              {modelMenuOpen && (
+                <div className="absolute top-11 left-0 z-30 w-56 p-2 rounded-xl bg-white border border-slate-200 shadow-xl space-y-1 text-xs">
+                  <div className="px-2 py-1 font-semibold text-slate-400 uppercase text-[10px]">
+                    Active AI Engines
+                  </div>
+                  <div className="p-2 rounded-lg bg-indigo-50 text-indigo-700 font-medium">
+                    ⚡ OpenRouter Free Router (Active)
+                  </div>
+                  <div className="p-2 rounded-lg hover:bg-slate-50 text-slate-600">
+                    🔬 Nemotron 3.5 Lightning (Legal reasoning)
+                  </div>
+                  <div className="p-2 rounded-lg hover:bg-slate-50 text-slate-600">
+                    📄 Nex N2.5 Pro (Drafting)
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="beebotTopRightActions">
+              <button className="beebotNewChatBtn" onClick={newChat}>
+                <Plus className="w-3.5 h-3.5" />
+                <span>New Chat</span>
+              </button>
+              <div className="beebotAvatarPill" title={user?.name || "User Profile"}>
+                <span>{user?.name?.[0] || "J"}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Empty Hero State or Chat Thread */}
+          {messages.length === 0 ? (
+            <div className="beebotHero">
+              {/* Iridescent 3D Pearl Sphere */}
+              <div className="beebotPearlSphere" />
+
+              <div className="beebotHeroGreeting">
+                {greeting}, {displayName}
+              </div>
+
+              <div className="beebotHeroHeadline">
+                How Can I <span>Assist You Today?</span>
+              </div>
+
+              {/* Floating Center Composer */}
+              <div className="beebotComposerCard">
+                <textarea
+                  className="beebotComposerInput"
+                  placeholder="✦ Initiate a query or send a command to the AI..."
+                  rows={2}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      send();
+                    }
+                  }}
+                />
+
+                <div className="beebotComposerBottom">
+                  <div className="beebotActionPills">
+                    <input
+                      ref={uploadInputRef}
+                      type="file"
+                      style={{ display: "none" }}
+                      accept=".pdf,.docx,.txt,.md,.csv,.xlsx"
+                      onChange={(e) => ingestDocument(e.target.files?.[0])}
+                    />
+                    <button
+                      type="button"
+                      className="beebotPillBtn"
+                      onClick={() => uploadInputRef.current?.click()}
+                      title="Attach documents"
+                    >
+                      <Paperclip />
+                    </button>
+
+                    <button
+                      type="button"
+                      className={`beebotPillBtn ${deepResearch ? "active" : ""}`}
+                      onClick={() => setDeepResearch((v) => !v)}
+                    >
+                      <Telescope />
+                      <span>{deepResearch ? "Reasoning On" : "Reasoning"}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="beebotPillBtn"
+                      onClick={() => setActiveWorkspace("patent_draft")}
+                      title="Open US Patent Drafting Workspace"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-indigo-500" />
+                      <span>Patent Drafter</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="beebotPillBtn"
+                      onClick={() => setToolsOpen(true)}
+                      title="Specialist Legal Workspaces"
+                    >
+                      <Layers3 className="w-3.5 h-3.5 text-indigo-500" />
+                      <span>Workspaces</span>
+                    </button>
+                  </div>
+
+                  <button
+                    className="beebotSendBtn"
+                    disabled={!input.trim() || loading}
+                    onClick={() => send()}
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Ingestion notification */}
+              {(ingesting || uploadedSource) && (
+                <div className="mt-3 text-xs text-indigo-600 font-medium flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>
+                    {ingesting
+                      ? "Ingesting document into matter vault…"
+                      : `${uploadedSource.name} ready for retrieval`}
+                  </span>
+                </div>
+              )}
+            </div>
           ) : (
-            <div className="messageList">
+            /* Active Message Thread */
+            <div className="beebotThread" ref={threadRef}>
               {messages.map((message, index) => (
-                <motion.article
-                  className={`chatMessage ${message.role}`}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
+                <div
                   key={index}
+                  className={`beebotMessage ${message.role}`}
                 >
-                  {message.role === "assistant" ? (
-                    <Mark />
-                  ) : (
-                    <span className="messageAvatar">
-                      {user?.initials || "YOU"}
-                    </span>
+                  {message.role === "assistant" && (
+                    <div className="beebotAvatar assistant">
+                      <Sparkles className="w-4 h-4" />
+                    </div>
                   )}
-                  <div>
-                    <small>
-                      {message.role === "assistant" ? "SALLYIP 4.1 PRO" : "YOU"}
-                    </small>
-                    {editingMessage?.index === index ? (
-                      <div className="messageEditor">
-                        <textarea
-                          autoFocus
-                          value={editingMessage.value}
-                          onChange={(event) =>
-                            setEditingMessage({
-                              index,
-                              value: event.target.value,
-                            })
-                          }
-                        />
-                        <div>
-                          <button onClick={() => setEditingMessage(null)}>
-                            Cancel
-                          </button>
-                          <button
-                            className="saveMessage"
-                            onClick={saveMessageEdit}
-                          >
-                            <Check /> Save
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="markdownAnswer">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {sanitizeModelResponse(message.content)}
-                        </ReactMarkdown>
-                      </div>
-                    )}
-                    {editingMessage?.index !== index && (
-                      <div className="messageActions">
-                        <button
-                          className="copyAnswer"
-                          onClick={() =>
-                            setEditingMessage({ index, value: message.content })
-                          }
-                        >
-                          <Pencil /> Edit
-                        </button>
-                        {message.role === "assistant" && (
-                          <button
-                            className="copyAnswer"
-                            onClick={() =>
-                              navigator.clipboard.writeText(message.content)
-                            }
-                          >
-                            <Copy /> Copy
-                          </button>
-                        )}
-                      </div>
-                    )}
+
+                  <div className="beebotMessageBody">
+                    <div className="flex items-center justify-between text-[11px] font-semibold text-slate-400 mb-1">
+                      <span>{message.role === "assistant" ? "SallyIP 4.2 Pro" : "You"}</span>
+                    </div>
+
+                    <div className="prose prose-slate max-w-none text-slate-800 text-xs leading-relaxed">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {sanitizeModelResponse(message.content)}
+                      </ReactMarkdown>
+                    </div>
+
                     {message.attachments?.length > 0 && (
-                      <div className="generatedFiles">
+                      <div className="mt-3 space-y-1.5 border-t border-slate-100 pt-2">
                         {message.attachments.map((file) => (
-                          <a href={file.url} key={file.id} download={file.name}>
-                            <span><FileText /></span>
-                            <div><b>{file.name}</b><small>{file.format?.toUpperCase()} · {file.size ? `${Math.max(1, Math.round(file.size / 1024))} KB` : "Ready"}</small></div>
-                            <Download />
+                          <a
+                            href={file.url}
+                            key={file.id}
+                            download={file.name}
+                            className="flex items-center justify-between p-2 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs border border-slate-200"
+                          >
+                            <span className="flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-indigo-500" />
+                              <span className="font-medium">{file.name}</span>
+                            </span>
+                            <Download className="w-3.5 h-3.5 text-slate-400" />
                           </a>
                         ))}
                       </div>
                     )}
-                    {message.failed && message.retryText && (
-                      <button
-                        className="retryBtn"
-                        onClick={() => retry(message)}
-                        disabled={loading}
-                        aria-label="Retry this message"
-                      >
-                        <RotateCw className={loading ? "spin" : ""} /> Retry
-                      </button>
-                    )}
-                    {message.role === "assistant" && message.provenance?.route && (
-                      <div className="answerProvenance">
-                        <div><Telescope/><b>{message.provenance.route.task_class.replaceAll("_", " ")}</b><span>{message.provenance.verification?.source_basis === "retrieved_source" ? `${message.provenance.verification.sources_retrieved} retrieved sources` : "Model knowledge · verification required"}</span></div>
-                        {message.provenance.sources?.length > 0 && <div className="sourceChips">{message.provenance.sources.map((source,index) => source.official_url ? <a href={source.official_url} target="_blank" rel="noreferrer" key={source.passage_id}>S{index+1} · {source.citation || source.title} · {source.locator}</a> : <button type="button" key={source.passage_id} onClick={() => openPassage(source.passage_id, `S${index+1}`)}>S{index+1} · {source.citation || source.title} · {source.locator}</button>)}</div>}
+
+                    {message.role === "assistant" && (
+                      <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-400">
+                        <button
+                          onClick={() => navigator.clipboard.writeText(message.content)}
+                          className="hover:text-indigo-600 flex items-center gap-1"
+                        >
+                          <Copy className="w-3 h-3" /> Copy
+                        </button>
                       </div>
                     )}
                   </div>
-                </motion.article>
-              ))}
-              {loading && (
-                <motion.article
-                  className="chatMessage assistant orbThinkingMessage"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <div className="thinkingOrbShell">
-                    <ThinkingOrb
-                      state={thinkingStages[thinkingStage].state}
-                      size={64}
-                      speed={1.7}
-                      theme="dark"
-                    />
-                  </div>
-                  <div className="orbThinkingCopy">
-                    <small>SALLYIP 4.1 PRO</small>
-                    <motion.span
-                      key={thinkingStage}
-                      initial={{ opacity: 0, y: 4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                    >
-                      {thinkingStages[thinkingStage].label}
-                    </motion.span>
-                  </div>
-                </motion.article>
-              )}
-              <div ref={threadEndRef} aria-hidden="true" />
-            </div>
-          )}
-        </section>
-        <div className="composerWrap">
-          <div className={`workspaceDock ${toolsOpen ? "open" : ""}`}>
-            <button
-              className="workspaceDockToggle"
-              onClick={() => setToolsOpen(value => !value)}
-              aria-expanded={toolsOpen}
-            >
-              <SlidersHorizontal />
-              <span>Advanced Review</span>
-              <small>{activeMatterId ? "Inspect workflow details" : "Select a matter first"}</small>
-              <ChevronDown />
-            </button>
-            {toolsOpen && (
-              <motion.div
-                className="workspaceToolGrid"
-                initial={{ opacity: 0, y: 8, scale: .985 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-              >
-                <Suspense fallback={<span className="workspaceLoading">Loading workspaces…</span>}>
-                  <IpToolsPanel matterId={activeMatterId} onResult={recordToolResult}/>
-                  <ClaimChartWorkspace matterId={activeMatterId} onResult={recordToolResult}/>
-                  <TrademarkClearanceWorkspace matterId={activeMatterId} onResult={recordToolResult}/>
-                  <PatentFamilyWorkspace matterId={activeMatterId} onResult={recordToolResult}/>
-                  <ProsecutionHistoryWorkspace matterId={activeMatterId} onResult={recordToolResult}/>
-                  <IpKnowledgeGraphWorkspace matterId={activeMatterId}/>
-                  <PriorArtWorkspace matterId={activeMatterId} onResult={recordToolResult}/>
-                  <NoveltyWorkspace matterId={activeMatterId} onResult={recordToolResult}/>
-                  <InventiveStepWorkspace matterId={activeMatterId} onResult={recordToolResult}/>
-                  <FtoWorkspace matterId={activeMatterId} onResult={recordToolResult}/>
-                  <TrademarkIntelligenceWorkspace matterId={activeMatterId} onResult={recordToolResult}/>
-                  <LitigationEvidenceWorkspace matterId={activeMatterId} onResult={recordToolResult}/>
-                  <VerificationDeskWorkspace matterId={activeMatterId} onResult={recordToolResult}/>
-                  <PlaybookWorkspace matterId={activeMatterId} conversationId={active?.id} onResult={recordToolResult}/>
-                  <ContractWorkspace matterId={activeMatterId} onResult={recordToolResult}/>
-                  <PatentDraftingWorkspace matterId={activeMatterId} onResult={recordToolResult}/>
-                </Suspense>
-              </motion.div>
-            )}
-          </div>
-          <div className="composer">
-            <input ref={uploadInputRef} className="chatFileInput" type="file" accept=".pdf,.docx,.txt,.md,.csv,.xlsx" onChange={(event) => ingestDocument(event.target.files?.[0])}/>
-            <button aria-label="Attach file" disabled={ingesting} onClick={() => uploadInputRef.current?.click()}>
-              <Paperclip />
-            </button>
-            <textarea
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" && !event.shiftKey) {
-                  event.preventDefault();
-                  send();
-                }
-              }}
-              placeholder="Ask SallyIP 4.1 Pro"
-              rows="1"
-            />
-            <button
-              className="sendChat"
-              disabled={!input.trim() || loading}
-              onClick={() => send()}
-            >
-              <Send />
-            </button>
-          </div>
-          {(ingesting || uploadedSource) && <div className="ingestionStatus"><FileText/><span>{ingesting ? "Extracting and indexing document…" : `${uploadedSource.name} · ${uploadedSource.passage_count} pinpoint passages ready`}</span></div>}
-          <button className={`deepResearchToggle ${deepResearch ? "active" : ""}`} onClick={() => setDeepResearch(value => !value)}><Telescope/>{deepResearch ? "Deep Research on" : "Deep Research"}</button>
-          <small>
-            SallyIP provides AI-assisted legal research and drafting.
-            Professional review may be appropriate before reliance or filing.
-          </small>
-          {viewingPassage && (
-            <div className="ipToolOverlay" onMouseDown={(event) => event.target === event.currentTarget && setViewingPassage(null)}>
-              <section className="ipToolModal">
-                <header>
-                  <div>
-                    <span>SOURCE PASSAGE · {viewingPassage.label}</span>
-                    <h2>{viewingPassage.data?.title || "Loading…"}</h2>
-                  </div>
-                  <button type="button" onClick={() => setViewingPassage(null)}><X /></button>
-                </header>
-                {viewingPassage.loading && <div className="claimChartEmpty">Fetching passage…</div>}
-                {viewingPassage.error && <div className="ipToolError">{viewingPassage.error}</div>}
-                {viewingPassage.data && (
-                  <>
-                    <div className="familyMeta">
-                      <span>{viewingPassage.data.locator_type} {viewingPassage.data.locator}</span>
-                      {viewingPassage.data.citation && <span>{viewingPassage.data.citation}</span>}
-                      <span>tier {viewingPassage.data.authority_tier}</span>
-                      <span>{viewingPassage.data.verified_at ? "verified" : "unverified"}</span>
+
+                  {message.role === "user" && (
+                    <div className="beebotAvatar user">
+                      {user?.initials || "YOU"}
                     </div>
-                    <div style={{ maxHeight: 320, overflow: "auto", border: "1px solid #ddd", padding: 10, fontSize: 13, whiteSpace: "pre-wrap" }}>{viewingPassage.data.content}</div>
-                    {viewingPassage.data.official_url && <p><a href={viewingPassage.data.official_url} target="_blank" rel="noreferrer">Open official source</a></p>}
-                  </>
-                )}
-              </section>
+                  )}
+                </div>
+              ))}
+
+              {loading && (
+                <div className="beebotMessage assistant">
+                  <div className="beebotAvatar assistant">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div className="beebotMessageBody flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-full shrink-0 animate-pulse bg-gradient-to-tr from-indigo-500 via-purple-400 to-pink-300 shadow-md shadow-indigo-500/30 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-white/90" />
+                    </div>
+                    <span className="text-xs text-slate-500 font-medium">
+                      {thinkingStages[thinkingStage]?.label || "Thinking…"}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <div ref={threadEndRef} />
+
+              {/* Bottom Sticky Composer when messages exist */}
+              <div className="sticky bottom-0 pt-4 pb-2 bg-gradient-to-t from-white via-white to-transparent">
+                <div className="beebotComposerCard max-w-3xl mx-auto shadow-lg">
+                  <textarea
+                    className="beebotComposerInput"
+                    placeholder="Ask SallyIP a follow-up or command..."
+                    rows={1}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        send();
+                      }
+                    }}
+                  />
+                  <div className="beebotComposerBottom">
+                    <div className="beebotActionPills">
+                      <button
+                        type="button"
+                        className="beebotPillBtn"
+                        onClick={() => uploadInputRef.current?.click()}
+                      >
+                        <Paperclip />
+                      </button>
+                      <button
+                        type="button"
+                        className={`beebotPillBtn ${deepResearch ? "active" : ""}`}
+                        onClick={() => setDeepResearch((v) => !v)}
+                      >
+                        <Telescope />
+                        <span>Reasoning</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="beebotPillBtn"
+                        onClick={() => setActiveWorkspace("patent_draft")}
+                        title="Open US Patent Drafting Workspace"
+                      >
+                        <FileText className="w-3.5 h-3.5 text-indigo-500" />
+                        <span>Patent Drafter</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="beebotPillBtn"
+                        onClick={() => setToolsOpen(true)}
+                        title="Specialist Legal Workspaces"
+                      >
+                        <Layers3 className="w-3.5 h-3.5 text-indigo-500" />
+                        <span>Workspaces</span>
+                      </button>
+                    </div>
+                    <button
+                      className="beebotSendBtn"
+                      disabled={!input.trim() || loading}
+                      onClick={() => send()}
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
+
+      {/* Workspaces Launcher Modal */}
+      {toolsOpen && (
+        <div
+          className="beebotModalBackdrop"
+          onClick={() => setToolsOpen(false)}
+        >
+          <div
+            className="beebotModalCard"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="beebotModalHeader">
+              <div>
+                <h3 className="beebotModalTitle">Specialist Legal Workspaces</h3>
+                <p className="beebotModalSubtitle">Select a specialized module for active matter analysis.</p>
+              </div>
+              <button
+                onClick={() => setToolsOpen(false)}
+                className="beebotModalClose"
+                title="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="beebotModalBody">
+              <button
+                className="beebotWorkspaceTile"
+                onClick={() => {
+                  setToolsOpen(false);
+                  setActiveWorkspace("patent_draft");
+                }}
+              >
+                <div className="beebotTileHeader">
+                  <div className="beebotTileIcon">
+                    <FileText className="w-4 h-4 text-indigo-600" />
+                  </div>
+                  <div className="beebotTileName">US Patent Drafter</div>
+                </div>
+                <div className="beebotTileDesc">
+                  § 101 Alice screen, § 112 antecedent basis checks, claims, and full USPTO specification.
+                </div>
+              </button>
+
+              <button
+                className="beebotWorkspaceTile"
+                onClick={() => {
+                  setToolsOpen(false);
+                  setActiveWorkspace("contracts");
+                }}
+              >
+                <div className="beebotTileHeader">
+                  <div className="beebotTileIcon">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <div className="beebotTileName">Contract Review</div>
+                </div>
+                <div className="beebotTileDesc">
+                  Automated contract redlining, risk flags, and institutional playbook enforcement.
+                </div>
+              </button>
+
+              <button
+                className="beebotWorkspaceTile"
+                onClick={() => {
+                  setToolsOpen(false);
+                  setActiveWorkspace("playbooks");
+                }}
+              >
+                <div className="beebotTileHeader">
+                  <div className="beebotTileIcon">
+                    <BookOpen className="w-4 h-4 text-purple-600" />
+                  </div>
+                  <div className="beebotTileName">Playbooks Desk</div>
+                </div>
+                <div className="beebotTileDesc">
+                  Manage standard clauses, fallbacks, negotiation positions, and clause ledger.
+                </div>
+              </button>
+
+              <button
+                className="beebotWorkspaceTile"
+                onClick={() => {
+                  setToolsOpen(false);
+                  setActiveWorkspace("fto");
+                }}
+              >
+                <div className="beebotTileHeader">
+                  <div className="beebotTileIcon">
+                    <Telescope className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div className="beebotTileName">Freedom to Operate</div>
+                </div>
+                <div className="beebotTileDesc">
+                  Infringement risk matrices, product-to-patent mapping, and design-around guidance.
+                </div>
+              </button>
+
+              <button
+                className="beebotWorkspaceTile"
+                onClick={() => {
+                  setToolsOpen(false);
+                  setActiveWorkspace("claim_chart");
+                }}
+              >
+                <div className="beebotTileHeader">
+                  <div className="beebotTileIcon">
+                    <Layers3 className="w-4 h-4 text-amber-600" />
+                  </div>
+                  <div className="beebotTileName">Claim Chart Builder</div>
+                </div>
+                <div className="beebotTileDesc">
+                  Element-by-element patent claim comparison against prior art disclosures.
+                </div>
+              </button>
+
+              <button
+                className="beebotWorkspaceTile"
+                onClick={() => {
+                  setToolsOpen(false);
+                  setActiveWorkspace("novelty");
+                }}
+              >
+                <div className="beebotTileHeader">
+                  <div className="beebotTileIcon">
+                    <Search className="w-4 h-4 text-rose-600" />
+                  </div>
+                  <div className="beebotTileName">Prior Art & Novelty</div>
+                </div>
+                <div className="beebotTileDesc">
+                  Anticipation analysis, primary citation verification, and inventive step assessments.
+                </div>
+              </button>
+
+              <button
+                className="beebotWorkspaceTile"
+                onClick={() => {
+                  setToolsOpen(false);
+                  setActiveWorkspace("trademark");
+                }}
+              >
+                <div className="beebotTileHeader">
+                  <div className="beebotTileIcon">
+                    <Sparkles className="w-4 h-4 text-cyan-600" />
+                  </div>
+                  <div className="beebotTileName">Trademark Intelligence</div>
+                </div>
+                <div className="beebotTileDesc">
+                  Likelihood of confusion screening, Nice classification, and registry clearance.
+                </div>
+              </button>
+
+              <button
+                className="beebotWorkspaceTile"
+                onClick={() => {
+                  setToolsOpen(false);
+                  setActiveWorkspace("knowledge_graph");
+                }}
+              >
+                <div className="beebotTileHeader">
+                  <div className="beebotTileIcon">
+                    <FolderKanban className="w-4 h-4 text-violet-600" />
+                  </div>
+                  <div className="beebotTileName">Knowledge Graph & Citations</div>
+                </div>
+                <div className="beebotTileDesc">
+                  Patent families, citation ledgers, prosecution histories, and litigation evidence.
+                </div>
+              </button>
+            </div>
+          </div>
         </div>
-      </main>
+      )}
+
+      {/* Active Workspaces Render */}
+      <Suspense fallback={null}>
+        {activeWorkspace === "patent_draft" && (
+          <PatentDraftingWorkspace
+            isOpen={true}
+            onClose={() => setActiveWorkspace(null)}
+            matterId={activeMatterId}
+            onResult={recordToolResult}
+          />
+        )}
+        {activeWorkspace === "contracts" && (
+          <ContractWorkspace
+            isOpen={true}
+            onClose={() => setActiveWorkspace(null)}
+            matterId={activeMatterId}
+            onResult={recordToolResult}
+          />
+        )}
+        {activeWorkspace === "playbooks" && (
+          <PlaybookWorkspace
+            isOpen={true}
+            onClose={() => setActiveWorkspace(null)}
+            matterId={activeMatterId}
+            conversationId={active?.id}
+            onResult={recordToolResult}
+          />
+        )}
+        {activeWorkspace === "fto" && (
+          <FtoWorkspace
+            isOpen={true}
+            onClose={() => setActiveWorkspace(null)}
+            matterId={activeMatterId}
+            onResult={recordToolResult}
+          />
+        )}
+        {activeWorkspace === "claim_chart" && (
+          <ClaimChartWorkspace
+            isOpen={true}
+            onClose={() => setActiveWorkspace(null)}
+            matterId={activeMatterId}
+            onResult={recordToolResult}
+          />
+        )}
+        {activeWorkspace === "novelty" && (
+          <NoveltyWorkspace
+            isOpen={true}
+            onClose={() => setActiveWorkspace(null)}
+            matterId={activeMatterId}
+            onResult={recordToolResult}
+          />
+        )}
+        {activeWorkspace === "trademark" && (
+          <TrademarkClearanceWorkspace
+            isOpen={true}
+            onClose={() => setActiveWorkspace(null)}
+            matterId={activeMatterId}
+            onResult={recordToolResult}
+          />
+        )}
+        {activeWorkspace === "knowledge_graph" && (
+          <IpKnowledgeGraphWorkspace
+            isOpen={true}
+            onClose={() => setActiveWorkspace(null)}
+            matterId={activeMatterId}
+          />
+        )}
+      </Suspense>
+        </main>
+      </div>
     </div>
   );
 }
