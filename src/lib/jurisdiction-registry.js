@@ -26,11 +26,20 @@ for(const[alias,code]of Object.entries(aliases)){
 export const supportedJurisdictions=[...new Map(regions.map(region=>[region.code,region])).values()].sort((a,b)=>a.name.localeCompare(b.name))
 
 export function resolveJurisdiction(text){
-  const value=String(text||'').toLowerCase()
+  const value=String(text||'')
+  const lower=value.toLowerCase()
+  // Two-letter codes that collide with common English words only count when
+  // written in UPPERCASE ("US", "IN"); lowercase "us"/"as a"/"in the" must not
+  // resolve to United States/American Samoa/India.
+  const shortStop=new Set(['as','in','on','at','to','be','or','of','by','up','no','so','do','go','we','me','my','is','it','if','an','us','he','ox','ex'])
   const candidates=[...tokens.entries()].sort((a,b)=>b[0].length-a[0].length)
   for(const[token,region]of candidates){
     const escaped=token.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')
-    if(new RegExp(`(?:^|[^a-z])${escaped}(?:$|[^a-z])`,'i').test(value))return region
+    if(token.length===2&&shortStop.has(token)){
+      if(new RegExp(`(?:^|[^A-Za-z])${token.toUpperCase()}(?:$|[^A-Za-z])`).test(value))return region
+      continue
+    }
+    if(new RegExp(`(?:^|[^A-Za-z])${escaped}(?:$|[^A-Za-z])`,'i').test(value))return region
   }
   return null
 }

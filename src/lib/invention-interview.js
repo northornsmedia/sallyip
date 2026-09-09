@@ -88,10 +88,15 @@ export function buildReadyBrief(analysis) {
 
 // Single entry point for chat pipelines: returns the system-prompt addition
 // (or '') for the latest user turn given the full message history.
+// Current-turn intent always wins; history only continues an ongoing drafting
+// thread for generic follow-ups (last 3 user turns), so an NDA request after
+// a patent chat is never hijacked into an invention interview.
 export function draftGuidanceFor(messages, latest) {
-  const isDrafting = planLegalTask(latest || '', {}).workflow_type === 'patent_drafting' ||
-    (Array.isArray(messages) && messages.some(m => m?.role === 'user' && planLegalTask(String(m.content || ''), {}).workflow_type === 'patent_drafting'))
-  if (!isDrafting) return ''
+  const current = planLegalTask(latest || '', {}).workflow_type
+  if (current && current !== 'patent_drafting') return ''
+  const userTurns = (Array.isArray(messages) ? messages : []).filter(m => m?.role === 'user')
+  const drafting = current === 'patent_drafting' || userTurns.slice(-3).some(m => planLegalTask(String(m.content || ''), {}).workflow_type === 'patent_drafting')
+  if (!drafting) return ''
   const interview = analyzeInterview(messages)
   if (interview.phase === 'interview') return `\n\n${buildInterviewContract(interview)}`
   return `\n\n${DRAFT_RESPONSE_CONTRACT}\n\n${buildReadyBrief(interview)}`

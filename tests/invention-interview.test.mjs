@@ -81,3 +81,15 @@ test('default zero threshold preserves legacy behaviour', async () => {
   const rows = await retrieveVerifiedEvidence(mockSql, 'u1', 'm1', 'draft patent', {})
   assert.equal(rows.length, 1)
 })
+
+test('an NDA request after patent history is not hijacked into interview', () => {
+  const history = [{ role: 'user', content: 'Draft a patent application for my mouse tech with optical sensors solving click fatigue' }, { role: 'assistant', content: 'What problem does it solve?' }]
+  const latest = 'Draft a mutual NDA between A Ltd and B Ltd as a Word document'
+  assert.equal(draftGuidanceFor([...history, { role: 'user', content: latest }], latest), '')
+})
+
+test('generic follow-up inside a drafting thread keeps the interview', () => {
+  const history = [{ role: 'user', content: 'Draft a patent application for my mouse tech' }]
+  const out = draftGuidanceFor([...history, { role: 'user', content: 'It uses optical sensors' }], 'It uses optical sensors')
+  assert.match(out, /INVENTION INTERVIEW MODE/)
+})
