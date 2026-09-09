@@ -304,12 +304,14 @@ export async function orchestrateSallyStreaming(messages,env,siteUrl='https://sa
   let primaryEngine=null
   let synthesisStatus='single-engine'
 
-  // Model pipeline: First Gemini 3.7, then fallback to Nemotron (no other models)
-  const geminiEngine = ENGINES.find(e => e.slug === 'gemini-3.7-flash') || {
-    slug: 'gemini-3.7-flash',
-    name: 'Gemini 3.7 Flash',
-    key: 'GEMINI_API_KEY',
-    baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
+  // Model pipeline: env-configured flagship first, then Nemotron fallbacks.
+  // Set SALLYIP_PRIMARY_MODEL to change the flagship without code changes.
+  const primarySlug = String(env.SALLYIP_PRIMARY_MODEL || 'gemini-3.7-flash').trim()
+  const geminiEngine = ENGINES.find(e => e.slug === primarySlug) || {
+    slug: primarySlug,
+    name: String(env.SALLYIP_PRIMARY_NAME || 'Primary flagship').slice(0, 80),
+    key: String(env.SALLYIP_PRIMARY_KEY || 'GEMINI_API_KEY').slice(0, 80),
+    baseUrl: env.SALLYIP_PRIMARY_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta/openai',
     weight: 100,
     role: 'Primary flagship legal reasoning & drafting'
   }
@@ -386,10 +388,10 @@ export async function orchestrateSallyStreaming(messages,env,siteUrl='https://sa
   const meta = {
     engines_requested: pipeline.length,
     engines_completed: attempts.filter(a => a.status === 'success').length,
-    preferred_engine: preferredSlug || 'gemini-3.7-flash',
+    preferred_engine: preferredSlug || primarySlug,
     fast_fail_retries: 0,
     stragglers_aborted: 0,
-    rescue_used: primaryEngine !== 'gemini-3.7-flash',
+    rescue_used: primaryEngine !== primarySlug,
     primary_engine: primaryEngine,
     embedding_dimensions: embedding.data?.data?.[0]?.embedding?.length || 0,
     embedding_status: embedding.status,
