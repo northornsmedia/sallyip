@@ -1,10 +1,11 @@
 import { sanitizeModelResponse } from './document-tool-service.js'
 
 const CHAT_ENGINES=[
+  {slug:'nvidia/nemotron-3-ultra-550b-a55b:free',name:'Nemotron 3 Ultra 550B',key:'OPENROUTER_API_KEY',weight:50,role:'Primary flagship legal-technical synthesis and drafting'},
   {slug:'openrouter/free',name:'OpenRouter Free Router',key:'OPENROUTER_API_KEY',weight:30,role:'Dynamic multi-provider reasoning'},
   {slug:'nvidia/nemotron-3.5-lightning:free',name:'Nemotron 3.5 Lightning',key:'OPENROUTER_API_KEY',weight:25,role:'Fast legal-technical reasoning'},
-  {slug:'nex-agi/nex-n2.5-pro:free',name:'Nex N2.5 Pro',key:'OPENROUTER_API_KEY',weight:25,role:'Language clarity and legal drafting'},
-  {slug:'nvidia/nemotron-3-super-120b-a12b:free',name:'Nemotron 3 Super',key:'OPENROUTER_API_KEY',weight:20,role:'Deep technical synthesis and edge-case review'}
+  {slug:'nex-agi/nex-n2.5-pro:free',name:'Nex N2.5 Pro',key:'OPENROUTER_API_KEY',weight:20,role:'Language clarity and legal drafting'},
+  {slug:'nvidia/nemotron-3-super-120b-a12b:free',name:'Nemotron 3 Super',key:'OPENROUTER_API_KEY',weight:15,role:'Deep technical synthesis and edge-case review'}
 ]
 // Designated rescue engine: openrouter/free dynamically routes to active free providers
 const OX_ALPHA_SLUG='openrouter/free'
