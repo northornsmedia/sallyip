@@ -1,4 +1,5 @@
 import {searchCourtListener,searchEpoOps,searchEuipoTrademarks,searchUsptoPatents} from './official-search-service.js'
+import {canonicalizeResult,groupIntoFamilies} from './patent-normalize-service.js'
 import {importOfficialSearchRunIntoClearance} from './trademark-clearance-service.js'
 
 const PROVIDERS={
@@ -17,6 +18,20 @@ export async function runOfficialSearch(sql,userId,body,env,{fetchImpl=fetch}={}
     if(!adapter)throw Object.assign(new Error('Provider adapter is not configured'),{code:'PROVIDER_NOT_CONFIGURED'})
     const results=await adapter.run(body,env,fetchImpl),saved=[]
     for(let index=0;index<results.length;index++){const result=results[index],entityData=adapter.data(result);const[entity]=await sql`INSERT INTO ip_entities(user_id,matter_id,entity_type,canonical_identifier,name,jurisdiction,data,source_status) VALUES(${userId},${matter.id},${adapter.entity},${result.external_id||null},${result.title},${adapter.jurisdiction(result)},${JSON.stringify(entityData)}::jsonb,'retrieved') RETURNING id`;const[row]=await sql`INSERT INTO professional_search_results(search_run_id,external_id,title,official_url,entity_id,rank,raw_metadata) VALUES(${run.id},${result.external_id||null},${result.title},${result.official_url||null},${entity.id},${index+1},${JSON.stringify(result.raw_metadata||{})}::jsonb) RETURNING id`;saved.push({...result,id:row.id,entity_id:entity.id,raw_metadata:undefined})}
-    await sql`UPDATE professional_search_runs SET status='completed',result_count=${saved.length},finished_at=now() WHERE id=${run.id}`;if(provider==='euipo_trademark'&&body.clearance_project_id)await importOfficialSearchRunIntoClearance(sql,userId,body.clearance_project_id,run.id);return{search_run_id:run.id,provider,source_basis:'live_database',results:saved}
+    // Canonical intelligence layer: normalise patent results from any office
+    // into provider_records and resolve families (heuristic, method labelled).
+    // Never breaks the search response: failures are logged, not thrown.
+    let families=[]
+    if((provider==='epo_ops'||provider==='uspto_patent')&&saved.length){
+      try{
+        const canonRows=results.map((result,index)=>({...canonicalizeResult(provider,result),entity_id:saved[index]?.entity_id||null})).filter(row=>row.external_id)
+        const grouped=groupIntoFamilies(canonRows)
+        for(const family of grouped)for(const member of family.members){
+          await sql`INSERT INTO provider_records(user_id,matter_id,provider,external_id,country,pub_number,kind,normalized_number,title,publication_date,filing_date,priority_date,priority_numbers,family_key,family_method,inventors,assignees,legal_status,entity_id,raw) VALUES(${userId},${matter.id},${provider},${member.external_id},${member.country},${member.pub_number},${member.kind},${member.normalized_number},${member.title},${member.publication_date},${member.filing_date},${member.priority_date},${JSON.stringify(member.priority_numbers)}::jsonb,${member.family_key},${member.family_method},${JSON.stringify(member.inventors)}::jsonb,${JSON.stringify(member.assignees)}::jsonb,${member.legal_status},${member.entity_id},${JSON.stringify(member.raw)}::jsonb) ON CONFLICT(user_id,provider,external_id) DO UPDATE SET title=excluded.title,publication_date=excluded.publication_date,family_key=excluded.family_key,family_method=excluded.family_method,retrieved_at=now()`
+        }
+        families=grouped.map(family=>({family_key:family.family_key,family_method:family.family_method,members:family.members.map(m=>m.external_id)}))
+      }catch(canonicalError){console.warn('canonical ingest skipped:',canonicalError.message?.slice(0,120))}
+    }
+    await sql`UPDATE professional_search_runs SET status='completed',result_count=${saved.length},finished_at=now() WHERE id=${run.id}`;if(provider==='euipo_trademark'&&body.clearance_project_id)await importOfficialSearchRunIntoClearance(sql,userId,body.clearance_project_id,run.id);return{search_run_id:run.id,provider,source_basis:'live_database',results:saved,families}
   }catch(error){await sql`UPDATE professional_search_runs SET status=${error.code==='PROVIDER_NOT_CONFIGURED'?'not_configured':'failed'},error_code=${error.code||'SEARCH_FAILED'},finished_at=now() WHERE id=${run.id}`;error.searchRunId=run.id;throw error}
 }

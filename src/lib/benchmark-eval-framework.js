@@ -45,7 +45,7 @@ export function extractCitedPropositions(text) {
     const citationMatches = [...sentence.matchAll(/\[S(\d+)\]/g)];
     const cleanText = sentence.replace(/\[S\d+\]/g, '').replace(/^["'“]+|["'”]+$/g, '').trim();
     if (cleanText.length < 8) continue;
-    if (/^(yes|no|based on the provided sources|the relevant sentence|according to the|specifically|under the|here is the|summary:?|conclusion:?|note:?)\s*,?$/i.test(cleanText)) continue;
+    if (cleanText.endsWith(':') || /^(yes|no|based on the provided sources|the relevant (?:statutory )?(?:text|sentence|provision|section)(?:\s+is)?|according to the|specifically|under the|here is the|summary|conclusion|note)\s*:?,?$/i.test(cleanText)) continue;
     if (/^#{1,6}\s+/.test(sentence)) continue;
 
     if (citationMatches.length > 0) {

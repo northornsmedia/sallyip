@@ -224,7 +224,7 @@ export function quoteStatus(quote, sources) {
   return cleanAndVerifyQuote(quote, sources).status
 }
 
-function protectLegalAbbreviations(text) {
+export function protectLegalAbbreviations(text) {
   return String(text || '')
     .replace(/U\.S\.C\./gi, 'U_S_C_')
     .replace(/C\.F\.R\./gi, 'C_F_R_')
@@ -236,7 +236,7 @@ function protectLegalAbbreviations(text) {
     .replace(/No\./gi, 'No_')
 }
 
-function unprotectLegalAbbreviations(text) {
+export function unprotectLegalAbbreviations(text) {
   return String(text || '')
     .replace(/U_S_C_/g, 'U.S.C.')
     .replace(/C_F_R_/g, 'C.F.R.')
@@ -270,7 +270,8 @@ export function buildPropositionEvidenceGraph(text, evidence = [], verification 
     const cleanText = sentence.replace(/\[S\d+\]/g, '').replace(/^["'“]+|["'”]+$/g, '').trim()
     if (cleanText.length < 8) continue
 
-    const isFraming = /^(yes|no|based on the provided sources|the relevant sentence|according to the|specifically|under the|here is the|summary:?|conclusion:?|note:?)\s*,?$/i.test(cleanText) ||
+    const isFraming = cleanText.endsWith(':') ||
+                      /^(yes|no|based on the provided sources|the relevant (?:statutory )?(?:text|sentence|provision|section)(?:\s+is)?|according to the|specifically|under the|here is the|summary|conclusion|note)\s*:?,?$/i.test(cleanText) ||
                       /^#{1,6}\s+/.test(sentence)
     if (isFraming) continue
 
@@ -400,20 +401,32 @@ export function finalizeVerifiedAnswer(answer, evidence = [], verification = {},
     const protectedOutput = protectLegalAbbreviations(output)
     const lines = protectedOutput.split('\n')
     const processedLines = lines.map(line => {
-      // If line already contains [S#] or is markdown header, leave as is
-      if (/\[S\d+\]/.test(line) || /^#{1,6}\s+/.test(line)) return line
-      // Check if line contains substantive legal keywords
-      if (/\b(process|machine|manufacture|composition of matter|prior art|effective filing date|grace period|obvious|person having ordinary skill|enablement|written description|best mode|particularly pointing out|dependent form|step 2a|step 2b|significantly more|judicial exception)\b/i.test(line)) {
-        for (let i = 0; i < complete.length; i++) {
-          const s = complete[i]
-          const terms = searchTerms(line)
-          const matchCount = terms.filter(t => normalized(s.content).includes(t)).length
-          if (matchCount >= 2 || normalized(s.content).includes(normalized(line.slice(0, 30)))) {
-            return `${line.replace(/[.!?]+$/, '')} [S${i + 1}].`
+      if (/^#{1,6}\s+/.test(line) || /^>/.test(line)) return line
+      const rawSentences = line.split(/(?<=[.!?])\s+/)
+      const processedSentences = rawSentences.map((sent, sIdx) => {
+        if (/\[S\d+\]/.test(sent)) return sent
+        const stem = term => String(term || '').toLowerCase().replace(/(?:ing|ed|es|s)$/, '')
+        if (/\b(process|machine|manufacture|composition of matter|improvement|patentable|patent|prior art|effective filing date|grace period|obvious|person having ordinary skill|enablement|written description|best mode|particularly pointing out|dependent form|step 2a|step 2b|significantly more|judicial exception|whoever|invents|discovers|title|section|statute|u_s_c_|mpep)\b/i.test(sent)) {
+          for (let i = 0; i < complete.length; i++) {
+            const s = complete[i]
+            const sourceText = `${s.title} ${s.locator} ${s.content}`.toLowerCase()
+            const sourceStems = new Set((sourceText.match(/[a-z0-9]+/g) || []).map(stem))
+            const terms = searchTerms(sent)
+            const matchCount = terms.filter(t => sourceStems.has(stem(t)) || sourceText.includes(t.toLowerCase())).length
+            if (matchCount >= 2 || normalized(s.content).includes(normalized(sent.slice(0, 30)))) {
+              return `${sent.replace(/[.!?]+$/, '')} [S${i + 1}].`
+            }
           }
         }
-      }
-      return line
+        // If next sentence on the same line has [S#] and current sentence is substantive legal text, inherit it
+        const next = rawSentences[sIdx + 1]
+        const nextCite = next ? next.match(/\[S(\d+)\]/) : null
+        if (nextCite && sent.length > 15 && !sent.endsWith(':')) {
+          return `${sent.replace(/[.!?]+$/, '')} ${nextCite[0]}.`
+        }
+        return sent
+      })
+      return processedSentences.join(' ')
     })
     output = unprotectLegalAbbreviations(processedLines.join('\n'))
   }

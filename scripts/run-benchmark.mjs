@@ -26,7 +26,7 @@ async function ask(prompt, evidence) {
   const context = evidence.map((e, i) => `[S${i + 1}] ${e.title} | ${e.citation || ''} | ${e.locator}\n${e.content.slice(0, 1200)}`).join('\n\n');
   for (let attempt = 0; attempt < 3; attempt++) {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 45000);
+    const timer = setTimeout(() => controller.abort(), 60000);
     try {
       const res = await fetch(`${API}/chat/completions`, {
         method: 'POST',
@@ -116,8 +116,12 @@ async function run() {
       `cited=${d.citationIntegrity.validCount} ` +
       `dangling=${d.citationIntegrity.danglingCount} ` +
       `quotes=${d.quotationFidelity.exact}E/${d.quotationFidelity.fuzzy}F/${d.quotationFidelity.missing}M ` +
-      `entail=${d.citationEntailment.entailmentRate * 100}%`
+      `entail=${d.citationEntailment.entailmentRate * 100}% ` +
+      `unsupported=${d.legalAccuracy.unsupportedRate * 100}%`
     );
+    if (d.legalAccuracy.unsupportedRate > 0) {
+      console.log(`   [UNSUPPORTED DETAIL] Answer: ${answer}`);
+    }
   }
 
   await sql`DELETE FROM matters WHERE id=${matter.id}`;
@@ -154,6 +158,7 @@ async function run() {
     citation_integrity: rates.citation_integrity === 1,
     authority_recall: rates.authority_recall >= .98,
     exact_quote_verification: rates.exact_quote >= .95,
+    missing_quote_rate: rates.missing_quote < .02,
     citation_entailment: rates.citation_entailment >= .95,
     unsupported_proposition_rate: rates.unsupported_proposition < .02
   };
@@ -216,7 +221,7 @@ function generateRegressionReport({ datasetFile, baseline, current, results }) {
   md += `| **1. Authority Retrieval ($R@k$)** | ${baseSummary.authority_recall_rate || 'Not recorded'} | ${current.authority_retrieval_rate} | ${current.release_gates.authority_recall ? 'PASS' : 'FAIL'} |\n`;
   md += `| **2. Citation Integrity (0-Dangling)** | ${baseSummary.zero_dangling_rate || 'Not recorded'} | ${current.zero_dangling_rate} | ${current.release_gates.citation_integrity ? 'PASS' : 'FAIL'} |\n`;
   md += `| **3. Quotation Fidelity (Exact)** | ${baseSummary.quote_verification?.exact_rate || 'Not recorded'} | ${current.quote_fidelity.exact_rate} | ${current.release_gates.exact_quote_verification ? 'PASS' : 'FAIL'} |\n`;
-  md += `| **3b. Quotation Missing/Unverified** | ${baseSummary.quote_verification?.unsupported_rate || 'Not recorded'} | ${current.quote_fidelity.unsupported_rate} | Tracked separately |\n`;
+  md += `| **3b. Quotation Missing/Unverified** | ${baseSummary.quote_verification?.unsupported_rate || 'Not recorded'} | ${current.quote_fidelity.unsupported_rate} | ${current.release_gates.missing_quote_rate ? 'PASS' : 'FAIL'} |\n`;
   md += `| **4. Citation Entailment** | *Added in 5D framework* | ${current.citation_entailment_rate} | ${current.release_gates.citation_entailment ? 'PASS' : 'FAIL'} |\n`;
   md += `| **5. Unsupported Proposition Rate** | *Added in 5D framework* | ${current.unsupported_proposition_rate} | ${current.release_gates.unsupported_proposition_rate ? 'PASS' : 'FAIL'} |\n\n`;
   md += `## Release decision: ${current.release_status}\n\n`;

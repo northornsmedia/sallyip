@@ -33,6 +33,7 @@ What each adds:
 | 051_office_actions | `office_actions`, `oa_rejections`, `oa_amendments` |
 | 052_patentbench | `patentbench_runs` |
 | 053_workflow_type_open | drops closed workflow_type enum (was killing NDA-with-matter requests) |
+| 054_provider_records | canonical patent records (provider/versioned, family_key + method) |
 
 New env keys for prod (search works without them; USPTO + CourtListener report "not configured" until added):
 
