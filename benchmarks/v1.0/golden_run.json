@@ -1,0 +1,2448 @@
+{
+  "id": "f8dfe146-4400-49b9-a206-72c8607622d3",
+  "user_id": "2a95bd9d-f7cb-4e76-a82e-1d86a76d1038",
+  "name": "grounding benchmark 100 (gemini-flash-lite-latest)",
+  "metrics": {
+    "rows": [
+      {
+        "key": "s101-01",
+        "cited": 1,
+        "index": 1,
+        "answer": "\"Whoever invents or discovers any new and useful process, machine, manufacture, or composition of matter, or any new and useful improvement thereof, may obtain a patent therefor, subject to the conditions and requirements of this title.\" [S1]",
+        "expect": "§ 101",
+        "prompt": "Quote the exact text of 35 U.S.C. § 101 specifying the four statutory categories of patentable inventions.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "Whoever invents or discovers any new and useful process, machine, manufacture, or composition of matter, or any new and useful improvement thereof, may obtain a patent therefor, subject to the conditions and requirements of this title.",
+              "locator": "§ 101",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s101-02",
+        "cited": 1,
+        "index": 2,
+        "answer": "Under 35 U.S.C. § 101, whoever invents or discovers a new and useful process or machine \"may obtain a patent therefor, subject to the conditions and requirements of this title.\" [S1]",
+        "expect": "§ 101",
+        "prompt": "Under 35 U.S.C. § 101, what condition must a new and useful process or machine satisfy to obtain a patent? Quote and cite.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "may obtain a patent therefor, subject to the conditions and requirements of this title.",
+              "locator": "§ 101",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s101-03",
+        "cited": 1,
+        "index": 3,
+        "answer": "Yes, 35 U.S.C. § 101 allows patents for new and useful improvements of existing machines [S1]. \n\nThe statutory phrase is:\n> \"any new and useful improvement thereof\" [S1]",
+        "expect": "§ 101",
+        "prompt": "Does 35 U.S.C. § 101 allow patents for new and useful improvements of existing machines? Quote the statutory phrase.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "any new and useful improvement thereof",
+              "locator": "§ 101",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s101-04",
+        "cited": 1,
+        "index": 4,
+        "answer": "\"[W]hoever invents or discovers\" [S1].",
+        "expect": "§ 101",
+        "prompt": "What word does 35 U.S.C. § 101 use regarding the inventor: \"whoever invents or...\"? Quote and cite.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "[W]hoever invents or discovers",
+              "locator": null,
+              "verdict": "missing"
+            }
+          ],
+          "missing": 1
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s101-05",
+        "cited": 1,
+        "index": 5,
+        "answer": "Yes, a composition of matter can be patented under 35 U.S.C. § 101 [S1]. \n\nThe relevant sentence from the source is: \n\"Whoever invents or discovers any new and useful process, machine, manufacture, or composition of matter, or any new and useful improvement thereof, may obtain a patent therefor, subject to the conditions and requirements of this title.\" [S1]",
+        "expect": "§ 101",
+        "prompt": "According to 35 U.S.C. § 101, can a composition of matter be patented? Quote the relevant sentence.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "Whoever invents or discovers any new and useful process, machine, manufacture, or composition of matter, or any new and useful improvement thereof, may obtain a patent therefor, subject to the conditions and requirements of this title.",
+              "locator": "§ 101",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s101-06",
+        "cited": 1,
+        "index": 6,
+        "answer": "According to 35 U.S.C. § 101, an inventor \"may obtain a patent therefor\" if they invent or discover \"any new and useful process, machine, manufacture, or composition of matter, or any new and useful improvement thereof\" [S1].",
+        "expect": "§ 101",
+        "prompt": "Quote 35 U.S.C. § 101 on whether an invention must be \"useful\".",
+        "quotes": {
+          "exact": 2,
+          "fuzzy": 0,
+          "total": 2,
+          "details": [
+            {
+              "quote": "may obtain a patent therefor",
+              "locator": "§ 101",
+              "verdict": "exact"
+            },
+            {
+              "quote": "any new and useful process, machine, manufacture, or composition of matter, or any new and useful improvement thereof",
+              "locator": "§ 101",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s101-07",
+        "cited": 1,
+        "index": 7,
+        "answer": "35 U.S.C. § 101 states: \n\n\"Whoever invents or discovers any new and useful process, machine, manufacture, or composition of matter, or any new and useful improvement thereof, may obtain a patent therefor, subject to the conditions and requirements of this title [S1].\"",
+        "expect": "§ 101",
+        "prompt": "What does 35 U.S.C. § 101 state about subject matter conditions and requirements? Quote and cite.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "Whoever invents or discovers any new and useful process, machine, manufacture, or composition of matter, or any new and useful improvement thereof, may obtain a patent therefor, subject to the conditions and requirements of this title [S1].",
+              "locator": null,
+              "verdict": "missing"
+            }
+          ],
+          "missing": 1
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s101-08",
+        "cited": 1,
+        "index": 8,
+        "answer": "Based on the provided sources, the statutory term for an article manufactured by human industry is **\"manufacture\"** [S1]. \n\nSpecifically, 35 U.S.C. § 101 states that whoever invents or discovers any new and useful \"process, machine, **manufacture**, or composition of matter, or any new and useful improvement thereof, may obtain a patent therefor\" [S1].",
+        "expect": "§ 101",
+        "prompt": "State the statutory term in 35 U.S.C. § 101 for an article manufactured by human industry.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "** [S1]. \n\nSpecifically, 35 U.S.C. § 101 states that whoever invents or discovers any new and useful ",
+              "locator": null,
+              "verdict": "missing"
+            }
+          ],
+          "missing": 1
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s101-09",
+        "cited": 1,
+        "index": 9,
+        "answer": "Under 35 U.S.C. § 101, the opening phrase regarding who may obtain a patent is:\n\n> \"Whoever invents or discovers any new and useful process, machine, manufacture, or composition of matter, or any new and useful improvement thereof, may obtain a patent therefor...\" [S1]",
+        "expect": "§ 101",
+        "prompt": "Under 35 U.S.C. § 101, who may obtain a patent? Quote the opening phrase.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 1,
+          "total": 1,
+          "details": [
+            {
+              "quote": "Whoever invents or discovers any new and useful process, machine, manufacture, or composition of matter, or any new and useful improvement thereof, may obtain a patent therefor...",
+              "locator": "§ 101",
+              "verdict": "fuzzy"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s101-10",
+        "cited": 1,
+        "index": 10,
+        "answer": "\"Whoever invents or discovers any new and useful process, machine, manufacture, or composition of matter, or any new and useful improvement thereof, may obtain a patent therefor, subject to the conditions and requirements of this title\" [S1].",
+        "expect": "§ 101",
+        "prompt": "Quote the full text of 35 U.S.C. § 101 in its entirety with official citation [S1].",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "Whoever invents or discovers any new and useful process, machine, manufacture, or composition of matter, or any new and useful improvement thereof, may obtain a patent therefor, subject to the conditions and requirements of this title",
+              "locator": "§ 101",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s102a-01",
+        "cited": 1,
+        "index": 11,
+        "answer": "Under 35 U.S.C. § 102(a)(1), the events prior to the effective filing date that establish prior art are when \"the claimed invention was patented, described in a printed publication, or in public use, on sale, or otherwise available to the public before the effective filing date of the claimed invention\" [S1].",
+        "expect": "§ 102(a)",
+        "prompt": "Under 35 U.S.C. § 102(a)(1), what events prior to the effective filing date establish prior art? Quote and cite.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "the claimed invention was patented, described in a printed publication, or in public use, on sale, or otherwise available to the public before the effective filing date of the claimed invention",
+              "locator": "§ 102(a)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s102a-02",
+        "cited": 1,
+        "index": 12,
+        "answer": "Based on the provided sources, 35 U.S.C. § 102(a)(1) states that a person is entitled to a patent unless \"the claimed invention was patented, described in a printed publication, or in public use, on sale, or otherwise available to the public before the effective filing date of the claimed invention\" [S1].",
+        "expect": "§ 102(a)",
+        "prompt": "Does a printed publication anywhere in the world count as prior art under 35 U.S.C. § 102(a)(1)? Quote the text.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "the claimed invention was patented, described in a printed publication, or in public use, on sale, or otherwise available to the public before the effective filing date of the claimed invention",
+              "locator": "§ 102(a)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s102a-03",
+        "cited": 1,
+        "index": 13,
+        "answer": "35 U.S.C. § 102(a)(1) states that a person is entitled to a patent unless \"the claimed invention was patented, described in a printed publication, or in public use, on sale, or otherwise available to the public before the effective filing date of the claimed invention\" [S1].",
+        "expect": "§ 102(a)",
+        "prompt": "What does 35 U.S.C. § 102(a)(1) state regarding public use or commercial sale? Quote and cite.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "the claimed invention was patented, described in a printed publication, or in public use, on sale, or otherwise available to the public before the effective filing date of the claimed invention",
+              "locator": "§ 102(a)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s102a-04",
+        "cited": 1,
+        "index": 14,
+        "answer": "Based on the provided source, the exact quote is:\n\n\"or otherwise available to the public\" [S1]",
+        "expect": "§ 102(a)",
+        "prompt": "Quote the catch-all phrase in 35 U.S.C. § 102(a)(1): \"or otherwise available to...\"",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "or otherwise available to the public",
+              "locator": "§ 102(a)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s102a-05",
+        "cited": 1,
+        "index": 15,
+        "answer": "Under 35 U.S.C. § 102(a)(2), another patent or published application becomes prior art when it is \"a patent issued under section 151, or in an application for patent published or deemed published under section 122(b), in which the patent or application names another inventor and was effectively filed before the effective filing date of the claimed invention\" [S1].",
+        "expect": "§ 102(a)",
+        "prompt": "Under 35 U.S.C. § 102(a)(2), when does another patent or published application become prior art? Quote and cite.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "a patent issued under section 151, or in an application for patent published or deemed published under section 122(b), in which the patent or application names another inventor and was effectively filed before the effective filing date of the claimed invention",
+              "locator": "§ 102(a)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s102a-06",
+        "cited": 1,
+        "index": 16,
+        "answer": "Based on 35 U.S.C. § 102(a)(2), the patent or application must name \"another inventor\" [S1].",
+        "expect": "§ 102(a)",
+        "prompt": "What requirement does 35 U.S.C. § 102(a)(2) impose regarding the names of inventors? Quote the phrase.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 0,
+          "details": [],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s102a-07",
+        "error": "max_retries_exceeded",
+        "status": "model_error",
+        "recalled": true
+      },
+      {
+        "key": "s102a-08",
+        "error": "max_retries_exceeded",
+        "status": "model_error",
+        "recalled": true
+      },
+      {
+        "key": "s102a-09",
+        "cited": 1,
+        "index": 19,
+        "answer": "Based on the provided sources, 35 U.S.C. § 102(a)(1) states that a person is entitled to a patent unless \"the claimed invention was patented, described in a printed publication, or in public use, on sale, or otherwise available to the public before the effective filing date of the claimed invention\" [S1]. \n\nThe provided sources do not state that prior public use has to occur in the United States.",
+        "expect": "§ 102(a)",
+        "prompt": "Under 35 U.S.C. § 102(a), does prior public use have to occur in the United States? Quote and cite.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "the claimed invention was patented, described in a printed publication, or in public use, on sale, or otherwise available to the public before the effective filing date of the claimed invention",
+              "locator": "§ 102(a)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s102a-10",
+        "cited": 1,
+        "index": 20,
+        "answer": "Based on the provided sources, the introductory words of 35 U.S.C. § 102 are: \n\n\"A person shall be entitled to a patent unless—\" [S1]",
+        "expect": "§ 102(a)",
+        "prompt": "Quote the introductory words of 35 U.S.C. § 102: \"A person shall be entitled to a patent unless...\"",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "A person shall be entitled to a patent unless—",
+              "locator": "§ 102(a)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s102b-01",
+        "cited": 1,
+        "index": 21,
+        "answer": "Under 35 U.S.C. § 102(b)(1), disclosures excluded from prior art include a disclosure \"made 1 year or less before the effective filing date\" if:\n\n1. \"the disclosure was made by the inventor or joint inventor\" [S1].\n2. \"by another who obtained the subject matter directly or indirectly from the inventor\" [S1].\n3. \"if the subject matter had already been publicly disclosed by the inventor\" [S1].",
+        "expect": "§ 102(b)(1)",
+        "prompt": "Under 35 U.S.C. § 102(b)(1), what disclosures made by an inventor are excluded from prior art? Quote and cite.",
+        "quotes": {
+          "exact": 4,
+          "fuzzy": 0,
+          "total": 4,
+          "details": [
+            {
+              "quote": "made 1 year or less before the effective filing date",
+              "locator": "§ 102(b)(1)",
+              "verdict": "exact"
+            },
+            {
+              "quote": "the disclosure was made by the inventor or joint inventor",
+              "locator": "§ 102(b)(1)",
+              "verdict": "exact"
+            },
+            {
+              "quote": "by another who obtained the subject matter directly or indirectly from the inventor",
+              "locator": "§ 102(b)(1)",
+              "verdict": "exact"
+            },
+            {
+              "quote": "if the subject matter had already been publicly disclosed by the inventor",
+              "locator": "§ 102(b)(1)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s102b-02",
+        "cited": 1,
+        "index": 22,
+        "answer": "The exact grace period window in 35 U.S.C. § 102(b)(1) is described by the phrase: *\"1 year or less before the effective filing date\"* [S1].",
+        "expect": "§ 102(b)(1)",
+        "prompt": "What is the exact grace period window in 35 U.S.C. § 102(b)(1)? Quote the phrase containing \"1 year\".",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "1 year or less before the effective filing date",
+              "locator": "§ 102(b)(1)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s102b-03",
+        "cited": 1,
+        "index": 23,
+        "answer": "Under 35 U.S.C. § 102(b)(1), regarding the inventor grace period:\n\n> \"A disclosure made 1 year or less before the effective filing date shall not be prior art under subsection (a)(1) if the disclosure was made by the inventor or joint inventor, or by another who obtained the subject matter directly or indirectly from the inventor...\" [S1]",
+        "expect": "§ 102(b)(1)",
+        "prompt": "Under 35 U.S.C. § 102(b)(1)(A), what rule applies if a joint inventor made the disclosure? Quote and cite.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 1,
+          "total": 1,
+          "details": [
+            {
+              "quote": "A disclosure made 1 year or less before the effective filing date shall not be prior art under subsection (a)(1) if the disclosure was made by the inventor or joint inventor, or by another who obtained the subject matter directly or indirectly from the inventor...",
+              "locator": "§ 102(b)(1)",
+              "verdict": "fuzzy"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s102b-04",
+        "cited": 1,
+        "index": 24,
+        "answer": "Based on the provided sources, a disclosure is treated such that it \"shall not be prior art under subsection (a)(1) if the disclosure was made by the inventor or joint inventor, or by another who obtained the subject matter directly or indirectly from the inventor\" [S1].",
+        "expect": "§ 102(b)(1)",
+        "prompt": "How does 35 U.S.C. § 102(b)(1)(A) treat disclosures derived directly or indirectly from the inventor? Quote and cite.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "shall not be prior art under subsection (a)(1) if the disclosure was made by the inventor or joint inventor, or by another who obtained the subject matter directly or indirectly from the inventor",
+              "locator": "§ 102(b)(1)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s102b-05",
+        "cited": 1,
+        "index": 25,
+        "answer": "Based on the provided sources, 35 U.S.C. § 102(b)(1) covers the \"inventor grace period\" [S1]. The specific provision regarding third-party disclosures after an inventor disclosure states that a disclosure \"shall not be prior art under subsection (a)(1) if... the subject matter had already been publicly disclosed by the inventor\" [S1]. \n\nSpecifically, under 35 U.S.C. § 102(b)(1), a disclosure made \"1 year or less before the effective filing date shall not be prior art under subsection (a)(1)\" if:",
+        "expect": "§ 102(b)(1)",
+        "prompt": "Explain 35 U.S.C. § 102(b)(1)(B) regarding third-party disclosures after an inventor disclosure. Quote the rule.",
+        "quotes": {
+          "exact": 3,
+          "fuzzy": 0,
+          "total": 4,
+          "details": [
+            {
+              "quote": "inventor grace period",
+              "locator": "§ 102(b)(1)",
+              "verdict": "exact"
+            },
+            {
+              "quote": "shall not be prior art under subsection (a)(1) if... the subject matter had already been publicly disclosed by the inventor",
+              "locator": null,
+              "verdict": "missing"
+            },
+            {
+              "quote": "1 year or less before the effective filing date shall not be prior art under subsection (a)(1)",
+              "locator": "§ 102(b)(1)",
+              "verdict": "exact"
+            },
+            {
+              "quote": "the subject matter had already been publicly disclosed by the inventor.",
+              "locator": "§ 102(b)(1)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 1
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s102b-06",
+        "cited": 1,
+        "index": 26,
+        "answer": "Based on the provided sources, the exact phrase describing the subject matter having been publicly disclosed is:\n\n*\"by the inventor or joint inventor, or by another who obtained the subject matter directly or indirectly from the inventor, or if the subject matter had already been publicly disclosed by the inventor.\"* [S1]",
+        "expect": "§ 102(b)(1)",
+        "prompt": "What phrase in 35 U.S.C. § 102(b)(1)(B) describes the subject matter having been \"publicly disclosed by...\"? Quote it.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "by the inventor or joint inventor, or by another who obtained the subject matter directly or indirectly from the inventor, or if the subject matter had already been publicly disclosed by the inventor.",
+              "locator": "§ 102(b)(1)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s102b-07",
+        "cited": 1,
+        "index": 27,
+        "answer": "Yes. According to 35 U.S.C. § 102(b)(1), the 1-year grace period applies if \"the subject matter had already been publicly disclosed by the inventor\" [S1]. \n\nSpecifically, the source states:\n> \"A disclosure made 1 year or less before the effective filing date shall not be prior art under subsection (a)(1) if the disclosure was made by the inventor or joint inventor... or if the subject matter had already been publicly disclosed by the inventor.\" [S1]",
+        "expect": "§ 102(b)(1)",
+        "prompt": "Does the 1-year grace period in 35 U.S.C. § 102(b)(1) apply to public use by the inventor? Quote and cite.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 2,
+          "details": [
+            {
+              "quote": "the subject matter had already been publicly disclosed by the inventor",
+              "locator": "§ 102(b)(1)",
+              "verdict": "exact"
+            },
+            {
+              "quote": "A disclosure made 1 year or less before the effective filing date shall not be prior art under subsection (a)(1) if the disclosure was made by the inventor or joint inventor... or if the subject matter had already been publicly disclosed by the inventor.",
+              "locator": null,
+              "verdict": "missing"
+            }
+          ],
+          "missing": 1
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s102b-08",
+        "cited": 1,
+        "index": 28,
+        "answer": "Based on the provided sources, 35 U.S.C. § 102(b)(1) states:\n\n> \"A disclosure made 1 year or less before the effective filing date shall not be prior art under subsection (a)(1) if the disclosure was made by the inventor or joint inventor, or by another who obtained the subject matter directly or indirectly from the inventor, or if the subject matter had already been publicly disclosed by the inventor.\" [S1]",
+        "expect": "§ 102(b)(1)",
+        "prompt": "Quote 35 U.S.C. § 102(b)(1) on the effective filing date calculation for grace period disclosures.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "A disclosure made 1 year or less before the effective filing date shall not be prior art under subsection (a)(1) if the disclosure was made by the inventor or joint inventor, or by another who obtained the subject matter directly or indirectly from the inventor, or if the subject matter had already been publicly disclosed by the inventor.",
+              "locator": "§ 102(b)(1)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s102b-09",
+        "cited": 1,
+        "index": 29,
+        "answer": "Under 35 U.S.C. § 102(b)(1), the term used for someone who obtained the disclosure from the inventor is \"**another who obtained the subject matter directly or indirectly from the inventor**\" [S1].",
+        "expect": "§ 102(b)(1)",
+        "prompt": "Under 35 U.S.C. § 102(b)(1), what term is used for someone who obtained disclosure from the inventor? Quote the phrase.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 1,
+          "total": 1,
+          "details": [
+            {
+              "quote": "**another who obtained the subject matter directly or indirectly from the inventor**",
+              "locator": "§ 102(b)(1)",
+              "verdict": "fuzzy"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s102b-10",
+        "cited": 1,
+        "index": 30,
+        "answer": "Based on the provided sources, the exact text of 35 U.S.C. § 102(b)(1)(A) is not present. However, the source for 35 U.S.C. § 102(b)(1) states the following general rule regarding the inventor grace period:\n\n> \"A disclosure made 1 year or less before the effective filing date shall not be prior art under subsection (a)(1) if the disclosure was made by the inventor or joint inventor, or by another who obtained the subject matter directly or indirectly from the inventor, or if the subject matter h",
+        "expect": "§ 102(b)(1)",
+        "prompt": "Quote the full exception language of 35 U.S.C. § 102(b)(1)(A) verbatim.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "A disclosure made 1 year or less before the effective filing date shall not be prior art under subsection (a)(1) if the disclosure was made by the inventor or joint inventor, or by another who obtained the subject matter directly or indirectly from the inventor, or if the subject matter had already been publicly disclosed by the inventor.",
+              "locator": "§ 102(b)(1)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s103-01",
+        "error": "max_retries_exceeded",
+        "status": "model_error",
+        "recalled": true
+      },
+      {
+        "key": "s103-02",
+        "cited": 1,
+        "index": 32,
+        "answer": "Under 35 U.S.C. § 103, obviousness is judged from the perspective of \"a person having ordinary skill in the art\" [S1]. \n\nThe statutory definition states that a patent may not be obtained:\n> \"if the differences between the claimed invention and the prior art are such that the claimed invention as a whole would have been obvious before the effective filing date of the claimed invention to a person having ordinary skill in the art.\" [S1]",
+        "expect": "§ 103",
+        "prompt": "Under 35 U.S.C. § 103, from whose perspective is obviousness judged? Quote the statutory definition.",
+        "quotes": {
+          "exact": 2,
+          "fuzzy": 0,
+          "total": 2,
+          "details": [
+            {
+              "quote": "a person having ordinary skill in the art",
+              "locator": "§ 103",
+              "verdict": "exact"
+            },
+            {
+              "quote": "if the differences between the claimed invention and the prior art are such that the claimed invention as a whole would have been obvious before the effective filing date of the claimed invention to a person having ordinary skill in the art.",
+              "locator": "§ 103",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s103-03",
+        "cited": 1,
+        "index": 33,
+        "answer": "Under 35 U.S.C. § 103, the obviousness determination is made \"before the effective filing date of the claimed invention\" [S1]. \n\nThe exact text from the source is: \"before the effective filing date of the claimed invention\" [S1].",
+        "expect": "§ 103",
+        "prompt": "At what point in time is the obviousness determination made under 35 U.S.C. § 103? Quote the text.",
+        "quotes": {
+          "exact": 2,
+          "fuzzy": 0,
+          "total": 2,
+          "details": [
+            {
+              "quote": "before the effective filing date of the claimed invention",
+              "locator": "§ 103",
+              "verdict": "exact"
+            },
+            {
+              "quote": "before the effective filing date of the claimed invention",
+              "locator": "§ 103",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s103-04",
+        "cited": 1,
+        "index": 34,
+        "answer": "35 U.S.C. § 103 uses the phrase \"the claimed invention as a whole would have been obvious\" [S1].",
+        "expect": "§ 103",
+        "prompt": "What phrase does 35 U.S.C. § 103 use regarding the subject matter being obvious \"as a whole\"? Quote and cite.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "the claimed invention as a whole would have been obvious",
+              "locator": "§ 103",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s103-05",
+        "cited": 1,
+        "index": 35,
+        "answer": "No, patentability does not depend on the manner in which the invention was made [S1]. The statute states: \"Patentability shall not be negated by the manner in which the invention was made\" [S1].",
+        "expect": "§ 103",
+        "prompt": "Under 35 U.S.C. § 103, does patentability depend on the manner in which the invention was made? Quote and cite.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "Patentability shall not be negated by the manner in which the invention was made",
+              "locator": "§ 103",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s103-06",
+        "cited": 1,
+        "index": 36,
+        "answer": "\"[P]atentability shall not be negated by the manner in which the invention was made\" [S1].",
+        "expect": "§ 103",
+        "prompt": "Quote the sentence in 35 U.S.C. § 103: \"Patentability shall not be negated by...\"",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "[P]atentability shall not be negated by the manner in which the invention was made",
+              "locator": null,
+              "verdict": "missing"
+            }
+          ],
+          "missing": 1
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s103-07",
+        "cited": 1,
+        "index": 37,
+        "answer": "Under 35 U.S.C. § 103, the differences between the claimed invention and the prior art are used to determine whether \"the claimed invention as a whole would have been obvious before the effective filing date of the claimed invention to a person having ordinary skill in the art\" [S1]. \n\nSpecifically, the statute states that a patent may not be obtained:\n> \"if the differences between the claimed invention and the prior art are such that the claimed invention as a whole would have been obvious befo",
+        "expect": "§ 103",
+        "prompt": "What role do the differences between the claimed invention and prior art play in 35 U.S.C. § 103? Quote and cite.",
+        "quotes": {
+          "exact": 2,
+          "fuzzy": 0,
+          "total": 2,
+          "details": [
+            {
+              "quote": "the claimed invention as a whole would have been obvious before the effective filing date of the claimed invention to a person having ordinary skill in the art",
+              "locator": "§ 103",
+              "verdict": "exact"
+            },
+            {
+              "quote": "if the differences between the claimed invention and the prior art are such that the claimed invention as a whole would have been obvious before the effective filing date of the claimed invention to a person having ordinary skill in the art",
+              "locator": "§ 103",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s103-08",
+        "cited": 1,
+        "index": 38,
+        "answer": "Yes. Under 35 U.S.C. § 103, an invention may be obvious even if it is \"not identically disclosed as set forth in section 102\" [S1]. \n\nThe exact phrase from the source is:\n> \"notwithstanding that the claimed invention is not identically disclosed as set forth in section 102\" [S1]",
+        "expect": "§ 103",
+        "prompt": "Under 35 U.S.C. § 103, can an invention be obvious even if not identically disclosed under section 102? Quote the phrase.",
+        "quotes": {
+          "exact": 2,
+          "fuzzy": 0,
+          "total": 2,
+          "details": [
+            {
+              "quote": "not identically disclosed as set forth in section 102",
+              "locator": "§ 103",
+              "verdict": "exact"
+            },
+            {
+              "quote": "notwithstanding that the claimed invention is not identically disclosed as set forth in section 102",
+              "locator": "§ 103",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s103-09",
+        "cited": 1,
+        "index": 39,
+        "answer": "Based on the provided sources, 35 U.S.C. § 103 does not define the phrase \"a person having ordinary skill in the art,\" but rather uses it as a standard, referring to \"a person having ordinary skill in the art\" [S1].",
+        "expect": "§ 103",
+        "prompt": "Quote the exact words in 35 U.S.C. § 103 defining a person having ordinary skill in the art.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 1,
+          "total": 2,
+          "details": [
+            {
+              "quote": "a person having ordinary skill in the art,",
+              "locator": "§ 103",
+              "verdict": "fuzzy"
+            },
+            {
+              "quote": "a person having ordinary skill in the art",
+              "locator": "§ 103",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s103-10",
+        "cited": 1,
+        "index": 40,
+        "answer": "A patent for a claimed invention may not be obtained if the differences between the invention and the prior art would have made it obvious to a person having ordinary skill in the art before the effective filing date [S1], and concludes with the limitation that \"[p]atentability shall not be negated by the manner in which the invention was made\" [S1].",
+        "expect": "§ 103",
+        "prompt": "Summarize 35 U.S.C. § 103 in one sentence and quote its concluding limitation.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "[p]atentability shall not be negated by the manner in which the invention was made",
+              "locator": null,
+              "verdict": "missing"
+            }
+          ],
+          "missing": 1
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s111-01",
+        "cited": 1,
+        "index": 41,
+        "answer": "Under 35 U.S.C. § 111(a), the required components of a nonprovisional application include:\n\n* A \"specification (§ 112)\" [S1]\n* A \"drawing (§ 113)\" [S1]\n* An \"oath/declaration (§ 115)\" [S1]\n\nAdditionally, \"fee and claims may follow within the prescribed period\" [S1].",
+        "expect": "§ 111(a)-(b)",
+        "prompt": "Under 35 U.S.C. § 111(a), what are the required components of a patent application? Quote and cite.",
+        "quotes": {
+          "exact": 3,
+          "fuzzy": 0,
+          "total": 3,
+          "details": [
+            {
+              "quote": "specification (§ 112)",
+              "locator": "§ 111(a)-(b)",
+              "verdict": "exact"
+            },
+            {
+              "quote": "oath/declaration (§ 115)",
+              "locator": "§ 111(a)-(b)",
+              "verdict": "exact"
+            },
+            {
+              "quote": "fee and claims may follow within the prescribed period",
+              "locator": "§ 111(a)-(b)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s111-02",
+        "cited": 1,
+        "index": 42,
+        "answer": "No, a provisional application under 35 U.S.C. § 111(b) does not require any claims [S1]. \n\nThe statutory rule states: \"PROVISIONAL APPLICATION.—... requires only specification (§ 112(a)) and drawing; NO claim is required\" [S1].",
+        "expect": "§ 111(a)-(b)",
+        "prompt": "Does a provisional application under 35 U.S.C. § 111(b) require any claims? Quote the statutory rule.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 1,
+          "total": 1,
+          "details": [
+            {
+              "quote": "PROVISIONAL APPLICATION.—... requires only specification (§ 112(a)) and drawing; NO claim is required",
+              "locator": "§ 111(a)-(b)",
+              "verdict": "fuzzy"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s111-03",
+        "cited": 1,
+        "index": 43,
+        "answer": "Based on the provided sources, the exact text of 35 U.S.C. § 111(b) states that a provisional application requires \"only specification (§ 112(a)) and drawing\" [S1].",
+        "expect": "§ 111(a)-(b)",
+        "prompt": "Quote 35 U.S.C. § 111(b)(1) regarding drawings in a provisional patent application.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "only specification (§ 112(a)) and drawing",
+              "locator": "§ 111(a)-(b)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s111-04",
+        "cited": 1,
+        "index": 44,
+        "answer": "Based on the provided sources, a provisional patent application is \"abandoned 12 months after filing if not converted\" [S1].",
+        "expect": "§ 111(a)-(b)",
+        "prompt": "How long does a US provisional patent application last before abandonment under 35 U.S.C. § 111(b)(5)? Quote the duration.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "abandoned 12 months after filing if not converted",
+              "locator": "§ 111(a)-(b)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s111-05",
+        "cited": 1,
+        "index": 45,
+        "answer": "Based on the provided sources, the exact text regarding the abandonment rule for provisional applications is that a provisional application is \"abandoned 12 months after filing if not converted\" [S1].",
+        "expect": "§ 111(a)-(b)",
+        "prompt": "Quote the abandonment rule for provisional applications in 35 U.S.C. § 111(b)(5).",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "abandoned 12 months after filing if not converted",
+              "locator": "§ 111(a)-(b)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s111-06",
+        "cited": 1,
+        "index": 46,
+        "answer": "Based on the provided sources, an oath or declaration is not mentioned as a requirement for a provisional application. Instead, a provisional application requires \"only specification (§ 112(a)) and drawing; NO claim is required\" [S1]. Furthermore, the sources explicitly note that an oath/declaration is part of a \"nonprovisional application contents\" under § 111(a) [S1].",
+        "expect": "§ 111(a)-(b)",
+        "prompt": "Under 35 U.S.C. § 111(b)(2), is an oath or declaration required in a provisional application? Quote and cite.",
+        "quotes": {
+          "exact": 2,
+          "fuzzy": 0,
+          "total": 2,
+          "details": [
+            {
+              "quote": "only specification (§ 112(a)) and drawing; NO claim is required",
+              "locator": "§ 111(a)-(b)",
+              "verdict": "exact"
+            },
+            {
+              "quote": "nonprovisional application contents",
+              "locator": "§ 111(a)-(b)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s111-07",
+        "cited": 1,
+        "index": 47,
+        "answer": "The filing of nonprovisional patent applications is governed by \"35 U.S.C. § 111(a)\" [S1]. \n\nThe contents of 35 U.S.C. § 111(a) are described as:\n\"nonprovisional application contents: specification (§ 112), drawing (§ 113), oath/declaration (§ 115); fee and claims may follow within the prescribed period\" [S1].",
+        "expect": "§ 111(a)-(b)",
+        "prompt": "What section of title 35 governs the filing of nonprovisional patent applications? Quote 35 U.S.C. § 111(a).",
+        "quotes": {
+          "exact": 2,
+          "fuzzy": 0,
+          "total": 2,
+          "details": [
+            {
+              "quote": "35 U.S.C. § 111(a)",
+              "locator": "§ 111(a)-(b)",
+              "verdict": "exact"
+            },
+            {
+              "quote": "nonprovisional application contents: specification (§ 112), drawing (§ 113), oath/declaration (§ 115); fee and claims may follow within the prescribed period",
+              "locator": "§ 111(a)-(b)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s111-08",
+        "cited": 1,
+        "index": 48,
+        "answer": "Based on the provided sources, the exact text of 35 U.S.C. § 111(a)(2) regarding what must accompany the specification and drawings is not contained in the text. The sources only provide a summary stating:\n\n> \"§ 111(a) — nonprovisional application contents: specification (§ 112), drawing (§ 113), oath/declaration (§ 115); fee and claims may follow within the prescribed period.\" [S1]",
+        "expect": "§ 111(a)-(b)",
+        "prompt": "Quote 35 U.S.C. § 111(a)(2) on what must accompany the specification and drawings.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "§ 111(a) — nonprovisional application contents: specification (§ 112), drawing (§ 113), oath/declaration (§ 115); fee and claims may follow within the prescribed period.",
+              "locator": "§ 111(a)-(b)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s111-09",
+        "cited": 1,
+        "index": 49,
+        "answer": "Based on the provided sources, a provisional application has \"no priority claim of its own\" and provisionals are \"never § 111(a)\" [S1]. \n\nRegarding 35 U.S.C. § 111(b)(7), the provided sources do not contain the text of subsection (b)(7) or mention whether a provisional application can claim the priority of an earlier provisional application (they only state that provisionals have \"no priority claim of its own\") [S1]. Therefore, this specific statutory quote cannot be provided from the given text",
+        "expect": "§ 111(a)-(b)",
+        "prompt": "Can a provisional application claim the priority of an earlier provisional application? Quote 35 U.S.C. § 111(b)(7).",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 2,
+          "details": [
+            {
+              "quote": "no priority claim of its own",
+              "locator": "§ 111(a)-(b)",
+              "verdict": "exact"
+            },
+            {
+              "quote": " [S1]. \n\nRegarding 35 U.S.C. § 111(b)(7), the provided sources do not contain the text of subsection (b)(7) or mention whether a provisional application can claim the priority of an earlier provisional application (they only state that provisionals have ",
+              "locator": null,
+              "verdict": "missing"
+            }
+          ],
+          "missing": 1
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s111-10",
+        "cited": 1,
+        "index": 50,
+        "answer": "Based on the provided sources, the 12-month limit for provisional applications is described as follows:\n\n\"abandoned 12 months after filing if not converted\" [S1]",
+        "expect": "§ 111(a)-(b)",
+        "prompt": "Quote the 12-month pendency limit of provisional patent applications under 35 U.S.C. § 111(b).",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "abandoned 12 months after filing if not converted",
+              "locator": "§ 111(a)-(b)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112a-01",
+        "cited": 1,
+        "index": 51,
+        "answer": "According to 35 U.S.C. § 112(a), the specification must contain \"a written description of the invention, and of the manner and process of making and using it, in such full, clear, concise, and exact terms as to enable any person skilled in the art to make and use the same\" [S1]. \n\nThe exact quote for the written description requirement is:\n> **\"a written description of the invention\"** [S1]",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "What does 35 U.S.C. § 112(a) require the specification to contain? Quote the written description requirement.",
+        "quotes": {
+          "exact": 2,
+          "fuzzy": 0,
+          "total": 2,
+          "details": [
+            {
+              "quote": "a written description of the invention, and of the manner and process of making and using it, in such full, clear, concise, and exact terms as to enable any person skilled in the art to make and use the same",
+              "locator": "§ 112(a)-(b)",
+              "verdict": "exact"
+            },
+            {
+              "quote": "a written description of the invention",
+              "locator": "§ 112(a)-(b)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112a-02",
+        "cited": 1,
+        "index": 52,
+        "answer": "Based on the provided sources, the enablement requirement of 35 U.S.C. § 112(a) is stated as follows:\n\n\"in such full, clear, concise, and exact terms as to enable any person skilled in the art to make and use the same\" [S1].",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "Quote the enablement requirement of 35 U.S.C. § 112(a): \"in such full, clear, concise, and...\"",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "in such full, clear, concise, and exact terms as to enable any person skilled in the art to make and use the same",
+              "locator": "§ 112(a)-(b)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112a-03",
+        "cited": 1,
+        "index": 53,
+        "answer": "Under 35 U.S.C. § 112(a), the specification must enable \"any person skilled in the art to make and use the same\" [S1].",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "Under 35 U.S.C. § 112(a), who must be enabled to make and use the invention? Quote the exact statutory phrase.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "any person skilled in the art to make and use the same",
+              "locator": "§ 112(a)-(b)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112a-04",
+        "cited": 1,
+        "index": 54,
+        "answer": "Based on the provided sources, 35 U.S.C. § 112(a) does not contain a requirement regarding the \"best mode\" of the invention; the provided source for § 112(a) states only that:\n\n> \"the specification shall contain a written description of the invention, and of the manner and process of making and using it, in such full, clear, concise, and exact terms as to enable any person skilled in the art to make and use the same (enablement + written description)\" [S1]",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "What does 35 U.S.C. § 112(a) say about the best mode of the invention? Quote the requirement.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": " of the invention; the provided source for § 112(a) states only that:\n\n> ",
+              "locator": null,
+              "verdict": "missing"
+            }
+          ],
+          "missing": 1
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112a-05",
+        "cited": 1,
+        "index": 55,
+        "answer": "Based on the provided sources, the standard in 35 U.S.C. § 112(a) concerning the manner and process of making and using it requires that the specification shall contain a written description \"of the manner and process of making and using it, in such full, clear, concise, and exact terms as to enable any person skilled in the art to make and use the same\" [S1].",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "Quote the standard in 35 U.S.C. § 112(a) concerning \"the manner and process of making and using it\".",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "of the manner and process of making and using it, in such full, clear, concise, and exact terms as to enable any person skilled in the art to make and use the same",
+              "locator": "§ 112(a)-(b)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112a-06",
+        "error": "max_retries_exceeded",
+        "status": "model_error",
+        "recalled": true
+      },
+      {
+        "key": "s112a-07",
+        "cited": 1,
+        "index": 57,
+        "answer": "Based on the provided sources, 35 U.S.C. § 112(a) states that the specification shall contain a written description \"in such full, clear, concise, and exact terms as to enable any person skilled in the art to make and use the same\" [S1].",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "Quote 35 U.S.C. § 112(a) regarding the person skilled in the art: \"any person skilled in the art to which...\"",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "in such full, clear, concise, and exact terms as to enable any person skilled in the art to make and use the same",
+              "locator": "§ 112(a)-(b)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112a-08",
+        "cited": 1,
+        "index": 58,
+        "answer": "Based on the provided sources, 35 U.S.C. § 112(a) demands that the specification contain its descriptions \"in such full, clear, concise, and exact terms\" [S1]. The three qualities explicitly requested from this phrase are:\n\n1. **\"full\"** [S1]\n2. **\"clear\"** [S1]\n3. **\"concise\"** [S1] \n\n*(Note: The text also includes the term **\"exact\"** [S1].)*",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "What three specification qualities are demanded by 35 U.S.C. § 112(a) terms: \"full, clear, concise...\"? Quote.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 2,
+          "details": [
+            {
+              "quote": "in such full, clear, concise, and exact terms",
+              "locator": "§ 112(a)-(b)",
+              "verdict": "exact"
+            },
+            {
+              "quote": "** [S1] \n\n*(Note: The text also includes the term **",
+              "locator": null,
+              "verdict": "missing"
+            }
+          ],
+          "missing": 1
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112a-09",
+        "cited": 1,
+        "index": 59,
+        "answer": "Based on the provided sources, there is no mention of when the \"best mode\" must be contemplated or any reference to the phrase \"best mode.\" The sources provide information on § 112(a) regarding the \"written description of the invention, and of the manner and process of making and using it\" [S1], but do not contain text about the best mode requirement.",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "Under 35 U.S.C. § 112(a), at what time must the best mode be contemplated? Quote the phrase.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 2,
+          "details": [
+            {
+              "quote": " must be contemplated or any reference to the phrase ",
+              "locator": null,
+              "verdict": "missing"
+            },
+            {
+              "quote": " The sources provide information on § 112(a) regarding the ",
+              "locator": null,
+              "verdict": "missing"
+            }
+          ],
+          "missing": 2
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112a-10",
+        "cited": 1,
+        "index": 60,
+        "answer": "\"the specification shall contain a written description of the invention, and of the manner and process of making and using it, in such full, clear, concise, and exact terms as to enable any person skilled in the art to make and use the same\" [S1].",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "Quote 35 U.S.C. § 112(a) in its entirety with statutory citation [S1].",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "the specification shall contain a written description of the invention, and of the manner and process of making and using it, in such full, clear, concise, and exact terms as to enable any person skilled in the art to make and use the same",
+              "locator": "§ 112(a)-(b)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112b-01",
+        "cited": 1,
+        "index": 61,
+        "answer": "Based on 35 U.S.C. § 112(b), the specification must conclude with:\n\n\"one or more claims particularly pointing out and distinctly claiming the subject matter the inventor regards as the invention\" [S1].",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "What does 35 U.S.C. § 112(b) mandate that the specification conclude with? Quote the claims requirement.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "one or more claims particularly pointing out and distinctly claiming the subject matter the inventor regards as the invention",
+              "locator": "§ 112(a)-(b)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112b-02",
+        "cited": 1,
+        "index": 62,
+        "answer": "Based on the provided sources, the definiteness standard in 35 U.S.C. § 112(b) is:\n\n\"particularly pointing out and distinctly claiming the subject matter the inventor regards as the invention\" [S1].",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "Quote the definiteness standard in 35 U.S.C. § 112(b): \"particularly pointing out and distinctly...\"",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "particularly pointing out and distinctly claiming the subject matter the inventor regards as the invention",
+              "locator": "§ 112(a)-(b)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112b-03",
+        "cited": 1,
+        "index": 63,
+        "answer": "Under 35 U.S.C. § 112(b), the specification must conclude with claims that distinctly point out and claim **\"the subject matter the inventor regards as the invention\"** [S1].",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "Under 35 U.S.C. § 112(b), what must the claims claim? Quote: \"the subject matter which the inventor...\"",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "the subject matter the inventor regards as the invention",
+              "locator": "§ 112(a)-(b)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112b-04",
+        "cited": 1,
+        "index": 64,
+        "answer": "Yes. Under 35 U.S.C. § 112(b), the specification shall conclude with \"**one or more claims**\" [S1].",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "Can a specification conclude with only one claim under 35 U.S.C. § 112(b)? Quote the statutory phrase.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 1,
+          "total": 1,
+          "details": [
+            {
+              "quote": "**one or more claims**",
+              "locator": "§ 112(a)-(b)",
+              "verdict": "fuzzy"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112b-05",
+        "cited": 1,
+        "index": 65,
+        "answer": "Based on the provided sources, 35 U.S.C. § 112(b) states that \"the specification shall conclude with one or more claims particularly pointing out and distinctly claiming the subject matter the inventor regards as the invention\" [S1].",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "Quote 35 U.S.C. § 112(b) on the phrase \"regards as the invention\".",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "the specification shall conclude with one or more claims particularly pointing out and distinctly claiming the subject matter the inventor regards as the invention",
+              "locator": "§ 112(a)-(b)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112b-06",
+        "cited": 1,
+        "index": 66,
+        "answer": "Based on the provided sources, the two adverbs that define the claiming obligation in 35 U.S.C. § 112(b) are \"particularly\" and \"distinctly\" [S1]. \n\nVerbatim quote from the source: \"particularly pointing out and distinctly claiming\" [S1].",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "What two adverbs define the claiming obligation in 35 U.S.C. § 112(b)? Quote them verbatim.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": " [S1]. \n\nVerbatim quote from the source: ",
+              "locator": null,
+              "verdict": "missing"
+            }
+          ],
+          "missing": 1
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112b-07",
+        "cited": 1,
+        "index": 67,
+        "answer": "Based on the provided sources, 35 U.S.C. § 112(b) states that \"the specification shall conclude with one or more claims particularly pointing out and distinctly claiming the subject matter the inventor regards as the invention (definiteness)\" [S1].",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "Quote 35 U.S.C. § 112(b) on concluding the specification with \"one or more claims\".",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "the specification shall conclude with one or more claims particularly pointing out and distinctly claiming the subject matter the inventor regards as the invention (definiteness)",
+              "locator": "§ 112(a)-(b)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112b-08",
+        "error": "max_retries_exceeded",
+        "status": "model_error",
+        "recalled": true
+      },
+      {
+        "key": "s112b-09",
+        "cited": 1,
+        "index": 69,
+        "answer": "The phrase in 35 U.S.C. § 112(b) that forms the statutory basis for claim indefiniteness rejections is *\"particularly pointing out and distinctly claiming the subject matter the inventor regards as the invention\"* [S1].",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "Quote the phrase in 35 U.S.C. § 112(b) that forms the statutory basis for claim indefiniteness rejections.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "particularly pointing out and distinctly claiming the subject matter the inventor regards as the invention",
+              "locator": "§ 112(a)-(b)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112b-10",
+        "cited": 1,
+        "index": 70,
+        "answer": "Based on the provided sources, the text of 35 U.S.C. § 112(b) is:\n\n\"the specification shall conclude with one or more claims particularly pointing out and distinctly claiming the subject matter the inventor regards as the invention (definiteness).\" [S1]",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "State the full text of 35 U.S.C. § 112(b) with formal citation.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "the specification shall conclude with one or more claims particularly pointing out and distinctly claiming the subject matter the inventor regards as the invention (definiteness).",
+              "locator": "§ 112(a)-(b)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112d-01",
+        "cited": 2,
+        "index": 71,
+        "answer": "Based on the provided sources, there is no mention of 35 U.S.C. § 112(d) or the requirements for a dependent claim. The sources only discuss § 112(a) and § 112(b) [S1], § 111(a) and § 111(b) [S2], along with sections 101, 102, and 103 [S3, S4, S5, S6].",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "What must a dependent claim contain under 35 U.S.C. § 112(d)? Quote the reference to a preceding claim.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 0,
+          "details": [],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112d-02",
+        "cited": 1,
+        "index": 72,
+        "answer": "Based on the provided sources, there is no mention of 35 U.S.C. § 112(d) or the exact phrase \"further limitation.\" The provided sources only cover 35 U.S.C. § 112(a) and § 112(b) [S1]. Therefore, relying strictly on the provided text, this information is not available.",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "Under 35 U.S.C. § 112(d), how must a dependent claim specify its scope? Quote the phrase \"further limitation\".",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "further limitation.",
+              "locator": null,
+              "verdict": "missing"
+            }
+          ],
+          "missing": 1
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112d-03",
+        "cited": 1,
+        "index": 73,
+        "answer": "Based on the provided sources, there is no mention of 35 U.S.C. § 112(d) or the incorporation of limitations for dependent claims. The sources only reference 35 U.S.C. § 112(a)-(b): \n\n* § 112(a) requires the specification to \"contain a written description of the invention, and of the manner and process of making and using it, in such full, clear, concise, and exact terms as to enable any person skilled in the art to make and use the same\" [S1].\n* § 112(b) requires that \"the specification shall c",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "Does a dependent claim incorporate all limitations of the referenced claim under 35 U.S.C. § 112(d)? Quote the rule.",
+        "quotes": {
+          "exact": 2,
+          "fuzzy": 0,
+          "total": 2,
+          "details": [
+            {
+              "quote": "contain a written description of the invention, and of the manner and process of making and using it, in such full, clear, concise, and exact terms as to enable any person skilled in the art to make and use the same",
+              "locator": "§ 112(a)-(b)",
+              "verdict": "exact"
+            },
+            {
+              "quote": "the specification shall conclude with one or more claims particularly pointing out and distinctly claiming the subject matter the inventor regards as the invention",
+              "locator": "§ 112(a)-(b)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112d-04",
+        "cited": 2,
+        "index": 74,
+        "answer": "Based on the provided sources, there is no mention or text of \"35 U.S.C. § 112(d)\". The sources only provide information for 35 U.S.C. § 112(a)-(b) [S1], § 111(a)-(b) [S2], § 101, § 102, and § 103 [S3, S4, S5]. Therefore, the sources do not contain a quote for 35 U.S.C. § 112(d).",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "Quote 35 U.S.C. § 112(d) on construing a dependent claim to incorporate all limitations.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "35 U.S.C. § 112(d)",
+              "locator": null,
+              "verdict": "missing"
+            }
+          ],
+          "missing": 1
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112d-05",
+        "cited": 4,
+        "index": 75,
+        "answer": "Based on the provided sources, there is no mention of 35 U.S.C. § 112(d) or the quote \"A claim in...\". The sources only provide text for 35 U.S.C. § 112(a)-(b) [S1], § 111(a)-(b) [S2], § 101, § 102(a) [S4], and § 103 [S5].",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "What word does 35 U.S.C. § 112(d) use for claims that refer back: \"A claim in...\"? Quote the statutory term.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 0,
+          "details": [],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112d-06",
+        "cited": 4,
+        "index": 76,
+        "answer": "Based on the provided sources, there is no mention of 35 U.S.C. § 112(d) or (e), nor is there any text regarding whether a claim in dependent form can refer to more than one preceding claim. The sources only provide text for 35 U.S.C. § 112(a)-(b) [S1], § 111(a)-(b) [S2], § 101, § 102(a) [S4], and § 103 [S5].",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "Can a claim in dependent form refer to more than one preceding claim? Quote 35 U.S.C. § 112(d) or (e).",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 0,
+          "details": [],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112d-07",
+        "cited": 1,
+        "index": 77,
+        "answer": "Based on the provided sources, there is no mention of 35 U.S.C. § 112(d) or any requirement regarding a dependent claim specifying a further limitation. The provided text for 35 U.S.C. § 112 only covers subsections (a) and (b) [S1].",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "Quote the exact requirement in 35 U.S.C. § 112(d) that a dependent claim specify a further limitation.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 0,
+          "details": [],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112d-08",
+        "cited": 1,
+        "index": 78,
+        "answer": "Based on the provided sources, there is no mention of 35 U.S.C. § 112(d) or the legal effect of referencing another claim. The provided text for 35 U.S.C. § 112 only includes subsections (a) and (b) [S1].",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "Under 35 U.S.C. § 112(d), what is the legal effect of referencing another claim? Quote the statutory sentence.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 0,
+          "details": [],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112d-09",
+        "cited": 2,
+        "index": 79,
+        "answer": "Based on the provided sources, there is no mention of 35 U.S.C. § 112(d) or its opening phrase. The sources only reference 35 U.S.C. § 112(a)-(b) [S1], § 111(a)-(b) [S2], § 101, § 102, § 103 [S3, S4, S5, S6].",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "Quote the opening phrase of 35 U.S.C. § 112(d): \"A claim in dependent form shall contain...\"",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 0,
+          "details": [],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "s112d-10",
+        "cited": 3,
+        "index": 80,
+        "answer": "Based on the provided sources, there is no mention of 35 U.S.C. § 112(d) (the sources only cover § 112(a)-(b) [S1], § 111(a)-(b) [S2], and § 101/MPEP § 2106 [S3]). Therefore, it cannot be summarized or quoted from the provided texts.",
+        "expect": "§ 112(a)-(b)",
+        "prompt": "Summarize 35 U.S.C. § 112(d) in one sentence and quote its key limitation incorporation clause.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 0,
+          "details": [],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "mpep-2106-01",
+        "cited": 1,
+        "index": 81,
+        "answer": "Based on the provided sources, the MPEP § 2106 text does not explicitly detail \"Step 2A Prong One\" by that specific name. However, regarding Step 2A, the sources state: \n\n* \"Step 2A: is the claim directed to a judicial exception (abstract idea, law of nature, natural phenomenon)?\" [S1]",
+        "expect": "MPEP § 2106 (condensed)",
+        "prompt": "Describe Step 2A Prong One under MPEP § 2106 and quote the judicial exceptions formulation.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": " by that specific name. However, regarding Step 2A, the sources state: \n\n* ",
+              "locator": null,
+              "verdict": "missing"
+            }
+          ],
+          "missing": 1
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "mpep-2106-02",
+        "cited": 1,
+        "index": 82,
+        "answer": "According to MPEP § 2106, the judicial exceptions are:\n\n* **\"abstract idea\"** [S1]\n* **\"law of nature\"** [S1]\n* **\"natural phenomenon\"** [S1]",
+        "expect": "MPEP § 2106 (condensed)",
+        "prompt": "According to MPEP § 2106, what are the three judicial exceptions to patent eligibility? Quote them.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "natural phenomenon",
+              "locator": "MPEP § 2106 (condensed)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "mpep-2106-03",
+        "cited": 1,
+        "index": 83,
+        "answer": "Based on the provided sources, MPEP § 2106 states regarding Step 2A and practical application that the evaluation asks whether the claim is:\n\n> \"Integration into a practical application supports eligibility\" [S1]",
+        "expect": "MPEP § 2106 (condensed)",
+        "prompt": "What does MPEP § 2106 Step 2A Prong Two ask about \"practical application\"? Quote the rule.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "Integration into a practical application supports eligibility",
+              "locator": "MPEP § 2106 (condensed)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "mpep-2106-04",
+        "cited": 1,
+        "index": 84,
+        "answer": "Yes. Under MPEP § 2106, \"[i]ntegration into a practical application supports eligibility\" [S1].",
+        "expect": "MPEP § 2106 (condensed)",
+        "prompt": "Under MPEP § 2106, if a claim integrates an exception into a practical application, is it eligible? Quote and cite.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "[i]ntegration into a practical application supports eligibility",
+              "locator": null,
+              "verdict": "missing"
+            }
+          ],
+          "missing": 1
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "mpep-2106-05",
+        "cited": 0,
+        "index": 85,
+        "answer": "Based on the provided sources, the three groupings of abstract ideas are not set forth or listed in the provided text of MPEP § 2106. Therefore, the sources do not contain the answer to this question.",
+        "expect": "MPEP § 2106 (condensed)",
+        "prompt": "What are the three groupings of abstract ideas set forth in MPEP § 2106? Quote the mathematical concepts grouping.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 0,
+          "details": [],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "mpep-2106-06",
+        "cited": 1,
+        "index": 86,
+        "answer": "Based on the provided sources, there is no mention or quote regarding \"mental processes\" as a category of abstract ideas. The sources only mention that Step 2A determines if a claim is \"directed to a judicial exception (abstract idea, law of nature, natural phenomenon)\" [S1].",
+        "expect": "MPEP § 2106 (condensed)",
+        "prompt": "Quote MPEP § 2106 on \"mental processes\" as a category of abstract ideas.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": " as a category of abstract ideas. The sources only mention that Step 2A determines if a claim is ",
+              "locator": null,
+              "verdict": "missing"
+            }
+          ],
+          "missing": 1
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "mpep-2106-07",
+        "cited": 0,
+        "index": 87,
+        "answer": "Based on the provided sources, there is no mention of \"certain methods of organizing human activity.\" Therefore, I cannot quote it from the sources.",
+        "expect": "MPEP § 2106 (condensed)",
+        "prompt": "Quote MPEP § 2106 on \"certain methods of organizing human activity\".",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "certain methods of organizing human activity.",
+              "locator": null,
+              "verdict": "missing"
+            }
+          ],
+          "missing": 1
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "mpep-2106-08",
+        "cited": 1,
+        "index": 88,
+        "answer": "Based on the provided sources, when a judicial exception is merely implemented on a generic computer rather than integrated into a practical application, it does not amount to significantly more [S1]. Specifically, the text states: \n\n\"merely implementing on a generic computer does not\" [S1].",
+        "expect": "MPEP § 2106 (condensed)",
+        "prompt": "What does MPEP § 2106 say happens when a judicial exception is not integrated into a practical application? Quote.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "merely implementing on a generic computer does not",
+              "locator": "MPEP § 2106 (condensed)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "mpep-2106-09",
+        "cited": 1,
+        "index": 89,
+        "answer": "Based on the provided sources, there is no mention in MPEP § 2106 about whether an \"improvement to the functioning of a computer\" qualifies as a practical application. The sources only state that \"[i]ntegration into a practical application supports eligibility (Enfish, McRO, Diehr)\" [S1].",
+        "expect": "MPEP § 2106 (condensed)",
+        "prompt": "Under MPEP § 2106, does an improvement to the functioning of a computer qualify as a practical application? Quote.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 2,
+          "details": [
+            {
+              "quote": "improvement to the functioning of a computer",
+              "locator": null,
+              "verdict": "missing"
+            },
+            {
+              "quote": "[i]ntegration into a practical application supports eligibility (Enfish, McRO, Diehr)",
+              "locator": null,
+              "verdict": "missing"
+            }
+          ],
+          "missing": 2
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "mpep-2106-10",
+        "cited": 1,
+        "index": 90,
+        "answer": "Based on the provided sources, there is no mention or quote regarding \"extra-solution activity\" or \"insignificant post-solution activity\" in MPEP § 2106. The sources only mention that \"merely implementing on a generic computer does not\" amount to significantly more [S1].",
+        "expect": "MPEP § 2106 (condensed)",
+        "prompt": "Quote the rule in MPEP § 2106 regarding an extra-solution activity or insignificant post-solution activity.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 3,
+          "details": [
+            {
+              "quote": "extra-solution activity",
+              "locator": null,
+              "verdict": "missing"
+            },
+            {
+              "quote": "insignificant post-solution activity",
+              "locator": null,
+              "verdict": "missing"
+            },
+            {
+              "quote": "merely implementing on a generic computer does not",
+              "locator": "MPEP § 2106 (condensed)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 2
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "mpep-2106b-01",
+        "cited": 1,
+        "index": 91,
+        "answer": "Based on MPEP § 2106, Step 2B of the Alice/Mayo two-part test asks \"do additional elements amount to significantly more (inventive concept)?\" [S1]",
+        "expect": "MPEP § 2106 (condensed)",
+        "prompt": "Describe Step 2B under MPEP § 2106 and quote the \"significantly more\" requirement.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "do additional elements amount to significantly more (inventive concept)?",
+              "locator": "MPEP § 2106 (condensed)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "mpep-2106b-02",
+        "cited": 1,
+        "index": 92,
+        "answer": "Based on the provided sources, the exact definition or description of an \"inventive concept\" under MPEP § 2106 Step 2B is not explicitly provided. The text only states that Step 2B asks: \"**do additional elements amount to significantly more (inventive concept)?**\" [S1].",
+        "expect": "MPEP § 2106 (condensed)",
+        "prompt": "What constitutes an \"inventive concept\" under MPEP § 2106 Step 2B? Quote the definition.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": " under MPEP § 2106 Step 2B is not explicitly provided. The text only states that Step 2B asks: ",
+              "locator": null,
+              "verdict": "missing"
+            }
+          ],
+          "missing": 1
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "mpep-2106b-03",
+        "cited": 1,
+        "index": 93,
+        "answer": "According to the provided sources, implementing a claim or additional elements on a generic computer (or using \"well-understood, routine, and conventional activities\") does not satisfy Step 2B to amount to \"significantly more\" (an inventive concept) [S1]. \n\nThe sources state that \"merely implementing on a generic computer does not\" amount to significantly more [S1].",
+        "expect": "MPEP § 2106 (condensed)",
+        "prompt": "According to MPEP § 2106, do well-understood, routine, and conventional activities satisfy Step 2B? Quote the rule.",
+        "quotes": {
+          "exact": 2,
+          "fuzzy": 0,
+          "total": 3,
+          "details": [
+            {
+              "quote": "well-understood, routine, and conventional activities",
+              "locator": null,
+              "verdict": "missing"
+            },
+            {
+              "quote": "significantly more",
+              "locator": "MPEP § 2106 (condensed)",
+              "verdict": "exact"
+            },
+            {
+              "quote": "merely implementing on a generic computer does not",
+              "locator": "MPEP § 2106 (condensed)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 1
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "mpep-2106b-04",
+        "cited": 2,
+        "index": 94,
+        "answer": "Based on the provided sources, there is no mention of \"software per se with no structural recitation\" falling outside the statutory categories. \n\nThe sources state the statutory categories under 35 U.S.C. § 101 as: \"any new and useful process, machine, manufacture, or composition of matter, or any new and useful improvement thereof\" [S1]. Furthermore, MPEP § 2106 notes that for subject-matter eligibility, the \"(1) claim must fall in a statutory category (process, machine, manufacture, compositio",
+        "expect": "MPEP § 2106 (condensed)",
+        "prompt": "Quote the passage stating that software per se with no structural recitation falls outside the statutory categories.",
+        "quotes": {
+          "exact": 3,
+          "fuzzy": 0,
+          "total": 4,
+          "details": [
+            {
+              "quote": "software per se with no structural recitation",
+              "locator": null,
+              "verdict": "missing"
+            },
+            {
+              "quote": "any new and useful process, machine, manufacture, or composition of matter, or any new and useful improvement thereof",
+              "locator": "§ 101",
+              "verdict": "exact"
+            },
+            {
+              "quote": "(1) claim must fall in a statutory category (process, machine, manufacture, composition)",
+              "locator": "MPEP § 2106 (condensed)",
+              "verdict": "exact"
+            },
+            {
+              "quote": "directed to a judicial exception (abstract idea, law of nature, natural phenomenon)",
+              "locator": "MPEP § 2106 (condensed)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 1
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "mpep-2106b-05",
+        "cited": 1,
+        "index": 95,
+        "answer": "No, under MPEP § 2106, simply implementing on a generic computer does not satisfy Step 2B (amounting to significantly more / an inventive concept) [S1]. \n\nThe source states: \"merely implementing on a generic computer does not\" [S1].",
+        "expect": "MPEP § 2106 (condensed)",
+        "prompt": "Under MPEP § 2106, does simply saying \"apply it\" or generic computer implementation satisfy Step 2B? Quote.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 1,
+          "details": [
+            {
+              "quote": "merely implementing on a generic computer does not",
+              "locator": "MPEP § 2106 (condensed)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "mpep-2106b-06",
+        "cited": 1,
+        "index": 96,
+        "answer": "Based on the provided sources, there is no mention or quote of how an examiner must establish that an activity is \"well-understood, routine, and conventional.\" The sources only mention that Step 2B of the Alice/Mayo two-part test evaluates whether additional elements amount to \"significantly more (inventive concept)\" [S1], but they do not contain specific text detailing how an activity is established as well-understood, routine, and conventional.",
+        "expect": "MPEP § 2106 (condensed)",
+        "prompt": "Quote MPEP § 2106 on how an examiner must establish that an activity is well-understood, routine, and conventional.",
+        "quotes": {
+          "exact": 1,
+          "fuzzy": 0,
+          "total": 2,
+          "details": [
+            {
+              "quote": "well-understood, routine, and conventional.",
+              "locator": null,
+              "verdict": "missing"
+            },
+            {
+              "quote": "significantly more (inventive concept)",
+              "locator": "MPEP § 2106 (condensed)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 1
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "mpep-2106b-07",
+        "cited": 0,
+        "index": 97,
+        "answer": "Based on the provided sources, there is no mention of \"preemption\" or a role for preemption in the MPEP § 2106 eligibility framework.",
+        "expect": "MPEP § 2106 (condensed)",
+        "prompt": "What role does preemption play in the MPEP § 2106 eligibility framework? Quote the relevant sentence.",
+        "quotes": {
+          "exact": 0,
+          "fuzzy": 0,
+          "total": 0,
+          "details": [],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "mpep-2106b-08",
+        "cited": 1,
+        "index": 98,
+        "answer": "Based on the provided sources, the MPEP § 2106 condensed guidance does not contain a specific quote addressing whether a technological solution provides an inventive concept, but it states under Step 2B of the Alice/Mayo two-part test: do additional elements amount to \"significantly more (inventive concept)\" and notes that \"merely implementing on a generic computer does not\" [S1].",
+        "expect": "MPEP § 2106 (condensed)",
+        "prompt": "Quote MPEP § 2106 on whether a specific technological solution can provide an inventive concept.",
+        "quotes": {
+          "exact": 2,
+          "fuzzy": 0,
+          "total": 2,
+          "details": [
+            {
+              "quote": "significantly more (inventive concept)",
+              "locator": "MPEP § 2106 (condensed)",
+              "verdict": "exact"
+            },
+            {
+              "quote": "merely implementing on a generic computer does not",
+              "locator": "MPEP § 2106 (condensed)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "mpep-2106b-09",
+        "cited": 2,
+        "index": 99,
+        "answer": "Based on the provided sources, MPEP § 2106 does not explicitly compare Step 2B to the obviousness inquiry of 35 U.S.C. § 103, nor does it define any differences between them. \n\nThe sources state that subject-matter eligibility under \"§ 101 is a threshold test only; §§ 102, 103, 112 examined separately\" [S1]. Under Step 2B, the examination asks whether \"additional elements amount to significantly more (inventive concept)\" [S1]. Under 35 U.S.C. § 103, the inquiry asks whether \"the differences betw",
+        "expect": "MPEP § 2106 (condensed)",
+        "prompt": "Under MPEP § 2106, how does Step 2B differ from the obviousness inquiry of 35 U.S.C. § 103? Quote.",
+        "quotes": {
+          "exact": 3,
+          "fuzzy": 0,
+          "total": 3,
+          "details": [
+            {
+              "quote": "§ 101 is a threshold test only; §§ 102, 103, 112 examined separately",
+              "locator": "MPEP § 2106 (condensed)",
+              "verdict": "exact"
+            },
+            {
+              "quote": "additional elements amount to significantly more (inventive concept)",
+              "locator": "MPEP § 2106 (condensed)",
+              "verdict": "exact"
+            },
+            {
+              "quote": "the differences between the claimed invention and the prior art are such that the claimed invention as a whole would have been obvious before the effective filing date of the claimed invention to a person having ordinary skill in the art",
+              "locator": "§ 103",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      },
+      {
+        "key": "mpep-2106b-10",
+        "cited": 1,
+        "index": 100,
+        "answer": "Based on the provided sources, the exact text regarding the outcome of Step 2B is not detailed in the provided excerpt (MPEP § 2106 is condensed) [S1]. However, the sources state regarding § 101 and the framework:\n\n* \"Integration into a practical application supports eligibility (Enfish, McRO, Diehr); merely implementing on a generic computer does not (Alice, Benson, Flook).\" [S1]\n* Step 2B asks: \"do additional elements amount to significantly more (inventive concept)?\" [S1]",
+        "expect": "MPEP § 2106 (condensed)",
+        "prompt": "State the final conclusion rule of MPEP § 2106 when Step 2B is satisfied versus not satisfied. Quote.",
+        "quotes": {
+          "exact": 2,
+          "fuzzy": 0,
+          "total": 2,
+          "details": [
+            {
+              "quote": "Integration into a practical application supports eligibility (Enfish, McRO, Diehr); merely implementing on a generic computer does not (Alice, Benson, Flook).",
+              "locator": "MPEP § 2106 (condensed)",
+              "verdict": "exact"
+            },
+            {
+              "quote": "do additional elements amount to significantly more (inventive concept)?",
+              "locator": "MPEP § 2106 (condensed)",
+              "verdict": "exact"
+            }
+          ],
+          "missing": 0
+        },
+        "status": "scored",
+        "dangling": 0,
+        "recalled": true
+      }
+    ],
+    "summary": {
+      "scored_answers": 95,
+      "total_questions": 100,
+      "quote_verification": {
+        "exact_rate": "72.5% (87/120)",
+        "fuzzy_rate": "5% (6/120)",
+        "total_quotes": 120,
+        "unsupported_rate": "22.5% (27/120)"
+      },
+      "zero_dangling_rate": "100% (95/95)",
+      "authority_recall_rate": "100% (95/95)",
+      "answers_with_citations": "96.8% (92/95)"
+    }
+  },
+  "created_at": "2026-09-09T12:18:12.643Z"
+}

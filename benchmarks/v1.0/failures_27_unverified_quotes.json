@@ -1,0 +1,357 @@
+{
+  "totalFailureCases": 24,
+  "description": "Regression evaluation set extracted from SallyIP Grounding Benchmark v1.0 missing quotes",
+  "cases": [
+    {
+      "key": "s101-04",
+      "prompt": "What word does 35 U.S.C. § 101 use regarding the inventor: \"whoever invents or...\"? Quote and cite.",
+      "expectedAuthority": "§ 101",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": "[W]hoever invents or discovers",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "\"[W]hoever invents or discovers\" [S1]."
+    },
+    {
+      "key": "s101-07",
+      "prompt": "What does 35 U.S.C. § 101 state about subject matter conditions and requirements? Quote and cite.",
+      "expectedAuthority": "§ 101",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": "Whoever invents or discovers any new and useful process, machine, manufacture, or composition of matter, or any new and useful improvement thereof, may obtain a patent therefor, subject to the conditions and requirements of this title [S1].",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "35 U.S.C. § 101 states: \n\n\"Whoever invents or discovers any new and useful process, machine, manufacture, or composition of matter, or any new and useful improvement thereof, may obtain a patent therefor, subject to the conditions and requirements of this title [S1].\""
+    },
+    {
+      "key": "s101-08",
+      "prompt": "State the statutory term in 35 U.S.C. § 101 for an article manufactured by human industry.",
+      "expectedAuthority": "§ 101",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": "** [S1]. \n\nSpecifically, 35 U.S.C. § 101 states that whoever invents or discovers any new and useful ",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "Based on the provided sources, the statutory term for an article manufactured by human industry is **\"manufacture\"** [S1]. \n\nSpecifically, 35 U.S.C. § 101 states that whoever invents or discovers any new and useful \"process, machine, **manufacture**, or composition of matter, or any new and useful improvement thereof, may obtain a patent therefor\" [S1]."
+    },
+    {
+      "key": "s102b-05",
+      "prompt": "Explain 35 U.S.C. § 102(b)(1)(B) regarding third-party disclosures after an inventor disclosure. Quote the rule.",
+      "expectedAuthority": "§ 102(b)(1)",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": "shall not be prior art under subsection (a)(1) if... the subject matter had already been publicly disclosed by the inventor",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "Based on the provided sources, 35 U.S.C. § 102(b)(1) covers the \"inventor grace period\" [S1]. The specific provision regarding third-party disclosures after an inventor disclosure states that a disclosure \"shall not be prior art under subsection (a)(1) if... the subject matter had already been publicly disclosed by the inventor\" [S1]. \n\nSpecifically, under 35 U.S.C. § 102(b)(1), a disclosure made \"1 year or less before the effective filing date shall not be prior art under subsection (a)(1)\" if:"
+    },
+    {
+      "key": "s102b-07",
+      "prompt": "Does the 1-year grace period in 35 U.S.C. § 102(b)(1) apply to public use by the inventor? Quote and cite.",
+      "expectedAuthority": "§ 102(b)(1)",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": "A disclosure made 1 year or less before the effective filing date shall not be prior art under subsection (a)(1) if the disclosure was made by the inventor or joint inventor... or if the subject matter had already been publicly disclosed by the inventor.",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "Yes. According to 35 U.S.C. § 102(b)(1), the 1-year grace period applies if \"the subject matter had already been publicly disclosed by the inventor\" [S1]. \n\nSpecifically, the source states:\n> \"A disclosure made 1 year or less before the effective filing date shall not be prior art under subsection (a)(1) if the disclosure was made by the inventor or joint inventor... or if the subject matter had already been publicly disclosed by the inventor.\" [S1]"
+    },
+    {
+      "key": "s103-06",
+      "prompt": "Quote the sentence in 35 U.S.C. § 103: \"Patentability shall not be negated by...\"",
+      "expectedAuthority": "§ 103",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": "[P]atentability shall not be negated by the manner in which the invention was made",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "\"[P]atentability shall not be negated by the manner in which the invention was made\" [S1]."
+    },
+    {
+      "key": "s103-10",
+      "prompt": "Summarize 35 U.S.C. § 103 in one sentence and quote its concluding limitation.",
+      "expectedAuthority": "§ 103",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": "[p]atentability shall not be negated by the manner in which the invention was made",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "A patent for a claimed invention may not be obtained if the differences between the invention and the prior art would have made it obvious to a person having ordinary skill in the art before the effective filing date [S1], and concludes with the limitation that \"[p]atentability shall not be negated by the manner in which the invention was made\" [S1]."
+    },
+    {
+      "key": "s111-09",
+      "prompt": "Can a provisional application claim the priority of an earlier provisional application? Quote 35 U.S.C. § 111(b)(7).",
+      "expectedAuthority": "§ 111(a)-(b)",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": " [S1]. \n\nRegarding 35 U.S.C. § 111(b)(7), the provided sources do not contain the text of subsection (b)(7) or mention whether a provisional application can claim the priority of an earlier provisional application (they only state that provisionals have ",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "Based on the provided sources, a provisional application has \"no priority claim of its own\" and provisionals are \"never § 111(a)\" [S1]. \n\nRegarding 35 U.S.C. § 111(b)(7), the provided sources do not contain the text of subsection (b)(7) or mention whether a provisional application can claim the priority of an earlier provisional application (they only state that provisionals have \"no priority claim of its own\") [S1]. Therefore, this specific statutory quote cannot be provided from the given text"
+    },
+    {
+      "key": "s112a-04",
+      "prompt": "What does 35 U.S.C. § 112(a) say about the best mode of the invention? Quote the requirement.",
+      "expectedAuthority": "§ 112(a)-(b)",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": " of the invention; the provided source for § 112(a) states only that:\n\n> ",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "Based on the provided sources, 35 U.S.C. § 112(a) does not contain a requirement regarding the \"best mode\" of the invention; the provided source for § 112(a) states only that:\n\n> \"the specification shall contain a written description of the invention, and of the manner and process of making and using it, in such full, clear, concise, and exact terms as to enable any person skilled in the art to make and use the same (enablement + written description)\" [S1]"
+    },
+    {
+      "key": "s112a-08",
+      "prompt": "What three specification qualities are demanded by 35 U.S.C. § 112(a) terms: \"full, clear, concise...\"? Quote.",
+      "expectedAuthority": "§ 112(a)-(b)",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": "** [S1] \n\n*(Note: The text also includes the term **",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "Based on the provided sources, 35 U.S.C. § 112(a) demands that the specification contain its descriptions \"in such full, clear, concise, and exact terms\" [S1]. The three qualities explicitly requested from this phrase are:\n\n1. **\"full\"** [S1]\n2. **\"clear\"** [S1]\n3. **\"concise\"** [S1] \n\n*(Note: The text also includes the term **\"exact\"** [S1].)*"
+    },
+    {
+      "key": "s112a-09",
+      "prompt": "Under 35 U.S.C. § 112(a), at what time must the best mode be contemplated? Quote the phrase.",
+      "expectedAuthority": "§ 112(a)-(b)",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": " must be contemplated or any reference to the phrase ",
+          "locator": null,
+          "verdict": "missing"
+        },
+        {
+          "quote": " The sources provide information on § 112(a) regarding the ",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "Based on the provided sources, there is no mention of when the \"best mode\" must be contemplated or any reference to the phrase \"best mode.\" The sources provide information on § 112(a) regarding the \"written description of the invention, and of the manner and process of making and using it\" [S1], but do not contain text about the best mode requirement."
+    },
+    {
+      "key": "s112b-06",
+      "prompt": "What two adverbs define the claiming obligation in 35 U.S.C. § 112(b)? Quote them verbatim.",
+      "expectedAuthority": "§ 112(a)-(b)",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": " [S1]. \n\nVerbatim quote from the source: ",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "Based on the provided sources, the two adverbs that define the claiming obligation in 35 U.S.C. § 112(b) are \"particularly\" and \"distinctly\" [S1]. \n\nVerbatim quote from the source: \"particularly pointing out and distinctly claiming\" [S1]."
+    },
+    {
+      "key": "s112d-02",
+      "prompt": "Under 35 U.S.C. § 112(d), how must a dependent claim specify its scope? Quote the phrase \"further limitation\".",
+      "expectedAuthority": "§ 112(a)-(b)",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": "further limitation.",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "Based on the provided sources, there is no mention of 35 U.S.C. § 112(d) or the exact phrase \"further limitation.\" The provided sources only cover 35 U.S.C. § 112(a) and § 112(b) [S1]. Therefore, relying strictly on the provided text, this information is not available."
+    },
+    {
+      "key": "s112d-04",
+      "prompt": "Quote 35 U.S.C. § 112(d) on construing a dependent claim to incorporate all limitations.",
+      "expectedAuthority": "§ 112(a)-(b)",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": "35 U.S.C. § 112(d)",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "Based on the provided sources, there is no mention or text of \"35 U.S.C. § 112(d)\". The sources only provide information for 35 U.S.C. § 112(a)-(b) [S1], § 111(a)-(b) [S2], § 101, § 102, and § 103 [S3, S4, S5]. Therefore, the sources do not contain a quote for 35 U.S.C. § 112(d)."
+    },
+    {
+      "key": "mpep-2106-01",
+      "prompt": "Describe Step 2A Prong One under MPEP § 2106 and quote the judicial exceptions formulation.",
+      "expectedAuthority": "MPEP § 2106 (condensed)",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": " by that specific name. However, regarding Step 2A, the sources state: \n\n* ",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "Based on the provided sources, the MPEP § 2106 text does not explicitly detail \"Step 2A Prong One\" by that specific name. However, regarding Step 2A, the sources state: \n\n* \"Step 2A: is the claim directed to a judicial exception (abstract idea, law of nature, natural phenomenon)?\" [S1]"
+    },
+    {
+      "key": "mpep-2106-04",
+      "prompt": "Under MPEP § 2106, if a claim integrates an exception into a practical application, is it eligible? Quote and cite.",
+      "expectedAuthority": "MPEP § 2106 (condensed)",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": "[i]ntegration into a practical application supports eligibility",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "Yes. Under MPEP § 2106, \"[i]ntegration into a practical application supports eligibility\" [S1]."
+    },
+    {
+      "key": "mpep-2106-06",
+      "prompt": "Quote MPEP § 2106 on \"mental processes\" as a category of abstract ideas.",
+      "expectedAuthority": "MPEP § 2106 (condensed)",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": " as a category of abstract ideas. The sources only mention that Step 2A determines if a claim is ",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "Based on the provided sources, there is no mention or quote regarding \"mental processes\" as a category of abstract ideas. The sources only mention that Step 2A determines if a claim is \"directed to a judicial exception (abstract idea, law of nature, natural phenomenon)\" [S1]."
+    },
+    {
+      "key": "mpep-2106-07",
+      "prompt": "Quote MPEP § 2106 on \"certain methods of organizing human activity\".",
+      "expectedAuthority": "MPEP § 2106 (condensed)",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": "certain methods of organizing human activity.",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "Based on the provided sources, there is no mention of \"certain methods of organizing human activity.\" Therefore, I cannot quote it from the sources."
+    },
+    {
+      "key": "mpep-2106-09",
+      "prompt": "Under MPEP § 2106, does an improvement to the functioning of a computer qualify as a practical application? Quote.",
+      "expectedAuthority": "MPEP § 2106 (condensed)",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": "improvement to the functioning of a computer",
+          "locator": null,
+          "verdict": "missing"
+        },
+        {
+          "quote": "[i]ntegration into a practical application supports eligibility (Enfish, McRO, Diehr)",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "Based on the provided sources, there is no mention in MPEP § 2106 about whether an \"improvement to the functioning of a computer\" qualifies as a practical application. The sources only state that \"[i]ntegration into a practical application supports eligibility (Enfish, McRO, Diehr)\" [S1]."
+    },
+    {
+      "key": "mpep-2106-10",
+      "prompt": "Quote the rule in MPEP § 2106 regarding an extra-solution activity or insignificant post-solution activity.",
+      "expectedAuthority": "MPEP § 2106 (condensed)",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": "extra-solution activity",
+          "locator": null,
+          "verdict": "missing"
+        },
+        {
+          "quote": "insignificant post-solution activity",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "Based on the provided sources, there is no mention or quote regarding \"extra-solution activity\" or \"insignificant post-solution activity\" in MPEP § 2106. The sources only mention that \"merely implementing on a generic computer does not\" amount to significantly more [S1]."
+    },
+    {
+      "key": "mpep-2106b-02",
+      "prompt": "What constitutes an \"inventive concept\" under MPEP § 2106 Step 2B? Quote the definition.",
+      "expectedAuthority": "MPEP § 2106 (condensed)",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": " under MPEP § 2106 Step 2B is not explicitly provided. The text only states that Step 2B asks: ",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "Based on the provided sources, the exact definition or description of an \"inventive concept\" under MPEP § 2106 Step 2B is not explicitly provided. The text only states that Step 2B asks: \"**do additional elements amount to significantly more (inventive concept)?**\" [S1]."
+    },
+    {
+      "key": "mpep-2106b-03",
+      "prompt": "According to MPEP § 2106, do well-understood, routine, and conventional activities satisfy Step 2B? Quote the rule.",
+      "expectedAuthority": "MPEP § 2106 (condensed)",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": "well-understood, routine, and conventional activities",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "According to the provided sources, implementing a claim or additional elements on a generic computer (or using \"well-understood, routine, and conventional activities\") does not satisfy Step 2B to amount to \"significantly more\" (an inventive concept) [S1]. \n\nThe sources state that \"merely implementing on a generic computer does not\" amount to significantly more [S1]."
+    },
+    {
+      "key": "mpep-2106b-04",
+      "prompt": "Quote the passage stating that software per se with no structural recitation falls outside the statutory categories.",
+      "expectedAuthority": "MPEP § 2106 (condensed)",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": "software per se with no structural recitation",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "Based on the provided sources, there is no mention of \"software per se with no structural recitation\" falling outside the statutory categories. \n\nThe sources state the statutory categories under 35 U.S.C. § 101 as: \"any new and useful process, machine, manufacture, or composition of matter, or any new and useful improvement thereof\" [S1]. Furthermore, MPEP § 2106 notes that for subject-matter eligibility, the \"(1) claim must fall in a statutory category (process, machine, manufacture, compositio"
+    },
+    {
+      "key": "mpep-2106b-06",
+      "prompt": "Quote MPEP § 2106 on how an examiner must establish that an activity is well-understood, routine, and conventional.",
+      "expectedAuthority": "MPEP § 2106 (condensed)",
+      "recalled": true,
+      "unverifiedQuotes": [
+        {
+          "quote": "well-understood, routine, and conventional.",
+          "locator": null,
+          "verdict": "missing"
+        }
+      ],
+      "answer": "Based on the provided sources, there is no mention or quote of how an examiner must establish that an activity is \"well-understood, routine, and conventional.\" The sources only mention that Step 2B of the Alice/Mayo two-part test evaluates whether additional elements amount to \"significantly more (inventive concept)\" [S1], but they do not contain specific text detailing how an activity is established as well-understood, routine, and conventional."
+    }
+  ]
+}

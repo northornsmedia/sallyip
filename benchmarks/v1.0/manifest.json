@@ -1,0 +1,27 @@
+{
+  "benchmarkVersion": "v1.0",
+  "name": "SallyIP Grounding Benchmark v1.0 (Golden Baseline)",
+  "runId": "f8dfe146-4400-49b9-a206-72c8607622d3",
+  "frozenDate": "2026-09-09T12:18:12.643Z",
+  "totalQuestions": 100,
+  "model": "gemini-flash-lite-latest",
+  "summary": {
+    "scored_answers": 95,
+    "total_questions": 100,
+    "quote_verification": {
+      "exact_rate": "72.5% (87/120)",
+      "fuzzy_rate": "5% (6/120)",
+      "total_quotes": 120,
+      "unsupported_rate": "22.5% (27/120)"
+    },
+    "zero_dangling_rate": "100% (95/95)",
+    "authority_recall_rate": "100% (95/95)",
+    "answers_with_citations": "96.8% (92/95)"
+  },
+  "files": {
+    "dataset": "dataset.json",
+    "goldenRun": "golden_run.json",
+    "practitionerScorecard": "scorecard_sample_25.md",
+    "quoteFailureCases": "failures_27_unverified_quotes.json"
+  }
+}
