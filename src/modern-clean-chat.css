@@ -596,11 +596,12 @@
   box-sizing: border-box;
 }
 
-/* 3D Pearl Sphere Hero Asset */
+/* Hero Brand Emblem (SallyIP Logo in Hero) */
+.beebotHeroEmblemWrap,
 .beebotPearlSphereWrap {
-  width: 86px;
-  height: 86px;
-  margin: 0 auto 18px auto;
+  width: 110px;
+  height: 76px;
+  margin: 0 auto 22px auto;
   position: relative;
   display: flex;
   align-items: center;
@@ -608,17 +609,18 @@
   animation: beebotFloat 4s ease-in-out infinite alternate;
 }
 
+.beebotHeroEmblemImg,
 .beebotPearlSphereImg {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  border-radius: 50%;
-  filter: drop-shadow(0 16px 28px rgba(99, 102, 241, 0.25));
+  filter: drop-shadow(0 16px 30px rgba(99, 102, 241, 0.35));
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.beebotHeroEmblemWrap:hover .beebotHeroEmblemImg,
 .beebotPearlSphereWrap:hover .beebotPearlSphereImg {
-  transform: scale(1.06);
+  transform: scale(1.08);
 }
 
 @keyframes beebotFloat {

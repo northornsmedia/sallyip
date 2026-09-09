@@ -941,9 +941,9 @@ export default function ChatPage({ onHome, onAuthRequired }) {
           {/* Empty Hero State or Chat Thread */}
           {messages.length === 0 ? (
             <div className="beebotHero">
-              {/* Iridescent 3D Pearl Sphere */}
-              <div className="beebotPearlSphereWrap">
-                <img src="/sallyip-hero-orb.png" alt="SallyIP AI" className="beebotPearlSphereImg" />
+              {/* Hero Brand Emblem */}
+              <div className="beebotHeroEmblemWrap">
+                <img src="/sallyip-brand-mark.png" alt="SallyIP" className="beebotHeroEmblemImg" />
               </div>
 
               <div className="beebotHeroGreeting">
