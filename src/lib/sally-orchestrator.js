@@ -76,7 +76,17 @@ export function resolveEngines(env={}){
   return engines
 }
 
-const fetchJson=async(url,options,timeoutMs=5000)=>{const response=await fetch(url,{...options,signal:AbortSignal.timeout(Math.max(250,timeoutMs))});const data=await response.json();if(!response.ok)throw new Error(data?.error?.message||`${response.status} ${response.statusText}`);return data}
+const getErrorMessage = (data, fallback) => {
+  const err = Array.isArray(data) ? data[0]?.error : data?.error;
+  return err?.message || fallback;
+};
+
+const fetchJson=async(url,options,timeoutMs=5000)=>{
+  const response=await fetch(url,{...options,signal:AbortSignal.timeout(Math.max(250,timeoutMs))});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(getErrorMessage(data, `${response.status} ${response.statusText}`));
+  return data;
+}
 const fetchStreamingContent=async(url,options,timeoutMs,onDelta)=>{
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeoutMs);
   let content='',buffer='',streamError=null;
@@ -84,7 +94,7 @@ const fetchStreamingContent=async(url,options,timeoutMs,onDelta)=>{
     const response=await fetch(url,{...options,body:JSON.stringify({...JSON.parse(options.body),stream:true}),signal:controller.signal});
     if(!response.ok){
       const data=await response.json().catch(()=>({}));
-      throw new Error(data?.error?.message||`${response.status} ${response.statusText}`);
+      throw new Error(getErrorMessage(data, `${response.status} ${response.statusText}`));
     }
     const reader=response.body.getReader(),decoder=new TextDecoder();
     while(true){
@@ -97,8 +107,9 @@ const fetchStreamingContent=async(url,options,timeoutMs,onDelta)=>{
         if(!line.startsWith('data: ')||line==='data: [DONE]')continue;
         try{
           const payload=JSON.parse(line.slice(6));
-          if(payload.error){
-            streamError=new Error(payload.error.message||'Stream error from model API');
+          const err = Array.isArray(payload) ? payload[0]?.error : payload?.error;
+          if(err){
+            streamError=new Error(err.message||'Stream error from model API');
             throw streamError;
           }
           const delta=payload.choices?.[0]?.delta?.content||'';
@@ -225,128 +236,128 @@ export async function orchestrateSallyStreaming(messages,env,siteUrl='https://sa
   trace.add('request','prompt received ('+latest.length+' chars)','ok')
   const embeddingPromise=(async()=>{const started=Date.now();if(!env.OPENROUTER_EMBEDDING_API_KEY)return{data:null,status:'error',latency_ms:0};try{return{data:await fetchJson('https://openrouter.ai/api/v1/embeddings',{method:'POST',headers:headers(env.OPENROUTER_EMBEDDING_API_KEY),body:JSON.stringify({model:env.SALLYIP_EMBEDDING_MODEL||'liquid/lfm-2.5-embedding-350m:free',input:latest.slice(0,8000),encoding_format:'float'})},2500),status:'success',latency_ms:Date.now()-started}}catch{return{data:null,status:'error',latency_ms:Date.now()-started}}})()
 
-  // Adaptive weights from live DB stats (self-improving ordering)
   const ENGINES=resolveEngines(env)
-  const statsMap=await loadAdaptiveStats(options.sql)
-  const weightedEngines=computeAdaptiveWeights(statsMap,ENGINES).sort((a,b)=>b.adaptive_weight-a.adaptive_weight)
-  trace.add('request','adaptive weights loaded: '+weightedEngines.map(e=>e.name.split(' ')[0]+' '+e.adaptive_weight.toFixed(1)).join(', '),'ok')
-  // Explicit user preference from the model picker (config slug must match a resolved engine).
-  let preferredApplied=null
-  const preferredSlug=String(options.preferredEngine||'').trim()
-  if(preferredSlug){const hit=weightedEngines.find(engine=>engine.slug===preferredSlug);if(hit){hit.adaptive_weight=Math.round((hit.adaptive_weight*3+50)*100)/100;preferredApplied=hit.slug;weightedEngines.sort((a,b)=>b.adaptive_weight-a.adaptive_weight);trace.add('request','preferred engine boosted: '+hit.name,'ok')}}
+  const maxTokens=Number(env.SALLYIP_MAX_TOKENS)||4096
+  const requestMessages=[{role:'system',content:INTERNAL_PROMPT},...messages]
 
-  // Race all engines EXCEPT the ox-alpha reserve
-  const racers=weightedEngines.filter(engine=>engine.slug!==OX_ALPHA_SLUG)
-  const racerEnv={...env}
-  const collector=createEngineCollector(racerEnv,messages,headers,trace,racers)
-  const collectCutoff=Math.max(12000,budget*0.65)
-  const {attempts,successes}=await collector.run(collectCutoff)
+  const attempts=[]
+  let finalAnswer=''
+  let primaryEngine=null
+  let synthesisStatus='single-engine'
 
-  // === OX-ALPHA RESCUE: if fewer than RESCUE_THRESHOLD engines succeeded, run ox-alpha alone ===
-  let rescueUsed=false
-  let rescueResult=null
-  const rescueEngine=ENGINES.find(engine=>engine.slug===OX_ALPHA_SLUG)||{slug:OX_ALPHA_SLUG,name:'OX Alpha',key:'OPENROUTER_OX_API_KEY'}
-  const rescueCredential=engineCredential(rescueEngine,env)
-  if(successes.length<RESCUE_THRESHOLD&&rescueCredential){
-    rescueUsed=true
-    trace.add('rescue','< RESCUE_THRESHOLD ('+successes.length+'/'+RESCUE_THRESHOLD+') — engaging OX Alpha primary','warn')
-    const started=Date.now()
-    try{
-      const rawContent=await fetchStreamingContent(engineUrl(rescueEngine,env),{method:'POST',headers:headers(rescueCredential),body:JSON.stringify({model:OX_ALPHA_SLUG,max_tokens:1200,messages:[{role:'system',content:INTERNAL_PROMPT},...messages]})},Math.max(6000,deadline-Date.now()))
-      const content=sanitizeModelResponse(rawContent)
-      rescueResult={...rescueEngine,content,status:'success',latency_ms:Date.now()-started,retried:false}
-      trace.add('rescue','OX Alpha primary answered · '+content.length+' chars','success')
-    }catch(error){
-      rescueResult={...rescueEngine,content:'',status:'error',latency_ms:Date.now()-started,error:error.message,retried:false}
-      trace.add('rescue','OX Alpha rescue failed: '+(error.message||'').slice(0,80),'error')
+  // Model pipeline: First Gemini 3.7, then fallback to Nemotron (no other models)
+  const geminiEngine = ENGINES.find(e => e.slug === 'gemini-3.7-flash') || {
+    slug: 'gemini-3.7-flash',
+    name: 'Gemini 3.7 Flash',
+    key: 'GEMINI_API_KEY',
+    baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
+    weight: 100,
+    role: 'Primary flagship legal reasoning & drafting'
+  }
+
+  const nemotronEngines = ENGINES.filter(e => e.slug.includes('nemotron'))
+  if (!nemotronEngines.length) {
+    nemotronEngines.push(
+      { slug: 'nvidia/nemotron-3-ultra-550b-a55b:free', name: 'Nemotron 3 Ultra 550B', key: 'OPENROUTER_API_KEY', weight: 80, role: 'Secondary fallback' },
+      { slug: 'nvidia/nemotron-3.5-lightning:free', name: 'Nemotron 3.5 Lightning', key: 'OPENROUTER_API_KEY', weight: 60, role: 'Fast fallback' }
+    )
+  }
+
+  const pipeline = [geminiEngine, ...nemotronEngines]
+
+  // Allow explicit engine choice if specified
+  const preferredSlug = String(options.preferredEngine || '').trim()
+  if (preferredSlug && preferredSlug !== 'auto') {
+    const hitIdx = pipeline.findIndex(e => e.slug === preferredSlug)
+    if (hitIdx > 0) {
+      const [hit] = pipeline.splice(hitIdx, 1)
+      pipeline.unshift(hit)
     }
   }
 
-  let candidates=[...successes]
-  if(rescueResult){
-    attempts.push(rescueResult)
-    if(rescueResult.status==='success')candidates.push(rescueResult)
-  }
-  // Last-resort provider-managed routing. This deliberately uses a distinct
-  // virtual model so an outage or retirement of every configured model does
-  // not take the public chat offline.
-  if(!candidates.length&&env.OPENROUTER_API_KEY){
-    const emergency={slug:'openrouter/free',name:'OpenRouter Free Router',key:'OPENROUTER_API_KEY',weight:1,role:'Emergency availability fallback'}
-    const started=Date.now()
-    trace.add('rescue','configured engines exhausted — engaging provider router','warn')
-    try{
-      const rawContent=await fetchStreamingContent(OPENROUTER_CHAT_URL,{method:'POST',headers:headers(env.OPENROUTER_API_KEY),body:JSON.stringify({model:emergency.slug,temperature:.3,max_tokens:900,messages:[{role:'system',content:INTERNAL_PROMPT},...messages]})},8000)
-      const content=sanitizeModelResponse(rawContent)
-      const result={...emergency,content,status:'success',latency_ms:Date.now()-started,retried:false,adaptive_weight:emergency.weight}
-      attempts.push(result);candidates.push(result);rescueUsed=true
-      trace.add('rescue','provider router answered · '+content.length+' chars','success')
-    }catch(error){
-      attempts.push({...emergency,content:'',status:'error',latency_ms:Date.now()-started,error:error.message,retried:false})
-      trace.add('rescue','provider router failed: '+(error.message||'').slice(0,80),'error')
+  for (const engine of pipeline) {
+    const cred = engineCredential(engine, env)
+    if (!cred) continue
+
+    const started = Date.now()
+    trace.add('wire', `→ ${engine.name} (${engine.slug}) dispatched`, 'pending')
+
+    try {
+      const remainingTime = Math.max(4000, deadline - Date.now())
+      const raw = await fetchStreamingContent(
+        engineUrl(engine, env),
+        {
+          method: 'POST',
+          headers: headers(cred),
+          body: JSON.stringify({
+            model: engine.slug,
+            temperature: 0.3,
+            max_tokens: maxTokens,
+            messages: requestMessages
+          })
+        },
+        Math.min(STRAGGLER_ABORT_MS, remainingTime),
+        onToken
+      )
+
+      const cleaned = sanitizeModelResponse(raw)
+      if (cleaned && !isTruncatedOrCutOff(cleaned)) {
+        finalAnswer = cleaned
+        primaryEngine = engine.slug
+        attempts.push({ ...engine, content: cleaned, status: 'success', latency_ms: Date.now() - started, retried: false })
+        trace.add('node', `${engine.name} responded · ${cleaned.length} chars`, 'success')
+        break // First model succeeded: do NOT talk to any other model!
+      } else {
+        throw new Error('Incomplete response received')
+      }
+    } catch (err) {
+      const elapsed = Date.now() - started
+      attempts.push({ ...engine, content: '', status: 'error', latency_ms: elapsed, error: err.message, retried: false })
+      trace.add('node', `${engine.name} failed (${(err.message || '').slice(0, 60)}) → falling back`, 'warn')
     }
   }
-  // OmniRoute gateway as final safety net before giving up.
-  if(!candidates.length&&env.OMNIROUTE_API_KEY){
-    const omniEmergency={slug:'openrouter/google/gemini-3.5-flash-lite',name:'OmniRoute Emergency',key:'OMNIROUTE_API_KEY',weight:1,role:'Gateway emergency fallback'}
-    const started=Date.now()
-    trace.add('rescue','all engines down — engaging OmniRoute gateway','warn')
-    try{
-      const rawContent=await fetchStreamingContent(engineUrl(omniEmergency,env),{method:'POST',headers:headers(env.OMNIROUTE_API_KEY),body:JSON.stringify({model:omniEmergency.slug,temperature:.3,max_tokens:900,messages:[{role:'system',content:INTERNAL_PROMPT},...messages]})},Math.max(8000,deadline-Date.now()))
-      const content=sanitizeModelResponse(rawContent)
-      const result={...omniEmergency,content,status:'success',latency_ms:Date.now()-started,retried:false,adaptive_weight:omniEmergency.weight}
-      attempts.push(result);candidates.push(result);rescueUsed=true
-      trace.add('rescue','OmniRoute gateway answered · '+content.length+' chars','success')
-    }catch(error){
-      attempts.push({...omniEmergency,content:'',status:'error',latency_ms:Date.now()-started,error:error.message,retried:false})
-      trace.add('rescue','OmniRoute gateway failed: '+(error.message||'').slice(0,80),'error')
-    }
-  }
-  candidates.sort((a,b)=>b.weight-a.weight)
-  // Filter out any candidates that ended prematurely or were truncated
-  const completeCandidates = candidates.filter(c => c.content && !isTruncatedOrCutOff(c.content))
-  if (completeCandidates.length) {
-    candidates = completeCandidates
-  }
-  if(!candidates.length){
-    trace.add('error','all engines exhausted','error')
+
+  if (!finalAnswer) {
+    trace.add('error', 'Both Gemini and Nemotron engines exhausted', 'error')
     throw new Error('Sally reasoning engines are temporarily unavailable')
   }
-  const retries=attempts.filter(item=>item.retried).length
 
-  let reranked=false
-  if(env.OPENROUTER_RERANK_API_KEY&&candidates.length>1){try{const ranked=await fetchJson('https://openrouter.ai/api/v1/rerank',{method:'POST',headers:headers(env.OPENROUTER_RERANK_API_KEY),body:JSON.stringify({model:env.SALLYIP_RERANK_MODEL||'nvidia/llama-nemotron-rerank-vl-1b-v2:free',query:latest.slice(0,4000),documents:candidates.map(candidate=>({text:candidate.content})),top_n:candidates.length})},Math.min(1200,Math.max(250,deadline-Date.now()-2300)));const scores=new Map((ranked.results||[]).map(result=>[result.index,result.relevance_score]));candidates=candidates.map((candidate,index)=>({...candidate,relevance:scores.get(index)||0})).sort((a,b)=>(b.relevance+b.adaptive_weight/100)-(a.relevance+a.adaptive_weight/100));reranked=true}catch{candidates.sort((a,b)=>b.adaptive_weight-a.adaptive_weight)}}
-  const evidence=candidates.map((candidate,index)=>`CANDIDATE ${index+1} | orchestration weight ${candidate.adaptive_weight}% | relevance ${Number(candidate.relevance||0).toFixed(4)}\n${candidate.content.slice(0,7000)}`).join('\n\n')
-  // Prefer a fast/healthy engine for synthesis merge rather than an overloaded one
-  const synthesisEngine=candidates.find(candidate=>candidate.slug!=='nvidia/nemotron-3-ultra-550b-a55b:free'&&engineCredential(candidate,env))||candidates.find(candidate=>engineCredential(candidate,env))||candidates[0]
-  let finalAnswer=sanitizeModelResponse(candidates[0].content)
-  let synthesisStatus=candidates.length===1?'single-engine':'fallback'
-  trace.add('synthesis','merging '+candidates.length+' candidate(s) via '+synthesisEngine.name,'ok')
-  try{
-    const remaining=deadline-Date.now()
-    if(candidates.length>1&&remaining>800){
-      const synthesisTokens=Number(env.SALLYIP_MAX_TOKENS)||4096
-      const rawFinal=await fetchStreamingContent(engineUrl(synthesisEngine,env),{method:'POST',headers:headers(engineCredential(synthesisEngine,env)),body:JSON.stringify({model:synthesisEngine.slug,max_tokens:synthesisTokens,messages:[{role:'system',content:'You are Sally, the single public intelligence of SallyIP 4.1 Pro. Merge the weighted internal candidate answers into one accurate, direct, well-structured Markdown response. Resolve conflicts, preserve useful caveats, remove repetition, and never mention internal model/provider names, candidates, orchestration, weights, tool syntax, or hidden reasoning. Your name is Sally and no other name.'},{role:'user',content:`USER QUESTION:\n${latest}\n\nINTERNAL EVIDENCE:\n${evidence}`}]})},Math.min(18000,remaining),onToken)
-      finalAnswer=sanitizeModelResponse(rawFinal)
-      synthesisStatus='success'
-      trace.add('synthesis','merged answer streamed · '+finalAnswer.length+' chars','success')
-    }else if(onToken){
-      await emitInChunks(finalAnswer,onToken)
-      trace.add('synthesis','single-engine answer streamed · '+finalAnswer.length+' chars','success')
-    }
-  }catch(error){
-    synthesisStatus='fallback'
-    const bestComplete=candidates.find(c=>!isTruncatedOrCutOff(c.content))||candidates[0]
-    finalAnswer=sanitizeModelResponse(bestComplete?.content||'')
-    if(!finalAnswer)throw error
-    trace.add('synthesis','merge failed → top candidate used ('+(error.message||'').slice(0,60)+')','warn')
-    if(onToken)await emitInChunks(finalAnswer,onToken)
+  finalAnswer = sanitizeModelResponse(finalAnswer)
+  const embedding = await embeddingPromise
+  const meta = {
+    engines_requested: pipeline.length,
+    engines_completed: attempts.filter(a => a.status === 'success').length,
+    preferred_engine: preferredSlug || 'gemini-3.7-flash',
+    fast_fail_retries: 0,
+    stragglers_aborted: 0,
+    rescue_used: primaryEngine !== 'gemini-3.7-flash',
+    primary_engine: primaryEngine,
+    embedding_dimensions: embedding.data?.data?.[0]?.embedding?.length || 0,
+    embedding_status: embedding.status,
+    embedding_latency_ms: embedding.latency_ms,
+    reranked: false,
+    synthesis_status: synthesisStatus,
+    total_latency_ms: Date.now() - totalStarted,
+    engines: attempts.map(({ slug, name, weight, status, latency_ms, retried }) => ({ slug, name, weight, status, latency_ms, retried })),
+    sally_version: onToken ? '4.2 Pro Stream' : '4.1 Pro'
   }
-  finalAnswer=sanitizeModelResponse(finalAnswer)
-  const embedding=await embeddingPromise
-  const meta={engines_requested:ENGINES.length,engines_completed:candidates.length,preferred_engine:preferredApplied,fast_fail_retries:retries,stragglers_aborted:attempts.filter(item=>item.status!=='success'&&item.latency_ms>=8000).length,rescue_used:rescueUsed,primary_engine:candidates[0]?.slug||null,embedding_dimensions:embedding.data?.data?.[0]?.embedding?.length||0,embedding_status:embedding.status,embedding_latency_ms:embedding.latency_ms,reranked,synthesis_status:synthesisStatus,total_latency_ms:Date.now()-totalStarted,engines:attempts.map(({slug,name,weight,status,latency_ms,retried})=>({slug,name,weight,status,latency_ms,retried})),sally_version:onToken?'4.2 Pro Stream':'4.1 Pro'}
-  trace.add('response','answer delivered · '+finalAnswer.length+' chars · '+meta.total_latency_ms+'ms','success')
-  if(options.sql)persistBrainOutcome(options.sql,{conversation_id:options.conversation_id,task_class:options.task_class,prompt:latest,answer:finalAnswer,total_latency_ms:meta.total_latency_ms,engines_completed:candidates.length,engines_requested:ENGINES.length,primary_engine:meta.primary_engine,rescue_used:rescueUsed,events:trace.events,attempts}).catch(()=>{})
-  return{answer:finalAnswer,meta}
+
+  trace.add('response', 'answer delivered · ' + finalAnswer.length + ' chars · ' + meta.total_latency_ms + 'ms', 'success')
+  if (options.sql) persistBrainOutcome(options.sql, {
+    conversation_id: options.conversation_id,
+    task_class: options.task_class,
+    prompt: latest,
+    answer: finalAnswer,
+    total_latency_ms: meta.total_latency_ms,
+    engines_completed: meta.engines_completed,
+    engines_requested: meta.engines_requested,
+    primary_engine: meta.primary_engine,
+    rescue_used: meta.rescue_used,
+    events: trace.events,
+    attempts
+  }).catch(() => {})
+
+  return { answer: finalAnswer, meta }
 }
 
 export async function orchestrateSally(messages,env,siteUrl='https://sallyip.com',options={}){
