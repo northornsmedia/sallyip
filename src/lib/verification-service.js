@@ -7,14 +7,20 @@ export async function retrievePackEvidence(sql,codes,query,{limit=6}={}){
   return sql`SELECT s.id source_id,s.title,s.source_type,s.authority_tier,s.jurisdiction,s.citation,s.official_url,s.authority_status,s.retrieval_method,s.verified_at,p.id passage_id,p.locator_type,p.locator,p.content FROM legal_sources s JOIN source_passages p ON p.source_id=s.id WHERE s.source_type='jurisdiction_pack' AND s.matter_id IS NULL AND s.jurisdiction=ANY(${codes}) AND p.content ILIKE ${pattern} ORDER BY s.authority_tier ASC LIMIT ${Math.min(Math.max(Number(limit)||6,1),20)}`
 }
 
-export async function retrieveVerifiedEvidence(sql,userId,matterId,query,{limit=8}={}){
+export async function retrieveVerifiedEvidence(sql,userId,matterId,query,{limit=8,minOverlap=0}={}){
   if(!matterId)return[]
   limit=Math.min(Math.max(Number(limit)||8,1),50)
   const terms=searchTerms(query);if(!terms.length)return[]
+  // Relevance gate: a passage must contain at least `required` distinct query
+  // terms (unordered). Kills single-generic-word fallback hits (e.g. "draft"
+  // matching irrigation-valve docs) while keeping genuinely relevant passages.
+  const required=minOverlap>0?Math.min(minOverlap,terms.length):0
+  const overlap=(content)=>{const lower=String(content||'').toLowerCase();let n=0;for(const term of terms)if(lower.includes(term))n++;return n}
   const pattern=`%${terms.join('%')}%`
-  const direct=await sql`SELECT s.id source_id,s.title,s.source_type,s.authority_tier,s.jurisdiction,s.citation,s.official_url,s.authority_status,s.retrieval_method,s.verified_at,p.id passage_id,p.locator_type,p.locator,p.content FROM legal_sources s JOIN source_passages p ON p.source_id=s.id WHERE s.user_id=${userId} AND s.matter_id=${matterId} AND p.content ILIKE ${pattern} ORDER BY s.authority_tier ASC,s.verified_at DESC NULLS LAST LIMIT ${limit}`
+  const direct=(await sql`SELECT s.id source_id,s.title,s.source_type,s.authority_tier,s.jurisdiction,s.citation,s.official_url,s.authority_status,s.retrieval_method,s.verified_at,p.id passage_id,p.locator_type,p.locator,p.content FROM legal_sources s JOIN source_passages p ON p.source_id=s.id WHERE s.user_id=${userId} AND s.matter_id=${matterId} AND p.content ILIKE ${pattern} ORDER BY s.authority_tier ASC,s.verified_at DESC NULLS LAST LIMIT ${limit}`).filter(row=>overlap(row.content)>=required)
   if(direct.length)return direct
-  return sql`SELECT s.id source_id,s.title,s.source_type,s.authority_tier,s.jurisdiction,s.citation,s.official_url,s.authority_status,s.retrieval_method,s.verified_at,p.id passage_id,p.locator_type,p.locator,p.content FROM legal_sources s JOIN source_passages p ON p.source_id=s.id WHERE s.user_id=${userId} AND s.matter_id=${matterId} AND (${terms[0]}='' OR p.content ILIKE ${`%${terms[0]}%`}) ORDER BY s.authority_tier ASC,s.verified_at DESC NULLS LAST LIMIT ${limit}`
+  const fallback=await sql`SELECT s.id source_id,s.title,s.source_type,s.authority_tier,s.jurisdiction,s.citation,s.official_url,s.authority_status,s.retrieval_method,s.verified_at,p.id passage_id,p.locator_type,p.locator,p.content FROM legal_sources s JOIN source_passages p ON p.source_id=s.id WHERE s.user_id=${userId} AND s.matter_id=${matterId} AND (${terms[0]}='' OR p.content ILIKE ${`%${terms[0]}%`}) ORDER BY s.authority_tier ASC,s.verified_at DESC NULLS LAST LIMIT ${limit}`
+  return fallback.filter(row=>overlap(row.content)>=required)
 }
 
 async function queryEmbedding(query,key,model){
@@ -23,9 +29,9 @@ async function queryEmbedding(query,key,model){
   try{const response=await fetch('https://openrouter.ai/api/v1/embeddings',{method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json','HTTP-Referer':'https://sallyip.com','X-Title':'SallyIP Labs'},body:JSON.stringify({model:model||'liquid/lfm-2.5-embedding-350m:free',input:query,encoding_format:'float'}),signal:controller.signal});if(!response.ok)return null;const data=await response.json();const vector=data?.data?.[0]?.embedding;return Array.isArray(vector)&&vector.length===1024?vector:null}catch{return null}finally{clearTimeout(timer)}
 }
 
-export async function retrieveHybridEvidence(sql,userId,matterId,query,{limit=8,embeddingKey,embeddingModel,queryVector,packCodes=[]}={}){
+export async function retrieveHybridEvidence(sql,userId,matterId,query,{limit=8,embeddingKey,embeddingModel,queryVector,packCodes=[],minOverlap=0}={}){
   limit=Math.min(Math.max(Number(limit)||8,1),50)
-  const[lexical,vector,pack]=await Promise.all([retrieveVerifiedEvidence(sql,userId,matterId,query,{limit:Math.max(limit*2,12)}),queryVector?Promise.resolve(queryVector):queryEmbedding(query,embeddingKey,embeddingModel),packCodes?.length?retrievePackEvidence(sql,packCodes,query,{limit:6}).catch(()=>[]):[]])
+  const[lexical,vector,pack]=await Promise.all([retrieveVerifiedEvidence(sql,userId,matterId,query,{limit:Math.max(limit*2,12),minOverlap}),queryVector?Promise.resolve(queryVector):queryEmbedding(query,embeddingKey,embeddingModel),packCodes?.length?retrievePackEvidence(sql,packCodes,query,{limit:6}).catch(()=>[]):[]])
   let semantic=[]
   if(vector&&matterId){const serialized=`[${vector.map(value=>Number(value)||0).join(',')}]`;semantic=await sql`SELECT s.id source_id,s.title,s.source_type,s.authority_tier,s.jurisdiction,s.citation,s.official_url,s.authority_status,s.retrieval_method,s.verified_at,p.id passage_id,p.locator_type,p.locator,p.content,(1-(kc.embedding <=> ${serialized}::vector))::float semantic_similarity FROM knowledge_chunks kc JOIN knowledge_sources ks ON ks.id=kc.source_id JOIN legal_sources s ON s.id=ks.legal_source_id JOIN source_passages p ON p.source_id=s.id AND p.content=kc.content WHERE ks.user_id=${userId} AND ks.matter_id=${matterId} AND kc.embedding IS NOT NULL ORDER BY kc.embedding <=> ${serialized}::vector LIMIT ${Math.max(limit*2,12)}`}
   const fused=fuseEvidenceResults(lexical,semantic,limit)
@@ -58,6 +64,10 @@ export function guardAnswerCitations(answer,evidence=[],verification={}){
   }
   if(verification.requires_primary_sources&&evidence.length>0&&cited.length===0){
     guarded+=`\n\n> **Citation check:** this answer cites no retrieved source ([S1]–[S${evidence.length}]). Ask Sally to pin each material proposition to a source before reliance.`
+  }
+  const hype=text.match(/\b(non-obvious|nonobvious|novel|well-known|conventional|state of the art|infring(?:e|es|ing|ement|ed))\b/i)
+  if(hype&&valid.length===0){
+    guarded+=`\n\n> **Language check:** this answer calls something “${hype[0]}” without a supporting retrieved source. Treat that characterisation as Sally's unverified assessment, not a finding — confirm with prior-art research before reliance.`
   }
   return{answer:guarded,guard:{cited,valid,dangling,evidence_count:evidence.length,supported:dangling.length===0&&(cited.length>0||!verification.requires_primary_sources)}}
 }
