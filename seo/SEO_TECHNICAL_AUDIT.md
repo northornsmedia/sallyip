@@ -30,3 +30,10 @@ Scope: `index.html`, `public/robots.txt`, `public/sitemap.xml`, `public/llms.txt
 - `npm run build` PASS (6.94s, pre-existing chunk warning only).
 - `npm run seo:sitemap` regenerates 2-URL sitemap correctly.
 - `dist/compare/.../index.html` present; `dist/404.html` should be confirmed after next deploy (Vercel copies `public/`).
+
+## WAVE 2 ADDENDUM (2026-09-10)
+- C1/C3/H1 status changed: public layer no longer depends on hash routing or JS. 33 static pages under `public/` (hybrid: app remains SPA). `npm run seo:validate` proves H1/copy/canonical/description/JSON-LD/links present with JS disabled (file-level = initial-HTML equivalent for static hosting; re-verify `curl` post-deploy).
+- Sitemap now 34 URLs via existing generator (auto-scans `public/**/index.html`; `latest.json`/word-addin/404 excluded by design).
+- C4 partly closed: homepage initial HTML carries full-IP H1 + capability split (Available vs Guidance/developing). React body copy still training-flavored — full rewrite deferred, no longer a blocker for crawlers.
+- H2 re-audited: all 17 chat workspaces already `React.lazy` (`chat-page.jsx:6-26`) with per-workspace chunks (12–26 kB); main 672.2 kB vs 689 kB at wave 1 (rebuild variance, no regression). Public pages ship 0 JS (7–14 kB HTML). No further splitting — would risk product UX for single-digit gains.
+- New validator enforces: hubs ≥500 words, glossary ≥120 words, benchmark run refs, no banned superlatives, no orphans, sitemap coverage. CI gate ready.

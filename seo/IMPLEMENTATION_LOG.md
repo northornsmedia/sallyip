@@ -22,3 +22,8 @@
 - Route code-splitting for 688 kB bundle (H2).
 - 10 hub pages + 15 clusters (need content + design + review).
 - OG cover image 1200×630, Dataset/Person/FAQ schema, public eval CSV, IndexNow key provisioning, www/apex + redirect confirmation in Vercel/DNS.
+
+## WAVE 2 (2026-09-10) — crawlable public layer, hybrid static + SPA
+Architecture: app stays SPA; public marketing/resource layer is now generated static HTML with zero executable JS (`scripts/generate-public-pages.mjs`, `npm run seo:pages`). Page benchmark figures single-sourced (`scripts/seo-data.mjs`); `public/benchmarks/latest.json` is OWNED by the benchmark pipeline — wave 2 only drift-checks it (`npm run seo:benchmarks` → `verify-benchmark-data.mjs`, 4/4 match). CI gate `scripts/seo-validate-public-pages.mjs` (`npm run seo:validate`) — 33 pages, 0 failures, 0 warnings.
+Implemented: homepage `#root` static fallback (H1 + capability split + noscript); 11 core pages (ip-ai, patents, trademarks, copyright, design-rights, trade-secrets, benchmarks, verification-methodology, resources, 2 new compares); glossary index + 20 terms (DefinedTerm + FAQPage); Dataset schema on /benchmarks for latest.json; harvey compare description trim + related links; sitemap 2→34 URLs.
+Verified: `npm run build` PASS (5.89s); `test:verification` 28/28 PASS; validator EXIT 0; main bundle 672.2 kB (workspaces already lazy-split, no app perf change needed); public pages 7–14 kB HTML, 0 executable scripts.

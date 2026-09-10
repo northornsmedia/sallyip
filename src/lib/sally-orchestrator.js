@@ -286,7 +286,7 @@ export async function persistBrainOutcome(sql,record){
   }catch{/* observatory must never break chat */}
 }
 
-export async function orchestrateSallyStreaming(messages,env,siteUrl='https://sallyip.com',onToken=null,options={}){
+export async function orchestrateSallyStreaming(messages,env,siteUrl=(process.env.APP_ORIGIN || 'https://sallyip.com'),onToken=null,options={}){
   const totalStarted=Date.now()
   const budget=onToken?35000:25000
   const deadline=totalStarted+budget
@@ -451,7 +451,7 @@ export async function orchestrateSallyStreaming(messages,env,siteUrl='https://sa
   return { answer: finalAnswer, meta }
 }
 
-export async function orchestrateSally(messages,env,siteUrl='https://sallyip.com',options={}){
+export async function orchestrateSally(messages,env,siteUrl=(process.env.APP_ORIGIN || 'https://sallyip.com'),options={}){
   return orchestrateSallyStreaming(messages,env,siteUrl,null,options)
 }
 

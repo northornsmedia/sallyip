@@ -1,4 +1,8 @@
 import { cleanQuoteText, flipFirstLetter } from './citation-service.js'
+import { assertEmbeddingAllowed, resolveExecutionMode } from './provider-policy.js'
+import { classifyContradiction } from './contradiction-service.js'
+import { validateAuthorityCurrency } from './temporal-service.js'
+import { checkEntailment } from './entailment-service.js'
 
 const STOP_WORDS=new Set(['that','this','with','from','what','when','where','which','about','would','could','should','there','their','have','does'])
 const searchTerms=text=>[...new Set((String(text||'').toLowerCase().match(/[a-z0-9][a-z0-9-]{3,}/g)||[]).filter(term=>!STOP_WORDS.has(term)))].slice(0,12)
@@ -94,15 +98,22 @@ export async function retrieveVerifiedEvidence(sql,userId,matterId,query,{limit=
   return fallback.filter(row=>overlap(row.content)>=required)
 }
 
-async function queryEmbedding(query,key,model){
+async function queryEmbedding(query,key,model,mode='CONFIDENTIAL_IP'){
   if(!key)return null
+  try {
+    assertEmbeddingAllowed({ model: model || 'liquid/lfm-2.5-embedding-350m:free', mode });
+  } catch {
+    return null; // fail-closed: lexical-only retrieval, no confidential semantics to free provider
+  }
+  const referer = (typeof process !== 'undefined' && process.env?.APP_ORIGIN) || 'https://sallyip.com';
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),2500)
-  try{const response=await fetch('https://openrouter.ai/api/v1/embeddings',{method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json','HTTP-Referer':'https://sallyip.com','X-Title':'SallyIP Labs'},body:JSON.stringify({model:model||'liquid/lfm-2.5-embedding-350m:free',input:query,encoding_format:'float'}),signal:controller.signal});if(!response.ok)return null;const data=await response.json();const vector=data?.data?.[0]?.embedding;return Array.isArray(vector)&&vector.length===1024?vector:null}catch{return null}finally{clearTimeout(timer)}
+  try{const response=await fetch('https://openrouter.ai/api/v1/embeddings',{method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json','HTTP-Referer':referer,'X-Title':'SallyIP Labs'},body:JSON.stringify({model:model||'liquid/lfm-2.5-embedding-350m:free',input:query,encoding_format:'float'}),signal:controller.signal});if(!response.ok)return null;const data=await response.json();const vector=data?.data?.[0]?.embedding;return Array.isArray(vector)&&vector.length===1024?vector:null}catch{return null}finally{clearTimeout(timer)}
 }
 
-export async function retrieveHybridEvidence(sql,userId,matterId,query,{limit=8,embeddingKey,embeddingModel,queryVector,packCodes=[],minOverlap=0}={}){
+export async function retrieveHybridEvidence(sql,userId,matterId,query,{limit=8,embeddingKey,embeddingModel,queryVector,packCodes=[],minOverlap=0,mode}={}){
   limit=Math.min(Math.max(Number(limit)||8,1),50)
-  const[lexical,vector,pack]=await Promise.all([retrieveVerifiedEvidence(sql,userId,matterId,query,{limit:Math.max(limit*2,12),minOverlap}),queryVector?Promise.resolve(queryVector):queryEmbedding(query,embeddingKey,embeddingModel),packCodes?.length?retrievePackEvidence(sql,packCodes,query,{limit:6}).catch(()=>[]):[]])
+  const executionMode = resolveExecutionMode({ mode: mode || process.env.SALLYIP_EXECUTION_MODE });
+  const[lexical,vector,pack]=await Promise.all([retrieveVerifiedEvidence(sql,userId,matterId,query,{limit:Math.max(limit*2,12),minOverlap}),queryVector?Promise.resolve(queryVector):queryEmbedding(query,embeddingKey,embeddingModel,executionMode),packCodes?.length?retrievePackEvidence(sql,packCodes,query,{limit:6}).catch(()=>[]):[]])
   let semantic=[]
   if(vector&&matterId){const serialized=`[${vector.map(value=>Number(value)||0).join(',')}]`;semantic=await sql`SELECT s.id source_id,s.title,s.source_type,s.authority_tier,s.jurisdiction,s.citation,s.official_url,s.authority_status,s.retrieval_method,s.verified_at,p.id passage_id,p.locator_type,p.locator,p.content,(1-(kc.embedding <=> ${serialized}::vector))::float semantic_similarity FROM knowledge_chunks kc JOIN knowledge_sources ks ON ks.id=kc.source_id JOIN legal_sources s ON s.id=ks.legal_source_id JOIN source_passages p ON p.source_id=s.id AND p.content=kc.content WHERE ks.user_id=${userId} AND ks.matter_id=${matterId} AND kc.embedding IS NOT NULL ORDER BY kc.embedding <=> ${serialized}::vector LIMIT ${Math.max(limit*2,12)}`}
   const fused=fuseEvidenceResults(lexical,semantic,limit)
@@ -606,6 +617,40 @@ export function finalizeVerifiedAnswer(answer, evidence = [], verification = {},
     output = INSUFFICIENT_AUTHORITY_MESSAGE
   }
 
+  // P1-A/B additive wiring (never weakens gates above): contradiction + temporal + entailment signals.
+  let contradiction = { class: 'NO_CONFLICT', details: [] };
+  let temporal = [];
+  let entailment = [];
+  try {
+    contradiction = classifyContradiction({ proposition: output.slice(0, 2000), passages: complete });
+    if (contradiction.must_surface) {
+      output += `\n\n> **Conflicting authorities:** ${contradiction.reason} Review all cited passages before reliance.`;
+    }
+  } catch {}
+  try {
+    temporal = complete.map((item) => ({
+      passage_id: item.passage_id,
+      ...validateAuthorityCurrency({
+        jurisdiction: item.jurisdiction,
+        effective_date: item.effective_date,
+        publication_date: item.publication_date,
+        version: item.version,
+        superseded_by: item.superseded_by,
+        retrieved_at: item.verified_at || item.retrieved_at,
+        authority_status: item.authority_status,
+      }),
+    }));
+    if (temporal.some((t) => t.qualify)) {
+      output += `\n\n> **Currency check:** at least one cited authority has unknown or stale currency. Treat as background; verify against the official source before filing or advising.`;
+    }
+  } catch {}
+  try {
+    entailment = complete.slice(0, 6).map((item) => ({
+      passage_id: item.passage_id,
+      ...checkEntailment(output.slice(0, 1200), item.content),
+    }));
+  } catch {}
+
   return {
     answer: output,
     guard: {
@@ -614,6 +659,9 @@ export function finalizeVerifiedAnswer(answer, evidence = [], verification = {},
       supported: citationGuard.guard.supported && missingQuotes === 0,
       answer_mode: complete.length ? 'QUALIFIED_ANSWER' : 'RESEARCH_REQUIRED',
       quotes: quoteAudit,
+      contradiction,
+      temporal,
+      entailment,
       verification_graph: graphResult.propositions,
       stats: { ...graphResult.stats, blocked_unsupported: propositionGate.blocked, disclosed_partial: propositionGate.partial }
     }

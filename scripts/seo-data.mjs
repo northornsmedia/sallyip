@@ -16,7 +16,7 @@ export const BENCHMARKS = [
     sample_size: 95,
     model: 'gemini-flash-lite-latest',
     run_date: '2026-09-09',
-    run_ref: 'eval_runs table, 2026-09-09 (see benchmarks/cross-bench-report.md §2)',
+    run_ref: 'eval_runs f8dfe146-4400-49b9-a206-72c8607622d3 (v1.0 golden baseline; see benchmarks/external-scoreboard.md §1)',
     methodology: 'Mechanical retrieval + exact-quote verification grading; substantive legal correctness is practitioner-graded separately and is NOT inferred.',
     metrics: [
       { label: 'Authority recall', numerator: 95, denominator: 95, display: '100%' },
@@ -73,9 +73,9 @@ export const BENCHMARKS = [
     dataset: 'scripts/stanford-bench-dataset.mjs (24 items)',
     dataset_version: 'stanford-bench v1',
     sample_size: 24,
-    model: 'gemini-flash-lite-latest',
+    model: 'gemini-flash-lite-latest (runner default; actual value in DB run context, not extracted)',
     run_date: '2026-09-09',
-    run_ref: 'patentbench_runs fe26da44…',
+    run_ref: 'patentbench_runs fe26da44… (see benchmarks/external-scoreboard.md §1 for UNKNOWN discipline)',
     methodology: 'Automated run; mechanical phrase-containment grading.',
     metrics: [
       { label: 'Accurate', numerator: 14, denominator: 24, display: '58.3%' },
@@ -118,6 +118,24 @@ export const BENCHMARKS = [
     ],
     status: 'PENDING',
     source: 'benchmarks/cross-bench-report.md §5',
+  },
+  {
+    id: 'ablation-25',
+    name: 'Ablation-25: guards vs substance on 22 new synthetic fabrications',
+    dataset: 'benchmarks/ablation-25.json (SYNTHETIC ONLY — hand-written injected fabrications, NOT model output) + 6 frozen refs',
+    dataset_version: 'ablation-25 / 2026-09-10',
+    sample_size: 28,
+    model: 'none in loop (pure-local simulation, 0 live model calls)',
+    run_date: '2026-09-10',
+    run_ref: 'benchmarks/ablation-25-report.md; reproduce: node scripts/ablation-25.mjs',
+    methodology: '22 fluent fabrications designed to pass substance checks; fixed 5-passage fixture. Guard-behavior demo only — NOT a model-quality claim.',
+    metrics: [
+      { label: 'New fabrications flagged by full pipeline', numerator: 22, denominator: 22, display: '100%' },
+      { label: 'Combined fabrications flagged (26 fab)', numerator: 26, denominator: 26, display: '100%' },
+      { label: 'Good answers falsely flagged', numerator: 0, denominator: 2, display: '0%' },
+    ],
+    status: 'VERIFIED_INTERNAL',
+    source: 'benchmarks/ablation-25-report.md',
   },
 ];
 

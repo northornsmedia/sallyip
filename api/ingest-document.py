@@ -13,6 +13,10 @@ def embed_source(source_id):
     key=os.environ.get("OPENROUTER_EMBEDDING_API_KEY")
     if not key:return {"embedded":0,"status":"not_configured"}
     model=os.environ.get("SALLYIP_EMBEDDING_MODEL","liquid/lfm-2.5-embedding-350m:free")
+    mode=str(os.environ.get("SALLYIP_EXECUTION_MODE","CONFIDENTIAL_IP")).upper()
+    # P0-A fail-closed: free embedding models leak document semantics; block for confidential.
+    if mode in ("CONFIDENTIAL_IP","HIGHLY_CONFIDENTIAL") and (model.endswith(":free") or ":free" in model):
+        return {"embedded":0,"status":"blocked_confidential","mode":mode,"error":"Confidentiality fail-closed: embedding model not approved"}
     with psycopg.connect(os.environ["DATABASE_URL"]) as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT id,content FROM knowledge_chunks WHERE source_id=%s AND embedding IS NULL ORDER BY chunk_index LIMIT 128",(source_id,));chunks=cur.fetchall()
@@ -41,6 +45,13 @@ class handler(BaseHTTPRequestHandler):
             if length<=0 or length>MAX_BYTES*1.5:return self.reply(413,{"error":{"message":"Document is too large"}})
             payload=json.loads(self.rfile.read(length));filename=str(payload.get("filename","")).strip();matter_id=payload.get("matter_id")
             if payload.get("rights_confirmed") is not True:return self.reply(400,{"error":{"message":"Confirm that you are authorised to use this document"}})
+            # P0-D: file-safety before parsing/storage (mirror src/lib/file-safety.js).
+            blocked=(".exe",".bat",".cmd",".ps1",".js",".vbs",".scr",".msi",".dll",".zip",".rar",".7z")
+            lowered=filename.lower()
+            if any(lowered.endswith(ext) for ext in blocked):return self.reply(400,{"error":{"message":"Archives/executables are blocked. Upload the extracted PDF/DOCX/TXT instead.","code":"BLOCKED_TYPE"}})
+            if not filename or len(filename)>180 or ".." in filename or "/" in filename or "\\" in filename:
+                # basename-sanitize after check so traversal attempts are rejected, not silently rewritten
+                if ".." in filename or "/" in filename or "\\" in filename:return self.reply(400,{"error":{"message":"Unsafe filename","code":"UNSAFE_FILENAME"}})
             extension=pathlib.Path(filename).suffix.lower().lstrip(".")
             if extension not in SUPPORTED_EXTENSIONS:return self.reply(400,{"error":{"message":"Supported formats: PDF, DOCX, TXT, Markdown, CSV and XLSX"}})
             safe_filename=re.sub(r"[^A-Za-z0-9._ -]+","_",pathlib.Path(filename).name)[:180]

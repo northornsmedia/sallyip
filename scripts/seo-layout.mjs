@@ -63,7 +63,7 @@ export function benchSummaryTable(BENCHMARKS) {
   return `<table><tr><th>Benchmark (sample, model, date)</th><th>Recorded result</th><th>Status</th></tr>\n${rows}\n</table>`;
 }
 
-export function page({ slug, title, description, h1, intro, body, extraSchema = [], dateModified = PAGES_DATE_MODIFIED }) {
+export function page({ slug, title, description, h1, intro, body, extraSchema = [], dateModified = PAGES_DATE_MODIFIED, ogImage = `${SITE_URL}/sallyip-logo.png` }) {
   const url = `${SITE_URL}${slug}`;
   const crumbs = slug === '/' ? [] : `<p class="crumbs"><a href="${SITE_URL}/">Home</a> / ${h1}</p>`;
   const graph = [
@@ -86,10 +86,11 @@ export function page({ slug, title, description, h1, intro, body, extraSchema = 
 <meta property="og:title" content="${title}" />
 <meta property="og:description" content="${description}" />
 <meta property="og:url" content="${url}" />
-<meta property="og:image" content="${SITE_URL}/sallyip-logo.png" />
-<meta name="twitter:card" content="summary" />
+<meta property="og:image" content="${ogImage}" />
+<meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${title}" />
 <meta name="twitter:description" content="${description}" />
+<meta name="twitter:image" content="${ogImage}" />
 <script type="application/ld+json">
 ${JSON.stringify({ '@context': 'https://schema.org', '@graph': graph })}
 </script>

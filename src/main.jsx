@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { AnimatePresence, motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
@@ -50,19 +50,22 @@ import { GlyphMatrix } from "@/registry/magicui/glyph-matrix";
 import { AnimatedCircularProgressBar } from "@/registry/magicui/animated-circular-progress-bar";
 import { BackgroundPaths } from "@/components/ui/background-paths";
 import { ScrollAssembleText } from "@/components/ui/text-scroll-animation";
-import ChatPage from "@/components/chat-page";
-import BrainAdminPage from "@/components/brain-admin-page";
 import "./brain-admin.css";
-import PricingPage from "@/components/pricing-page";
-import AuthPage from "@/components/auth-page";
-import TransparencyPage from "@/components/transparency-page";
-import HomePageRedesign from "@/components/home-page-redesign";
-import LifecyclePage from "@/components/lifecycle-page";
-import ModulesPage from "@/components/modules-page";
-import PerformancePage from "@/components/performance-page";
-import SecurityPage from "@/components/security-page";
-import BenchmarksPage from "@/components/benchmarks-page";
+const ChatPage = lazy(() => import("@/components/chat-page"));
+const BrainAdminPage = lazy(() => import("@/components/brain-admin-page"));
+const PricingPage = lazy(() => import("@/components/pricing-page"));
+const AuthPage = lazy(() => import("@/components/auth-page"));
+const TransparencyPage = lazy(() => import("@/components/transparency-page"));
+const HomePageRedesign = lazy(() => import("@/components/home-page-redesign"));
+const LifecyclePage = lazy(() => import("@/components/lifecycle-page"));
+const ModulesPage = lazy(() => import("@/components/modules-page"));
+const PerformancePage = lazy(() => import("@/components/performance-page"));
+const SecurityPage = lazy(() => import("@/components/security-page"));
+const BenchmarksPage = lazy(() => import("@/components/benchmarks-page"));
 import VoiceChatWidget from "@/components/voice-chat-widget";
+import "./marketing/enterprise.css";
+import EnterpriseApp from "./marketing/router";
+import { isMarketingPath } from "./marketing/site";
 import "./home-redesign.css";
 import "./styles.css";
 import "./brand.css";
@@ -1774,18 +1777,43 @@ function Table({ heads, rows, click }) {
 }
 function App() {
   const [page, setPage] = useState(route());
+  const [mPath, setMPath] = useState(() => window.location.pathname.replace(/\/$/, "") || "/");
   useEffect(() => {
     const h = () => setPage(route());
+    const onPop = () => setMPath(window.location.pathname.replace(/\/$/, "") || "/");
+    // Legacy hash marketing routes redirect to clean enterprise paths (no hash public pages).
+    const hashRedirects = { home: "/", pricing: "/pricing", benchmarks: "/benchmarks", security: "/security", lifecycle: "/lifecycle-guide", modules: "/modules", performance: "/performance", transparency: "/verification-logs" };
+    const cur = route();
+    if (hashRedirects[cur]) {
+      window.history.pushState({}, "", hashRedirects[cur]);
+      setMPath(hashRedirects[cur]);
+    }
     addEventListener("hashchange", h);
-    return () => removeEventListener("hashchange", h);
+    addEventListener("popstate", onPop);
+    return () => { removeEventListener("hashchange", h); removeEventListener("popstate", onPop); };
   }, []);
+  // Authenticated / app hashes take precedence even on marketing paths (e.g. /product#chat).
+  const appHashes = new Set(["auth", "chat", "accessadmin", "train", "jobs", "job", "datasets", "models", "model", "points", "dashboard", "transparency"]);
+  const hashPage = route();
+  const pathname = mPath === "" ? "/" : mPath;
+  const showMarketing = isMarketingPath(pathname) && !appHashes.has(hashPage);
+  if (showMarketing) {
+    return (
+      <>
+        <Suspense fallback={<div className="ent-root"><div className="ent-wrap" style={{ padding: "120px 28px" }}>Loading SallyIP…</div></div>}>
+          <EnterpriseApp path={pathname} />
+        </Suspense>
+        <VoiceChatWidget />
+      </>
+    );
+  }
   return (
-    <>
+    <Suspense fallback={<div className="ent-root"><div className="ent-wrap" style={{ padding: "120px 28px" }}>Loading SallyIP…</div></div>}>
       {page === "home" ? (
         <HomePageRedesign
           onOpenChat={() => go("chat")}
           onOpenAuth={() => go("auth")}
-          onOpenPricing={() => go("pricing")}
+          onOpenPricing={() => { window.history.pushState({}, "", "/pricing"); setMPath("/pricing"); scrollTo({ top: 0 }); }}
           onOpenTransparency={() => go("transparency")}
         />
       ) : page === "lifecycle" ? (
@@ -1818,7 +1846,7 @@ function App() {
         <ProtectedAppShell page={page} />
       )}
       <VoiceChatWidget />
-    </>
+    </Suspense>
   );
 }
 function ProtectedAppShell({page}){

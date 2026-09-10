@@ -1,8 +1,15 @@
+import { assertRerankAllowed, resolveExecutionMode } from '../../src/lib/provider-policy.js';
 export default async function handler(req,res){
   if(req.method!=='POST')return res.status(405).json({error:{message:'Method not allowed'}})
-  const {query,documents,top_n}=req.body||{}
+  const {query,documents,top_n,mode}=req.body||{}
   if(typeof query!=='string'||!query.trim())return res.status(400).json({error:{message:'Query is required'}})
   if(!Array.isArray(documents)||!documents.length)return res.status(400).json({error:{message:'Documents must be a non-empty array'}})
+  const executionMode = resolveExecutionMode({ mode: mode || process.env.SALLYIP_EXECUTION_MODE });
+  try {
+    assertRerankAllowed({ model: process.env.SALLYIP_RERANK_MODEL||'nvidia/llama-nemotron-rerank-vl-1b-v2:free', mode: executionMode });
+  } catch (gateError) {
+    return res.status(403).json({error:{message:gateError.message,code:'CONFIDENTIAL_RERANK_BLOCKED',mode:executionMode}});
+  }
   const safeDocuments=documents.filter(document=>document&&((typeof document.text==='string'&&document.text)||(typeof document.image==='string'&&document.image))).slice(0,100)
   if(!safeDocuments.length)return res.status(400).json({error:{message:'Each document must contain text or image'}})
   try{

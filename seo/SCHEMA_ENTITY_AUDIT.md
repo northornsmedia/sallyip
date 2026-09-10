@@ -15,7 +15,5 @@
 - Visibility check: every marked string is either in head meta (standard for SoftwareApplication) or visible body copy (compare page). No hidden-content markup.
 
 ## Backlog (do only with visible content)
-- Add `Dataset` schema when a frozen benchmark CSV/JSONL is published under `public/benchmarks/` with title/license/distribution.
-- Add `Person` only with a real named author bio page.
-- Add `FAQPage` only if an on-page visible FAQ section ships (do not mark hidden chat answers).
-- Add per-hub `WebPage + BreadcrumbList` as `/patents` etc. go live as static HTML.
+- DONE (wave 2): `Dataset` on `/benchmarks` (creator Org, distribution → `latest.json` downloadURL, temporalCoverage, variableMeasured). `FAQPage` on `/ip-ai`, `/patents`, `/trademarks` + 20 glossary terms (all Q&A visible). `DefinedTerm` on all glossary terms. `WebPage + BreadcrumbList` on all 33 static pages.
+- Still absent (correctly): `Person` (no author identity), `AggregateRating/Review` (no reviews), `sameAs` (no verified URLs).

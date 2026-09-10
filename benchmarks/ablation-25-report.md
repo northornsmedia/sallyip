@@ -1,6 +1,6 @@
 # Ablation-25 report — raw vs guarded on 22 NEW SYNTHETIC fabrications (+ 6 frozen refs = 28 total)
 
-Generated: 2026-09-10T07:26:34.649Z · Live model calls used: 0
+Generated: 2026-09-10T07:36:01.117Z · Live model calls used: 0
 Source: `benchmarks/ablation-25.json` (SYNTHETIC ONLY — hand-written injected fabrications, NOT model output).
 Frozen baseline referenced, not duplicated: SYN-GOOD-101, SYN-GOOD-102, SYN-FAB-112G, SYN-FAB-CASE, SYN-QUOTE-103, SYN-QUOTE-111 (see `benchmarks/ablation-report.md`: guards 4/4, substance 1/4).
 Evidence: fixed 5-passage fixture from `src/lib/ablation.js` ([S1] 101, [S2] 102, [S3] 103, [S4] 111, [S5] 111b). No DB, no retrieval, no model in the loop (unless live calibration enabled).

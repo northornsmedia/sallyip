@@ -31,3 +31,7 @@ Hubs ↔ workspaces ↔ compare ↔ benchmarks form a closed triangle; every clu
 
 ## Cannibalisation guard
 One primary keyword per URL (table above). `llms.txt` + compare page must reuse identical one-line description ("verification-first IP legal AI…") so agents quote consistently.
+
+## WAVE 2 STATUS (2026-09-10)
+- SHIPPED as static HTML: `/ip-ai`, `/patents`, `/trademarks` (authority hubs, ≥500 words, FAQ + benchmark evidence), `/copyright`, `/design-rights`, `/trade-secrets` (guidance-labeled, no product claims), `/benchmarks` + `/benchmarks/verification-methodology`, `/resources`, 20-term `/glossary/*`, 2 new compare pages. Generator: `scripts/generate-public-pages.mjs`.
+- Phase-2 clusters (15 pages) NOT started — hubs must index first. No thin pages created; validator enforces word floors.

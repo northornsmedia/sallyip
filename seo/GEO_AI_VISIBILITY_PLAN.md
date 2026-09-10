@@ -20,3 +20,6 @@ MISSING (blocks citations): only 2 crawlable URLs; all definitions/answers live 
 
 ## 30-day GEO backlog
 1. Prerender hubs as static HTML (else passages stay invisible). 2. Glossary `/glossary/*` with 10 definitions + Dataset/DefinedTerm markup. 3. Dates+changelog on every research page. 4. Publish one frozen eval CSV under `public/benchmarks/` + Dataset schema. 5. Keep one-line description byte-identical across llms.txt, head meta, compare intro, hubs.
+
+## WAVE 2 STATUS (2026-09-10) — items 1–4 closed, 5 holding
+1. DONE: 33 static pages, zero-JS answers (`npm run seo:pages`). 2. DONE: 20-term glossary with DefinedTerm + FAQPage. 3. DONE: visible "Last updated 2026-09-10" + datePublished/dateModified JSON-LD on all pages; benchmark changelog via run refs. 4. DONE as JSON: `public/benchmarks/latest.json` (6 runs, single-sourced) + Dataset schema. 5. PARTIAL: entity sentence consistent on home fallback, hubs, footer; `llms.txt` refresh to wave-2 scope deferred (needs scope-matrix wording — do not drift descriptions until then).

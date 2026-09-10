@@ -1,0 +1,26 @@
+{
+ "run_id": "56aedc0b-90dc-45a9-8d7c-54d8877851e7",
+ "suite": "adv-v1",
+ "model": "gemini-flash-lite-latest",
+ "failures": [
+  {
+   "id": "adv-contradict",
+   "expect": "correct-premise",
+   "verdict": "hallucinated",
+   "reason": "dangling citation, unverified quote, or banned phrase",
+   "telemetry": {
+    "evidence_count": 1,
+    "cited": [
+     1
+    ],
+    "dangling": [],
+    "quotes_checked": 1,
+    "missing_quotes": [
+     "provisionals are § 111(b), never § 111(a)... abandoned 12 months after filing if"
+    ],
+    "quotes_skipped": 0
+   },
+   "excerpt": "Your co-founder is incorrect. According to the provided sources, a provisional application is abandoned 12 months after filing if it is not converted [S1]. \n\nSpecifically, the source states:\n> \"provisionals are § 111(b), never § 111(a)... abandoned 12 months after filing if not converted\" [S1]."
+  }
+ ]
+}

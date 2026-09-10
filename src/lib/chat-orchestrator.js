@@ -25,6 +25,16 @@ function fallbackSuggestions(plan,route){
   return items.slice(0,4)
 }
 
+function siteUrlFor(env = {}, host) {
+  // P0-E: never trust Host header blindly. Prefer APP_ORIGIN; allow host only if allowlisted.
+  const configured = String(env.APP_ORIGIN || env.API_ORIGIN || '').trim().replace(/\/+$/, '');
+  if (configured) return configured;
+  const allow = String(env.SALLYIP_ALLOWED_HOSTS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+  const h = String(host || '').toLowerCase();
+  if (h && (allow.includes(h) || h === 'sallyip.com' || h.endsWith('.sallyip.com'))) return `https://${host}`;
+  return 'https://sallyip.com';
+}
+
 export async function orchestrateChat(sql,user,body,env){
   const messages=body.messages||[],latest=latestUser(messages),matter=await getMatterContext(sql,user.id,body.matter_id)
   const route=routeSpecialists(latest,{deepResearch:Boolean(body.deep_research),matterJurisdictions:matter?.matter?.jurisdictions||[]})
@@ -49,10 +59,10 @@ export async function orchestrateChat(sql,user,body,env){
         }
       }
     }catch(error){
-      const evidence=await retrieveHybridEvidence(sql,user.id,body.matter_id,latest,{limit:8,embeddingKey:env.OPENROUTER_EMBEDDING_API_KEY,embeddingModel:env.SALLYIP_EMBEDDING_MODEL})
+      const evidence=await retrieveHybridEvidence(sql,user.id,body.matter_id,latest,{limit:8,embeddingKey:env.OPENROUTER_EMBEDDING_API_KEY,embeddingModel:env.SALLYIP_EMBEDDING_MODEL,mode:env.SALLYIP_EXECUTION_MODE})
       const verification=verificationSummary(evidence,route)
       const contextMessage={role:'system',content:`SALLY TASK ROUTE\nTask: ${plan.task_class}\nSpecialists: ${route.specialists.join(', ')}\n\nAutomated workflow failed: ${error.message}\n\n${matterContextPrompt(matter)}\n\n${evidencePrompt(evidence)}\n\nProvide a helpful next-step answer. Explain what is missing, what Sally can still do in chat, and do not fabricate legal conclusions.`}
-      const result=await orchestrateSally([contextMessage,...messages],env,`https://${body.host||'sallyip.com'}`)
+      const result=await orchestrateSally([contextMessage,...messages],env,siteUrlFor(env,body.host))
       await recordSallyTelemetry(env.DATABASE_URL,result.meta).catch(()=>{})
       const guarded=finalizeVerifiedAnswer(`${result.answer}\n\n---\n**Automation note:** ${error.message}\n\n**Try next:**\n${fallbackSuggestions(plan,route).map(item=>`- ${item}`).join('\n')}`,evidence,verification,{highRisk:isHighRiskLegalRequest(route,latest),prompt:latest})
       return{
@@ -77,7 +87,7 @@ export async function orchestrateChat(sql,user,body,env){
     }
   }
 
-  const evidence=await retrieveHybridEvidence(sql,user.id,body.matter_id,latest,{limit:body.deep_research?14:8,embeddingKey:env.OPENROUTER_EMBEDDING_API_KEY,embeddingModel:env.SALLYIP_EMBEDDING_MODEL})
+  const evidence=await retrieveHybridEvidence(sql,user.id,body.matter_id,latest,{limit:body.deep_research?14:8,embeddingKey:env.OPENROUTER_EMBEDDING_API_KEY,embeddingModel:env.SALLYIP_EMBEDDING_MODEL,mode:env.SALLYIP_EXECUTION_MODE})
   const verification=verificationSummary(evidence,route)
   const revision=intent.revision&&artifact
   const documentRequest=intent.intent==='DRAFT_LEGAL_DOCUMENT'||intent.intent==='EDIT_DOCUMENT'||revision
@@ -89,7 +99,7 @@ export async function orchestrateChat(sql,user,body,env){
   }
   const suggestions=fallbackSuggestions(plan,route).map(item=>`- ${item}`).join('\n')
   const contextMessage={role:'system',content:`SALLY TASK ROUTE\nTask: ${plan.task_class}\nSpecialists: ${route.specialists.join(', ')}\nJurisdictions: ${route.jurisdictions.join(', ')||'unresolved'}\nResearch mode: ${body.deep_research?'deep':'quick'}\n\n${matterContextPrompt(matter)}\n\n${evidencePrompt(evidence)}\n\nCHAT-NATIVE LEGAL/IP ASSISTANT\n- Answer like a specialist legal/IP copilot in natural conversation.\n- Use matter brain sources when available; distinguish facts, retrieved passages, inference, and model knowledge.\n- When no automated workflow ran, still give practical analysis and suggest automations Sally can run next:\n${suggestions}\n- Do not fabricate official searches or verified citations.\n- Legal conclusions remain subject to lawyer review.`}
-  const result=await orchestrateSally([contextMessage,...requestMessages],env,`https://${body.host||'sallyip.com'}`)
+  const result=await orchestrateSally([contextMessage,...requestMessages],env,siteUrlFor(env,body.host))
   const [run]=await sql`INSERT INTO specialist_agent_runs(user_id,matter_id,conversation_id,task_class,specialists,jurisdictions,research_mode,source_basis,verification_status) VALUES(${user.id},${body.matter_id||null},${conversationId},${plan.task_class},${route.specialists},${route.jurisdictions},${body.deep_research?'deep':'quick'},${verification.source_basis},${verification.status}) RETURNING id`
   await recordSallyTelemetry(env.DATABASE_URL,result.meta).catch(()=>{})
   const guarded=finalizeVerifiedAnswer(result.answer,evidence,verification,{highRisk:isHighRiskLegalRequest(route,latest),prompt:latest})

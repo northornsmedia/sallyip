@@ -1,6 +1,6 @@
 {
   "probe": "legalbench-probe v1",
-  "ran_at": "2026-09-10T07:08:58.350Z",
+  "ran_at": "2026-09-10T07:36:05.421Z",
   "benchmark": {
     "name": "Stanford LegalBench",
     "repo": "https://github.com/HazyResearch/legalbench",
@@ -271,7 +271,7 @@
       "pred": "supported",
       "pass": true,
       "signals": {
-        "verifyQuote": "fuzzy",
+        "verifyQuote": "exact",
         "note": "case/punctuation-normalized match"
       },
       "provenance": "public-domain statute passage (35 U.S.C.) + probe-written quotes",

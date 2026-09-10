@@ -3,8 +3,8 @@
 Specialist inputs: SEO_TECHNICAL_AUDIT, SEO_CONTENT_MAP, GEO_AI_VISIBILITY_PLAN, SCHEMA_ENTITY_AUDIT, COMPETITOR_SEARCH_GAPS, BENCHMARK_CONTENT_STRATEGY. Log: IMPLEMENTATION_LOG.
 
 ## 1. Scores
-- **SEO health: 46/100.** Crawlable surface is 2 URLs (hash-router SPA); head/meta fixed today but body still patent-training flavored; 688 kB JS; sitemap/robots/404/alts/schema now correct. Indexation + rendering + content depth are the missing 54.
-- **GEO/AI visibility: 52/100.** llms.txt + honest compare + open bench methods are real assets; entity graph + crawler allows added today. But answers live in JS chat, no glossary/datasets/dates at scale — answer engines have little to cite yet.
+- **SEO health: 46/100 → 77/100 (wave 2, 2026-09-10).** Rubric + deltas: `seo/WAVE2_REPORT.md`. Biggest mover: crawlable surface 2→34 URLs (+13). No points for the 689→672 kB rebuild variance.
+- **GEO/AI visibility: 52/100 → 76/100 readiness (wave 2).** Observed AI citations: none yet (earned, not built). Research-assets line scored DOWN 8→6 on honest re-check (repo datasets are not web-accessible; only latest.json is).
 
 ## 2. Critical blockers (CRITICAL)
 - C1 Hash-router: app content uncrawlable. Migrate public pages to static history routes + prerender.
