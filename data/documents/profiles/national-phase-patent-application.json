@@ -1,0 +1,201 @@
+{
+  "id": "national-phase-patent-application",
+  "slug": "national-phase-patent-application",
+  "name": "National Phase Patent Application",
+  "document_number": "007",
+  "aliases": [
+    "national phase patent application",
+    "national phase application",
+    "prepare a national phase application",
+    "enter national phase",
+    "enter the us national phase",
+    "enter europe from this pct",
+    "prepare national phase from pct",
+    "nationalise this pct application",
+    "prepare pct national phase filing",
+    "enter india from this pct",
+    "prepare canadian national phase",
+    "prepare australian national phase",
+    "pct national phase",
+    "regional phase application",
+    "ep regional phase"
+  ],
+  "category": "IP_INNOVATION",
+  "subcategory": "PATENT",
+  "document_family": "NATIONAL_PHASE_PATENT_APPLICATION",
+  "family": "NATIONAL_PHASE_PATENT_APPLICATION",
+  "practice_areas": ["patent_prosecution", "national_phase_entry", "pct_filings", "international_patent_law"],
+  "description": "A canonical National/Regional Phase Patent Application entered from a prior PCT International Application under PCT Articles 22 or 39(1) and applicable national/regional patent laws.",
+  "status": "BETA",
+  "capability_level": "L3_DRAFTABLE",
+  "risk_level": "HIGH",
+  "jurisdiction_type": "TARGET_JURISDICTION_REQUIRED",
+  "source_application_type": "PCT_APPLICATION",
+  "authority": "NATIONAL_AND_REGIONAL_OFFICES",
+  "jurisdiction_notes": "Requirements, deadlines, claim adaptation rules, and formalities vary strictly by target jurisdiction. Operates in the NATIONAL/REGIONAL PHASE following the PCT international phase. Supported primary jurisdictions include US (USPTO under 35 U.S.C. § 371), EPO/EP (European Patent Office under Rule 159 EPC), UK (UKIPO), CA (CIPO), AU (IP Australia), and IN (Indian Patent Office).",
+  "supported_jurisdictions": [
+    { "code": "US", "office": "USPTO", "status": "L3_DRAFTABLE", "rule": "35 U.S.C. § 371 / 37 C.F.R. § 1.495", "deadline_months": 30 },
+    { "code": "EPO", "office": "EPO", "status": "L3_DRAFTABLE", "rule": "Rule 159(1) EPC", "deadline_months": 31, "is_regional": true },
+    { "code": "UK", "office": "UKIPO", "status": "L3_DRAFTABLE", "rule": "Section 89 Patents Act 1977 / Rule 66", "deadline_months": 31 },
+    { "code": "CA", "office": "CIPO", "status": "L2_STRUCTURED", "rule": "Section 27.1 Patent Act / Rule 154", "deadline_months": 30, "late_entry_months": 42 },
+    { "code": "AU", "office": "IP Australia", "status": "L2_STRUCTURED", "rule": "Section 29A Patents Act 1990 / Reg 8.2", "deadline_months": 31 },
+    { "code": "IN", "office": "Indian Patent Office", "status": "L3_DRAFTABLE", "rule": "Section 39 / Rule 20 Patents Rules 2003", "deadline_months": 31 }
+  ],
+  "governing_law_required": true,
+  "forum_required": false,
+  "party_roles": ["applicant", "inventor", "national_agent"],
+  "review_required": true,
+  "verification_required": true,
+  "interview_mode": "ONE_QUESTION_AT_A_TIME",
+  "drafting_status_default": "INFORMATION_GATHERING",
+  "readiness_levels": ["NOT_READY", "PARTIALLY_READY", "READY_FOR_DRAFT", "READY_FOR_ATTORNEY_REVIEW", "FILING_READINESS_UNVERIFIED"],
+  "provenance_states": [
+    "PCT_SOURCE",
+    "USER_PROVIDED",
+    "MATTER_CONTEXT",
+    "AUTHORITY_SOURCE",
+    "AI_PROPOSED",
+    "USER_EDITED",
+    "VERIFIED",
+    "UNVERIFIED",
+    "PLACEHOLDER"
+  ],
+  "required_inputs": [
+    {
+      "id": "target_jurisdiction",
+      "label": "Target Country or Regional Office",
+      "type": "select",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "options": ["US", "EPO", "UK", "CA", "AU", "IN", "OTHER"],
+      "description": "Country or regional patent office for national/regional phase entry"
+    },
+    {
+      "id": "pct_number",
+      "label": "PCT International Application Number",
+      "type": "text",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "PCT application number (e.g., PCT/US2024/012345)"
+    },
+    {
+      "id": "priority_date",
+      "label": "Earliest Priority Date / International Filing Date",
+      "type": "date",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Filing date of earliest priority claim or international filing date"
+    },
+    {
+      "id": "claim_set_source",
+      "label": "Basis of National Phase Claim Set",
+      "type": "select",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "options": ["PCT_AS_FILED", "ARTICLE_19_AMENDED", "ARTICLE_34_AMENDED", "USER_PROVIDED_SET"],
+      "description": "Operating claim set version to be adapted for national entry"
+    }
+  ],
+  "optional_inputs": [
+    {
+      "id": "international_filing_date",
+      "label": "International Filing Date",
+      "type": "date",
+      "input_class": "RECOMMENDED_BEFORE_DRAFT"
+    },
+    {
+      "id": "pct_publication_number",
+      "label": "PCT Publication Number",
+      "type": "text",
+      "input_class": "RECOMMENDED_BEFORE_DRAFT"
+    },
+    {
+      "id": "applicants",
+      "label": "National Phase Applicant(s)",
+      "type": "json_array",
+      "input_class": "RECOMMENDED_BEFORE_DRAFT"
+    },
+    {
+      "id": "inventors",
+      "label": "Inventors",
+      "type": "json_array",
+      "input_class": "RECOMMENDED_BEFORE_DRAFT"
+    },
+    {
+      "id": "ownership_changes",
+      "label": "Post-Filing Ownership Changes or Assignments",
+      "type": "textarea",
+      "input_class": "OPTIONAL"
+    },
+    {
+      "id": "translation_status",
+      "label": "Translation Status",
+      "type": "select",
+      "input_class": "OPTIONAL",
+      "options": ["NOT_REQUIRED", "AVAILABLE", "PARTIAL", "MISSING", "REVIEW_REQUIRED"]
+    },
+    {
+      "id": "isr_objections",
+      "label": "International Search Report / Written Opinion Objections",
+      "type": "textarea",
+      "input_class": "OPTIONAL"
+    }
+  ],
+  "sections": [
+    {
+      "key": "bibliographic_data",
+      "heading": "National Phase Bibliographic & Filing Data",
+      "required": true,
+      "order": 1
+    },
+    {
+      "key": "priority_chain",
+      "heading": "Priority Chain & Source PCT Details",
+      "required": true,
+      "order": 2
+    },
+    {
+      "key": "adapted_specification",
+      "heading": "Adapted Technical Specification",
+      "required": true,
+      "order": 3
+    },
+    {
+      "key": "adapted_claims",
+      "heading": "National Phase Adapted Claims",
+      "required": true,
+      "order": 4
+    },
+    {
+      "key": "claim_difference_report",
+      "heading": "Claim Adaptation & Difference Report",
+      "required": true,
+      "order": 5
+    },
+    {
+      "key": "abstract",
+      "heading": "Abstract",
+      "required": true,
+      "order": 6
+    },
+    {
+      "key": "formal_checklist",
+      "heading": "Jurisdiction Formalities & Document Checklist",
+      "required": true,
+      "order": 7
+    },
+    {
+      "key": "translation_record",
+      "heading": "Language & Translation Record",
+      "required": false,
+      "order": 8
+    }
+  ],
+  "review_flags": [
+    "ADDED_SUBJECT_MATTER_REVIEW_REQUIRED",
+    "LATE_ENTRY_OR_REINSTATEMENT_REVIEW_REQUIRED",
+    "OWNERSHIP_CHAIN_REVIEW_REQUIRED",
+    "TRANSLATION_REVIEW_REQUIRED",
+    "INTERNATIONAL_SEARCH_OPINION_REVIEW_REQUIRED",
+    "JURISDICTION_RESEARCH_REQUIRED",
+    "EXCESS_CLAIM_FEE_REVIEW_REQUIRED",
+    "MULTIPLE_DEPENDENT_CLAIM_REVIEW_REQUIRED",
+    "LOCAL_AGENT_APPOINTMENT_REQUIRED"
+  ]
+}

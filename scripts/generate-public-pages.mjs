@@ -58,7 +58,7 @@ write('glossary', page(withOg('glossary', {
   h1: 'Definitions that do work', intro: 'Twenty terms, answered immediately and linked to the workflow each belongs to. No filler, no hype.',
   body: `<div class="grid">${cards}</div><p><a href="${SITE_URL}ip-ai/">IP AI hub</a> · <a href="${SITE_URL}resources/">All resources</a></p>`,
   extraSchema: [breadcrumbJson([['Home', '/'], ['Glossary', null]])],
-}));
+})));
 
 // Glossary terms (with related definitions from the same hub group for substance + navigation)
 const hubOf = (slug) => slug.startsWith('trademark') || slug === 'likelihood-of-confusion' ? '/trademarks/' : slug === 'copyright' || slug === 'trade-secret' ? `/${slug === 'copyright' ? 'copyright' : 'trade-secrets'}/` : slug === 'citation-verification' || slug === 'legal-ai-hallucination' || slug === 'verification-first-ai' || slug === 'intellectual-property-ai' ? '/ip-ai/' : '/patents/';

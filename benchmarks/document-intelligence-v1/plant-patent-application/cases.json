@@ -1,0 +1,211 @@
+{
+  "benchmark_id": "doc-intel-v1-plant-patent-application",
+  "document_id": "plant-patent-application",
+  "document_number": "005",
+  "name": "Plant Patent Application Intelligence Benchmark",
+  "version": "1.0.0",
+  "created_at": "2026-09-10T18:05:00Z",
+  "cases": [
+    {
+      "id": "CASE-01-NEW-ROSE-CULTIVAR",
+      "title": "New Hybrid Tea Rose Cultivar",
+      "inputs": {
+        "cultivar_name": "Autumn Velvet",
+        "botanical_name": "Rosa hybrida",
+        "origin": "Controlled pollination breeding programme",
+        "parentage": "Seed parent 'Red Radiance', pollen parent 'Peace'",
+        "asexual_reproduction": "Propagated by stem cuttings in Tyler, Texas, with 4 successive generations remaining true to type.",
+        "distinctive_characteristics": "Deep velvety crimson petals with high-centred flower form, continuous repeat blooming, and spicy damask fragrance."
+      },
+      "expected": {
+        "readiness": "READY_FOR_FIRST_DRAFT",
+        "origin_type": "HYBRID",
+        "reproduction_verified": true
+      }
+    },
+    {
+      "id": "CASE-02-FRUIT-TREE",
+      "title": "Dwarf Sweet Cherry Tree",
+      "inputs": {
+        "cultivar_name": "Sweet Compact",
+        "botanical_name": "Prunus avium",
+        "origin": "Spontaneous limb sport on 'Bing' cherry tree in Yakima, Washington",
+        "asexual_reproduction": "Asexually reproduced by chip budding onto Gisela 5 rootstock across 3 generations true to type.",
+        "distinctive_characteristics": "Compact internode length resulting in 40% reduced tree height with large mahogany-red fruit of 22 Brix soluble solids."
+      },
+      "expected": {
+        "readiness": "READY_FOR_FIRST_DRAFT",
+        "origin_type": "SPORT"
+      }
+    },
+    {
+      "id": "CASE-03-ORNAMENTAL-PLANT",
+      "title": "Variegated Monstera Variety",
+      "inputs": {
+        "cultivar_name": "White Constellation",
+        "botanical_name": "Monstera deliciosa",
+        "origin": "Somaclonal tissue culture variant selected in nursery",
+        "asexual_reproduction": "Propagated by apical stem cuttings in Apopka, Florida, true to type for 3 vegetative cycles.",
+        "distinctive_characteristics": "Stable sectoral and speckled creamy-white variegation covering 30-50% of fenestrated mature lamina."
+      },
+      "expected": {
+        "readiness": "READY_FOR_FIRST_DRAFT",
+        "origin_type": "TISSUE_CULTURE_DERIVED"
+      }
+    },
+    {
+      "id": "CASE-04-SPORT-MUTATION",
+      "title": "Yellow Flowering Peach Sport",
+      "inputs": {
+        "cultivar_name": "Golden Glow",
+        "botanical_name": "Prunus persica",
+        "origin": "Bud sport observed on a single branch of 'Red Haven' peach",
+        "asexual_reproduction": "Reproduced by T-budding onto Nemaguard rootstock, maintaining golden-yellow skin colour."
+      },
+      "expected": {
+        "origin_type": "SPORT"
+      }
+    },
+    {
+      "id": "CASE-05-HYBRID-ORIGIN",
+      "title": "Interspecific Clematis Hybrid",
+      "inputs": {
+        "cultivar_name": "Sapphire Night",
+        "botanical_name": "Clematis patens x Clematis integrifolia",
+        "origin": "Bred by cross-pollination",
+        "parentage": "Female parent 'The President', male parent 'Rooguchi'"
+      },
+      "expected": {
+        "origin_type": "HYBRID"
+      }
+    },
+    {
+      "id": "CASE-06-KNOWN-PARENTAGE",
+      "title": "Known Pedigree Orchid",
+      "inputs": {
+        "cultivar_name": "Sunset Delight",
+        "botanical_name": "Phalaenopsis hybrida",
+        "parentage": "Phalaenopsis 'Golden Peony' x Phalaenopsis 'Purple Gem'"
+      },
+      "expected": {
+        "parentage_captured": true
+      }
+    },
+    {
+      "id": "CASE-07-UNKNOWN-PARENTAGE",
+      "title": "Chance Seedling with Unknown Male Parent",
+      "inputs": {
+        "cultivar_name": "Mystery Blush",
+        "botanical_name": "Hydrangea macrophylla",
+        "origin": "Chance open-pollinated seedling in nursery container",
+        "parentage": "Seed parent 'Nikko Blue', pollen parent unknown"
+      },
+      "expected": {
+        "parentage_unknown_handled": true
+      }
+    },
+    {
+      "id": "CASE-08-ASEXUAL-REPRODUCTION",
+      "title": "Confirmed Propagation from Softwood Cuttings",
+      "inputs": {
+        "cultivar_name": "Ruby Carpet",
+        "botanical_name": "Sedum spurium",
+        "asexual_reproduction": "Softwood stem cuttings rooted under mist in greenhouse, 5 generations verified true to type."
+      },
+      "expected": {
+        "reproduction_confirmed": true,
+        "method": "softwood stem cuttings"
+      }
+    },
+    {
+      "id": "CASE-09-INSUFFICIENT-REPRODUCTION-INFO",
+      "title": "Unpropagated Seedling",
+      "inputs": {
+        "cultivar_name": "New Wonder",
+        "botanical_name": "Echinacea purpurea",
+        "asexual_reproduction": "We haven't propagated it yet."
+      },
+      "expected": {
+        "flag": "ASEXUAL_REPRODUCTION_INFORMATION_REQUIRED",
+        "blocked_from_draft": true
+      }
+    },
+    {
+      "id": "CASE-10-COLOUR-DESCRIPTION",
+      "title": "Descriptive Colour Without Fabricated RHS",
+      "inputs": {
+        "cultivar_name": "Purple Haze",
+        "botanical_name": "Lavandula angustifolia",
+        "colour_input": "The petals are rich royal purple, but I don't have an RHS colour chart reading."
+      },
+      "expected": {
+        "stored_descriptive": true,
+        "no_invented_rhs": true
+      }
+    },
+    {
+      "id": "CASE-11-COMPARATOR-VARIETY",
+      "title": "Specific Comparator Comparison",
+      "inputs": {
+        "cultivar_name": "Giant Ruby",
+        "botanical_name": "Begonia x tuberhybrida",
+        "closest_variety": "It looks similar to cultivar 'Nonstop Red' but has 30% larger double flowers and darker bronze foliage."
+      },
+      "expected": {
+        "comparator": "Nonstop Red",
+        "difference_captured": true
+      }
+    },
+    {
+      "id": "CASE-12-PUBLIC-SALE",
+      "title": "Commercial Release Four Months Prior",
+      "inputs": {
+        "cultivar_name": "Sunrise Gold",
+        "botanical_name": "Chrysanthemum morifolium",
+        "disclosure": "We started commercially selling containerized plants 4 months ago at regional garden centres."
+      },
+      "expected": {
+        "flag": "DISCLOSURE_REVIEW_REQUIRED",
+        "rights_lost_concluded": false
+      }
+    },
+    {
+      "id": "CASE-13-EXISTING-MATTER",
+      "title": "Matter Context Pre-Population for Plant",
+      "matter_context": {
+        "matter": {
+          "title": "Emerald Tower",
+          "client_name": "Monrovia Nursery Co.",
+          "jurisdictions": ["US"]
+        },
+        "facts": [
+          { "fact_type": "botanical_name", "value": "Thuja occidentalis", "confidence": 0.95 },
+          { "fact_type": "inventor", "value": "Robert Green", "confidence": 0.9 }
+        ]
+      },
+      "expected": {
+        "skipped_fields": ["cultivar_name", "botanical_name", "inventors", "applicant"]
+      }
+    },
+    {
+      "id": "CASE-14-IMAGE-SUPPORTED-DESCRIPTION",
+      "title": "Photograph Ingestion with Provenance",
+      "inputs": {
+        "photo_description": "Colour photo showing upright columnar growth habit and dense emerald-green foliage"
+      },
+      "expected": {
+        "provenance": "SOURCE_IMAGE",
+        "no_unsupported_inferences": true
+      }
+    },
+    {
+      "id": "CASE-15-AMBIGUOUS-PLANT-RIGHT-REQUEST",
+      "title": "European Plant Breeders' Rights Request",
+      "prompt": "I want to register plant breeders' rights in Europe for my new tomato variety.",
+      "expected": {
+        "flag": "PLANT_VARIETY_RIGHTS_DISTINCTION_REQUIRED",
+        "reroute_or_clarify": true
+      }
+    }
+  ]
+}

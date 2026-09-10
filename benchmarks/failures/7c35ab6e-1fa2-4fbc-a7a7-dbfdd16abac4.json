@@ -1,0 +1,29 @@
+{
+ "run_id": "7c35ab6e-1fa2-4fbc-a7a7-dbfdd16abac4",
+ "suite": "adv-v1",
+ "model": "gemini-flash-lite-latest",
+ "failures": [
+  {
+   "id": "adv-contradict",
+   "expect": "correct-premise",
+   "verdict": "hallucinated",
+   "reason": "dangling citation, unverified quote, or banned phrase",
+   "telemetry": {
+    "evidence_count": 1,
+    "cited": [
+     1
+    ],
+    "dangling": [],
+    "quotes_checked": 1,
+    "missing_quotes": [
+     "[Provisional applications are] abandoned 12 months after filing if not converted"
+    ],
+    "quotes_skipped": 0
+   },
+   "excerpt": "Based on the provided source, your co-founder is incorrect. A provisional application is abandoned 12 months after filing if it is not converted [S1]. \n\nSpecifically, the sources state: \n* \"[Provisional applications are] abandoned 12 months after filing if not converted\" [S1].",
+   "answering_model": "gemini-flash-lite-latest",
+   "primary_error": null,
+   "retries": 0
+  }
+ ]
+}

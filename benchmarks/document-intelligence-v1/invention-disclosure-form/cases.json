@@ -1,0 +1,400 @@
+{
+  "$schema": "https://sallyip.com/schemas/document-benchmark-v1.json",
+  "document_id": "invention-disclosure-form",
+  "document_number": "013",
+  "name": "Invention Disclosure Form Benchmark Suite v1",
+  "version": "1.0.0",
+  "benchmark_type": "SYNTHETIC_EVALUATION",
+  "total_cases": 34,
+  "cases": [
+    {
+      "id": "CASE-01-NEW-INVENTION-DISCLOSURE",
+      "title": "Initial Invention Disclosure Request (One-Question Mode)",
+      "inputs": {
+        "user_message": "Help me complete an invention disclosure."
+      },
+      "expected": {
+        "action": "ASK_QUESTION",
+        "question_count": 1,
+        "first_field": "problem_need",
+        "immediate_draft": false
+      }
+    },
+    {
+      "id": "CASE-02-EXISTING-MATTER-DISCLOSURE",
+      "title": "Existing Matter Context Skips Known Facts",
+      "inputs": {
+        "matter_facts": {
+          "title": "Self-Calibrating Acoustic Resonator",
+          "inventors": ["Dr. Elena Rostova", "Marcus Chen"],
+          "technical_disclosure": "Piezoelectric resonator with closed-loop phase-locked frequency tracking",
+          "prototype_notes": "Breadboard prototype built in Q2 2024"
+        }
+      },
+      "expected": {
+        "known_fields": ["invention_title", "potential_inventors", "technical_description", "development_status"],
+        "reask_known_facts": false
+      }
+    },
+    {
+      "id": "CASE-03-VAGUE-IDEA",
+      "title": "Vague Concept Follow-Up Without Fabricating Technical Details",
+      "inputs": {
+        "user_message": "It's an AI tool for legal work."
+      },
+      "expected": {
+        "action": "ASK_QUESTION",
+        "review_flag": "CII_ELIGIBILITY_REVIEW_REQUIRED",
+        "domain": "AI_ML"
+      }
+    },
+    {
+      "id": "CASE-04-SOFTWARE-INVENTION",
+      "title": "Software Branch Identification and Architecture Inquiry",
+      "inputs": {
+        "title": "Distributed Hash Ring Load Balancer",
+        "user_message": "A microservice cloud algorithm for request distribution across ephemeral containers."
+      },
+      "expected": {
+        "domain": "SOFTWARE",
+        "review_flag": "CII_ELIGIBILITY_REVIEW_REQUIRED"
+      }
+    },
+    {
+      "id": "CASE-05-AI-INVENTION",
+      "title": "AI/ML Branch Identification and Technical Effect Focus",
+      "inputs": {
+        "title": "Convolutional Neural Network for Seismic Fault Detection",
+        "user_message": "Deep learning model processing acoustic impedance cubes to locate structural breaks."
+      },
+      "expected": {
+        "domain": "AI_ML",
+        "review_flag": "CII_ELIGIBILITY_REVIEW_REQUIRED"
+      }
+    },
+    {
+      "id": "CASE-06-MECHANICAL-INVENTION",
+      "title": "Mechanical Branch Component Capture",
+      "inputs": {
+        "title": "High-Torque Planetary Gearbox with Torsional Vibration Damping",
+        "user_message": "Planetary gear carrier with integrated elastomer bushings on the planet pins."
+      },
+      "expected": {
+        "domain": "MECHANICAL"
+      }
+    },
+    {
+      "id": "CASE-07-ELECTRONICS-INVENTION",
+      "title": "Electronics Branch Circuit Topology Capture",
+      "inputs": {
+        "title": "Low-Noise Chopper Differential Amplifier",
+        "user_message": "Chopper-stabilized amplifier with capacitive feedback network."
+      },
+      "expected": {
+        "domain": "ELECTRONICS"
+      }
+    },
+    {
+      "id": "CASE-08-CHEMICAL-INVENTION",
+      "title": "Chemical Composition Branch with Specialist Review Flag",
+      "inputs": {
+        "title": "High-Temperature Polyamide Polymer Composition",
+        "user_message": "A blend of 50 wt% semi-aromatic polyamide, 30 wt% glass fiber, and silane crosslinker."
+      },
+      "expected": {
+        "domain": "CHEMICAL",
+        "review_flag": "SPECIALIST_REVIEW_REQUIRED"
+      }
+    },
+    {
+      "id": "CASE-09-BIOTECH-INVENTION",
+      "title": "Biotechnology Branch with Specialist Review Flag",
+      "inputs": {
+        "title": "Engineered Single-Guide RNA for Selective Cleavage",
+        "user_message": "Modified 20-nucleotide CRISPR guide RNA with 2'-O-methyl phosphorothioate backbones."
+      },
+      "expected": {
+        "domain": "BIOTECH",
+        "review_flag": "SPECIALIST_REVIEW_REQUIRED"
+      }
+    },
+    {
+      "id": "CASE-10-MEDICAL-DEVICE",
+      "title": "Medical Device Branch",
+      "inputs": {
+        "title": "Steerable Micro-Catheter with Pressure Transducer",
+        "user_message": "Vascular catheter with distal fiber-optic pressure sensor and braided torque shaft."
+      },
+      "expected": {
+        "domain": "MEDICAL_DEVICE"
+      }
+    },
+    {
+      "id": "CASE-11-OPTIONAL-FEATURE",
+      "title": "Classification of Feature as Optional Rather Than Essential",
+      "inputs": {
+        "user_message": "The camera is only one possible implementation."
+      },
+      "expected": {
+        "feature_name": "camera",
+        "classification": "OPTIONAL"
+      }
+    },
+    {
+      "id": "CASE-12-MULTIPLE-EMBODIMENTS",
+      "title": "Capture of Distinct Alternative Embodiments",
+      "inputs": {
+        "user_message": "The system can process locally or on a remote server."
+      },
+      "expected": {
+        "embodiment_count": 2,
+        "has_local": true,
+        "has_remote": true
+      }
+    },
+    {
+      "id": "CASE-13-NO-PROTOTYPE",
+      "title": "Accurate Conception-Only Status Without Fabricated Hardware",
+      "inputs": {
+        "user_message": "This is purely conceptual at this stage; no prototype has been designed."
+      },
+      "expected": {
+        "development_status": "CONCEPT_ONLY"
+      }
+    },
+    {
+      "id": "CASE-14-PROTOTYPE-AVAILABLE",
+      "title": "Working Prototype Status Recorded",
+      "inputs": {
+        "matter_facts": {
+          "prototype_notes": "Fully functional PCB rev B tested under nominal 3.3V load."
+        }
+      },
+      "expected": {
+        "development_status": "PROTOTYPE"
+      }
+    },
+    {
+      "id": "CASE-15-EXPERIMENTAL-DATA",
+      "title": "Observed Test Results Stored Without Fabrication",
+      "inputs": {
+        "test_results": "Reduced peak latency from 120ms to 42ms in 10,000-request benchmark."
+      },
+      "expected": {
+        "experimental_data_status": "VERIFIED_OBSERVATION"
+      }
+    },
+    {
+      "id": "CASE-16-NO-EXPERIMENTAL-DATA",
+      "title": "Untested Concept Correctly Avoids Fabricating Metrics",
+      "inputs": {
+        "user_message": "We have not tested it yet."
+      },
+      "expected": {
+        "experimental_data_status": "NOT_TESTED"
+      }
+    },
+    {
+      "id": "CASE-17-SINGLE-INVENTOR",
+      "title": "Single Inventor Technical Contribution",
+      "inputs": {
+        "inventor": { "name": "Sarah Jenkins", "contribution": "Conceived and built entire optical assembly" }
+      },
+      "expected": {
+        "inventor_count": 1
+      }
+    },
+    {
+      "id": "CASE-18-MULTIPLE-CONTRIBUTORS",
+      "title": "Multiple Contributors with Distinct Feature Contributions",
+      "inputs": {
+        "contributors": [
+          { "name": "Alice Wu", "feature": "RF Front-End Design" },
+          { "name": "Bob Taylor", "feature": "Embedded Firmware State Machine" }
+        ]
+      },
+      "expected": {
+        "contributor_count": 2
+      }
+    },
+    {
+      "id": "CASE-19-MANAGEMENT-NON-INVENTIVE",
+      "title": "Separation of Management/Funding from Inventive Contributions",
+      "inputs": {
+        "user_message": "Our CEO approved the project and the engineer designed the algorithm."
+      },
+      "expected": {
+        "ceo_inventive": false,
+        "engineer_inventive": true,
+        "review_flag": "INVENTORSHIP_REVIEW_REQUIRED"
+      }
+    },
+    {
+      "id": "CASE-20-CONTRACTOR-COLLABORATOR",
+      "title": "Contractor Relationship Flags Ownership Review",
+      "inputs": {
+        "user_message": "The engineer works for Company A as an independent contractor."
+      },
+      "expected": {
+        "review_flag": "OWNERSHIP_REVIEW_REQUIRED"
+      }
+    },
+    {
+      "id": "CASE-21-PUBLIC-DISCLOSURE",
+      "title": "Public Conference Demonstration Flags Disclosure Review",
+      "inputs": {
+        "user_message": "We demonstrated it at a conference three months ago."
+      },
+      "expected": {
+        "review_flag": "DISCLOSURE_REVIEW_REQUIRED",
+        "confidential": false
+      }
+    },
+    {
+      "id": "CASE-22-NDA-DISCLOSURE",
+      "title": "Confidential Disclosure Under NDA",
+      "inputs": {
+        "user_message": "We showed it to a manufacturer under an NDA."
+      },
+      "expected": {
+        "confidential": true,
+        "type": "EXTERNAL_CONFIDENTIAL_DISCLOSURE"
+      }
+    },
+    {
+      "id": "CASE-23-PRIOR-PATENT-FILING",
+      "title": "Earlier Provisional Application Capture",
+      "inputs": {
+        "user_message": "We filed a provisional before this."
+      },
+      "expected": {
+        "has_earlier_filings": true,
+        "filing_type": "US_PROVISIONAL"
+      }
+    },
+    {
+      "id": "CASE-24-MULTIPLE-DISCLOSURE-EVENTS",
+      "title": "Chronological Tracking of Multiple Disclosure Events",
+      "inputs": {
+        "events": [
+          { "type": "INTERNAL_DEMO", "date": "2024-01-15" },
+          { "type": "PUBLIC_CONFERENCE", "date": "2024-05-20" }
+        ]
+      },
+      "expected": {
+        "event_count": 2
+      }
+    },
+    {
+      "id": "CASE-25-KNOWN-PRIOR-ART",
+      "title": "Inventor-Identified References Recorded Without Legal Novelty Conclusion",
+      "inputs": {
+        "references": ["US Patent 9,876,543", "IEEE Transactions paper on mesh routing"]
+      },
+      "expected": {
+        "reference_count": 2
+      }
+    },
+    {
+      "id": "CASE-26-SOURCE-CONFLICT",
+      "title": "Detection of Numerical Conflict Between User Statement and Spec Document",
+      "inputs": {
+        "statement": "The prototype uses three sensors.",
+        "document": "The prototype architecture incorporates two sensors connected to ADC."
+      },
+      "expected": {
+        "has_conflict": true,
+        "review_flag": "SOURCE_CONFLICT"
+      }
+    },
+    {
+      "id": "CASE-27-IMAGE-SUPPORTED-DISCLOSURE",
+      "title": "Safe Image Analysis Capturing Only Visible Features",
+      "inputs": {
+        "attachment": "device_enclosure_photo.png"
+      },
+      "expected": {
+        "internal_inferences_rejected": true,
+        "provenance": "SOURCE_IMAGE"
+      }
+    },
+    {
+      "id": "CASE-28-UNKNOWN-ANSWERS",
+      "title": "Preservation of Unknown Operating Parameters Without Guessing",
+      "inputs": {
+        "user_message": "unknown"
+      },
+      "expected": {
+        "stored_value": "UNKNOWN"
+      }
+    },
+    {
+      "id": "CASE-29-SKIP-BEHAVIOUR",
+      "title": "Skip Command Advances Cleanly to Next Question",
+      "inputs": {
+        "user_message": "skip"
+      },
+      "expected": {
+        "action": "ASK_QUESTION"
+      }
+    },
+    {
+      "id": "CASE-30-DOWNSTREAM-PROVISIONAL-HANDOFF",
+      "title": "Direct Handoff to Provisional Patent Application (Document #002)",
+      "inputs": {
+        "target_workflow": "provisional-patent-application"
+      },
+      "expected": {
+        "target_workflow": "provisional-patent-application",
+        "document_number": "002",
+        "ready_for_drafting": true
+      }
+    },
+    {
+      "id": "CASE-31-DOWNSTREAM-CLAIMS-HANDOFF",
+      "title": "Handoff to Patent Claims Set (Document #010)",
+      "inputs": {
+        "target_workflow": "patent-claims-set"
+      },
+      "expected": {
+        "target_workflow": "patent-claims-set",
+        "document_number": "010",
+        "ready_for_drafting": true
+      }
+    },
+    {
+      "id": "CASE-32-CHANGE-IMPACT",
+      "title": "Technical Fact Modification Flags Downstream Document Review",
+      "inputs": {
+        "old_facts": { "technical_description": "A single acoustic sensor." },
+        "new_facts": { "technical_description": "Two acoustic sensors operating in differential phase mode." }
+      },
+      "expected": {
+        "has_impact": true,
+        "review_flag": "DOWNSTREAM_DOCUMENT_REVIEW_REQUIRED"
+      }
+    },
+    {
+      "id": "CASE-33-VERSIONING",
+      "title": "New Disclosure Version Preserves Prior History Immutably",
+      "inputs": {
+        "edit_note": "Added remote server embodiment"
+      },
+      "expected": {
+        "version": "v2",
+        "history_length": 2
+      }
+    },
+    {
+      "id": "CASE-34-LOCKED-FIELDS",
+      "title": "User-Locked Fields Remain Protected from Modification",
+      "inputs": {
+        "locked_fields": { "potential_inventors": true },
+        "new_inventor_message": "Add Dave to inventors"
+      },
+      "expected": {
+        "inventors_locked": true
+      }
+    }
+  ]
+}

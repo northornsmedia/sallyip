@@ -1,0 +1,29 @@
+{
+  "version": "1.0",
+  "date": "2026-09-10",
+  "total_cases": 40,
+  "pilot": true,
+  "distribution": {
+    "A": 10,
+    "B": 10,
+    "C": 5,
+    "D": 5,
+    "E": 4,
+    "F": 3,
+    "G": 3
+  },
+  "sources": {
+    "benchmarks/v1.0": "Legal reasoning (A), Grounding (B)",
+    "benchmarks/hallucination-100.mjs": "Grounding/fabrication (B)",
+    "benchmarks/failures": "Quote failures, fabrication (B)",
+    "eval_scorecard_sample_25.md": "Legal reasoning (A)",
+    "scripts/legalbench-probe.mjs": "Legal reasoning (A), Grounding (B)",
+    "scripts/ablation-bench.mjs": "Grounding (B)",
+    "tests/*.integration.mjs": "Tool use (C)",
+    "database/043_contracts.sql": "Drafting (D)",
+    "src/lib/verification-service.js": "Grounding (B), Tool use (C)",
+    "src/lib/contradiction-service.js": "Grounding (B)",
+    "src/lib/temporal-service.js": "Grounding (B)",
+    "src/lib/contract-service.js": "Drafting (D)"
+  }
+}

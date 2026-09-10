@@ -1,0 +1,12 @@
+{
+  "failure_id": "VALIDATION_GAP_004",
+  "title": "Zero documents have L4 VALIDATED or L5 PRACTITIONER_REVIEWED status",
+  "severity": "HIGH",
+  "type": "VALIDATION_GAP",
+  "description": "No document types have passed the SallyIP automated drafting benchmark (L4) or received practitioner review (L5). Even the 2 draftable documents (Mutual NDA, Patent Application) are only L3 DRAFTABLE.",
+  "affected_documents": 400,
+  "impact": "No quality gate evidence that drafts meet professional standards. L3 DRAFTABLE means 'usable first draft with safety controls' but not 'validated quality'.",
+  "root_cause": "Phase 4 validation (Agent 10) created the benchmark framework but did not run full 25-document generation benchmark against quality rubric.",
+  "remediation": "Run full 25-document benchmark with legal quality rubric (structure, factual discipline, legal issue coverage, clause coherence, internal consistency, jurisdiction handling, risk identification, instruction following, placeholder discipline, professional drafting quality). Engage practitioner reviewers for L5.",
+  "regression_test": "Benchmark run must produce scores for all 10 rubric dimensions for each golden set document."
+}

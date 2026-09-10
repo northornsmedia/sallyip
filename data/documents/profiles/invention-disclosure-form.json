@@ -1,0 +1,246 @@
+{
+  "id": "invention-disclosure-form",
+  "slug": "invention-disclosure-form",
+  "name": "Invention Disclosure Form",
+  "document_number": "013",
+  "aliases": [
+    "complete an invention disclosure",
+    "prepare an invention disclosure form",
+    "help me document my invention",
+    "capture this invention",
+    "prepare an inventor disclosure",
+    "turn my notes into an invention disclosure",
+    "prepare an invention report",
+    "collect information for a patent application",
+    "help me describe my invention before filing",
+    "invention disclosure form",
+    "invention disclosure"
+  ],
+  "category": "IP_INNOVATION",
+  "subcategory": "PATENT",
+  "document_family": "INVENTION_DISCLOSURE",
+  "family": "INVENTION_DISCLOSURE",
+  "practice_areas": ["invention_intake", "patent_harvesting", "ip_disclosure", "inventor_interview"],
+  "description": "A structured pre-filing invention disclosure form capturing technical concepts, components, operation, essential/optional features, technical effects, development status, potential inventors, contribution evidence, and disclosure history. Acts as the foundational intake layer for downstream patent workflows.",
+  "status": "BETA",
+  "capability_level": "L3_DRAFTABLE",
+  "risk_level": "MEDIUM",
+  "jurisdiction_type": "PRE_FILING_INTAKE",
+  "jurisdiction": "MULTI_JURISDICTION",
+  "primary_jurisdiction": "MULTI_JURISDICTION",
+  "authority": "INTERNAL_IP_DISCLOSURE",
+  "jurisdiction_classification": "PRE_FILING_INTAKE",
+  "jurisdiction_notes": "Internal pre-filing intake workflow. Does not itself constitute a patent application, legal novelty assessment, patentability opinion, or binding inventorship determination. Governed by evidence capture best practices to feed US, EP, PCT, and national patent filings.",
+  "jurisdiction_scope": ["GLOBAL", "US", "EP", "PCT", "WO"],
+  "governing_law_required": false,
+  "forum_required": false,
+  "party_roles": ["inventor", "contributor", "business_sponsor", "organization"],
+  "review_required": true,
+  "verification_required": true,
+  "interview_mode": "ONE_QUESTION_AT_A_TIME",
+  "drafting_status_default": "INFORMATION_GATHERING",
+  "readiness_levels": ["INCOMPLETE", "PARTIALLY_COMPLETE", "COMPLETE_FOR_INTERNAL_REVIEW"],
+  "provenance_states": [
+    "USER_PROVIDED",
+    "MATTER_CONTEXT",
+    "SOURCE_DOCUMENT",
+    "SOURCE_IMAGE",
+    "SOURCE_EMAIL",
+    "SOURCE_TRANSCRIPT",
+    "AI_INFERRED",
+    "USER_EDITED",
+    "VERIFIED",
+    "UNVERIFIED"
+  ],
+  "sections": [
+    {
+      "key": "invention_title",
+      "heading": "1. Invention Title",
+      "required": true,
+      "description": "Descriptive title of the invention."
+    },
+    {
+      "key": "internal_project",
+      "heading": "2. Internal Project / Matter",
+      "required": false,
+      "description": "Internal project code, matter ID, or business unit."
+    },
+    {
+      "key": "technical_field",
+      "heading": "3. Technical Field",
+      "required": true,
+      "description": "General technological field and domain classification."
+    },
+    {
+      "key": "problem_need",
+      "heading": "4. Problem / Need",
+      "required": true,
+      "description": "The specific problem, challenge, or technical bottleneck addressed."
+    },
+    {
+      "key": "existing_approaches",
+      "heading": "5. Existing Approaches",
+      "required": false,
+      "description": "How the problem is currently addressed and shortcomings of those methods."
+    },
+    {
+      "key": "core_inventive_concept",
+      "heading": "6. Core Inventive Concept",
+      "required": true,
+      "description": "The central innovative insight, mechanism, or principle."
+    },
+    {
+      "key": "technical_description",
+      "heading": "7. Technical Description",
+      "required": true,
+      "description": "Detailed description of how the invention is structured and implemented."
+    },
+    {
+      "key": "components_or_steps",
+      "heading": "8. Components / Method Steps",
+      "required": true,
+      "description": "Detailed breakdown of structural elements or procedural steps."
+    },
+    {
+      "key": "operation",
+      "heading": "9. Operation",
+      "required": true,
+      "description": "How the components interact and operate in practice."
+    },
+    {
+      "key": "essential_features",
+      "heading": "10. Essential Features",
+      "required": true,
+      "description": "Features without which the core invention cannot function."
+    },
+    {
+      "key": "preferred_features",
+      "heading": "11. Preferred Features",
+      "required": false,
+      "description": "Preferred embodiments providing optimal performance."
+    },
+    {
+      "key": "optional_features",
+      "heading": "12. Optional Features",
+      "required": false,
+      "description": "Non-essential enhancements, accessories, or fallback elements."
+    },
+    {
+      "key": "alternative_embodiments",
+      "heading": "13. Alternative Embodiments",
+      "required": false,
+      "description": "Alternative structural, algorithmic, or operational configurations."
+    },
+    {
+      "key": "technical_effects",
+      "heading": "14. Technical Effects / Advantages",
+      "required": true,
+      "description": "Observed or expected technical benefits achieved over known approaches."
+    },
+    {
+      "key": "examples_and_test_results",
+      "heading": "15. Examples / Test Results",
+      "required": false,
+      "description": "Experimental data, bench test measurements, or simulation results."
+    },
+    {
+      "key": "development_status",
+      "heading": "16. Development / Prototype Status",
+      "required": true,
+      "description": "Current readiness: Concept, Design, Prototype, Tested, or Pilot."
+    },
+    {
+      "key": "known_limitations",
+      "heading": "17. Known Limitations",
+      "required": false,
+      "description": "Operating boundaries, known failure modes, or environmental constraints."
+    },
+    {
+      "key": "commercial_embodiment",
+      "heading": "18. Commercial Embodiment",
+      "required": false,
+      "description": "Intended product release, customer use case, or service integration."
+    },
+    {
+      "key": "known_design_arounds",
+      "heading": "19. Known Design-Arounds",
+      "required": false,
+      "description": "How a competitor might attempt to bypass the primary solution."
+    },
+    {
+      "key": "known_prior_art",
+      "heading": "20. Known Prior Art / References",
+      "required": false,
+      "description": "Relevant patents, academic papers, commercial products, or standards."
+    },
+    {
+      "key": "potential_inventors",
+      "heading": "21. Potential Inventors",
+      "required": true,
+      "description": "Individuals who contributed to the conception of inventive features."
+    },
+    {
+      "key": "contribution_matrix",
+      "heading": "22. Contribution Matrix",
+      "required": true,
+      "description": "Mapping of each individual's technical contribution to inventive features."
+    },
+    {
+      "key": "ownership_and_collaboration",
+      "heading": "23. Ownership / Collaboration Context",
+      "required": false,
+      "description": "Employment relationships, university ties, contractor agreements, and grants."
+    },
+    {
+      "key": "public_disclosure_history",
+      "heading": "24. Public / External Disclosure History",
+      "required": true,
+      "description": "Timeline of publications, presentations, sales, NDA sharings, or disclosures."
+    },
+    {
+      "key": "earlier_patent_filings",
+      "heading": "25. Earlier Patent Filings",
+      "required": false,
+      "description": "Existing provisional, PCT, or foreign filings relating to this subject matter."
+    },
+    {
+      "key": "supporting_documents",
+      "heading": "26. Supporting Documents",
+      "required": false,
+      "description": "Attached specifications, test reports, CAD files, or source notes."
+    },
+    {
+      "key": "drawing_needs",
+      "heading": "27. Drawing Needs",
+      "required": false,
+      "description": "Identified figures, flowcharts, or system diagrams needed for patent drafting."
+    },
+    {
+      "key": "open_questions",
+      "heading": "28. Open Questions",
+      "required": false,
+      "description": "Technical or legal gaps to be resolved before patent filing."
+    },
+    {
+      "key": "review_flags",
+      "heading": "29. Review Flags",
+      "required": false,
+      "description": "Identified legal flags: inventorship, disclosure, ownership, or specialist review."
+    },
+    {
+      "key": "provenance_summary",
+      "heading": "30. Provenance Summary",
+      "required": true,
+      "description": "Audit record of source documents, user inputs, and verification states."
+    }
+  ],
+  "review_flags": [
+    "INVENTORSHIP_REVIEW_REQUIRED",
+    "OWNERSHIP_REVIEW_REQUIRED",
+    "DISCLOSURE_REVIEW_REQUIRED",
+    "DOWNSTREAM_DOCUMENT_REVIEW_REQUIRED",
+    "SOURCE_CONFLICT",
+    "SPECIALIST_REVIEW_REQUIRED",
+    "CONFIDENTIAL_PILOT_BLOCKED"
+  ]
+}

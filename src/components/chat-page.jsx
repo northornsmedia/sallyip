@@ -24,6 +24,8 @@ const OfficeActionWorkspace=lazy(()=>import("./oa-workspace"));
 const ClaimQaWorkspace=lazy(()=>import("./claim-qa-workspace"));
 const DocPanel=lazy(()=>import("./doc-panel"));
 const VerificationInspectorModal=lazy(()=>import("./verification-inspector-modal"));
+const VoiceOverlay=lazy(()=>import("./voice/VoiceOverlay.jsx"));
+import "./voice-chat-widget.css";
 import {
   ArrowRight,
   BookOpen,
@@ -40,9 +42,12 @@ import {
   Layers3,
   LogOut,
   MessageSquare,
+  Mic,
+  MicOff,
   Minus,
   Paperclip,
   Pencil,
+  PhoneCall,
   Plus,
   Search,
   Send,
@@ -53,6 +58,8 @@ import {
   Square,
   Trash2,
   Telescope,
+  Volume2,
+  VolumeX,
   X,
   RotateCw,
 } from "lucide-react";
@@ -640,6 +647,216 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   });
   const [libraryLoading, setLibraryLoading] = useState(false);
   const [sidebarTab, setSidebarTab] = useState("chats"); // 'chats' | 'library'
+
+  // Sally Permanent Voice & Audio State
+  const [playingAudioIndex, setPlayingAudioIndex] = useState(null);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [isDictating, setIsDictating] = useState(false);
+  const [voiceOverlayOpen, setVoiceOverlayOpen] = useState(false);
+  const [autoSpeakVoice, setAutoSpeakVoice] = useState(() => {
+    try {
+      return localStorage.getItem("sallyip-auto-speak") === "true";
+    } catch {
+      return false;
+    }
+  });
+  const currentAudioRef = useRef(null);
+  const dictationRecognitionRef = useRef(null);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("sallyip-auto-speak", autoSpeakVoice ? "true" : "false");
+    } catch {}
+  }, [autoSpeakVoice]);
+
+  useEffect(() => {
+    return () => {
+      if (currentAudioRef.current) {
+        try {
+          currentAudioRef.current.pause();
+        } catch {}
+        currentAudioRef.current = null;
+      }
+      if (dictationRecognitionRef.current) {
+        try {
+          dictationRecognitionRef.current.stop();
+        } catch {}
+      }
+    };
+  }, []);
+
+  const cleanMarkdownForVoice = (text) => {
+    if (!text) return "";
+    return text
+      .replace(/```[\s\S]*?```/g, "")
+      .replace(/`([^`]+)`/g, "$1")
+      .replace(/#+\s*(.*)/g, "$1. ")
+      .replace(/\*\*([^*]+)\*\*/g, "$1")
+      .replace(/\*([^*]+)\*/g, "$1")
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      .replace(/^\s*[-*+]\s+/gm, "")
+      .replace(/^\s*\d+\.\s+/gm, "")
+      .replace(/\[Doc:\s*[^\]]+\]/gi, "")
+      .replace(/\[\d+\]/g, "")
+      .replace(/<[^>]*>/g, "")
+      .replace(/\n\s*\n/g, ". ")
+      .replace(/\s+/g, " ")
+      .trim();
+  };
+
+  const togglePlayVoice = async (text, msgIndex) => {
+    if (playingAudioIndex === msgIndex && isPlayingAudio) {
+      if (currentAudioRef.current) {
+        try {
+          currentAudioRef.current.pause();
+          currentAudioRef.current.currentTime = 0;
+        } catch {}
+        currentAudioRef.current = null;
+      }
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+      setIsPlayingAudio(false);
+      setPlayingAudioIndex(null);
+      return;
+    }
+
+    if (currentAudioRef.current) {
+      try {
+        currentAudioRef.current.pause();
+        currentAudioRef.current.currentTime = 0;
+      } catch {}
+      currentAudioRef.current = null;
+    }
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    const clean = cleanMarkdownForVoice(text);
+    if (!clean) return;
+
+    setPlayingAudioIndex(msgIndex);
+    setIsPlayingAudio(true);
+
+    try {
+      const speechInput = clean.length > 500 ? clean.slice(0, 500) + "..." : clean;
+      const res = await fetch("/api/speech", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          input: speechInput,
+          model: "fish-audio/s2.1-pro-free:free",
+        }),
+      });
+
+      if (res.ok) {
+        const blob = await res.blob();
+        const audioUrl = URL.createObjectURL(blob);
+        const audio = new Audio(audioUrl);
+        currentAudioRef.current = audio;
+
+        audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+          currentAudioRef.current = null;
+          setIsPlayingAudio(false);
+          setPlayingAudioIndex(null);
+        };
+
+        audio.onerror = () => {
+          URL.revokeObjectURL(audioUrl);
+          currentAudioRef.current = null;
+          if (typeof window !== "undefined" && "speechSynthesis" in window) {
+            const utterance = new SpeechSynthesisUtterance(speechInput);
+            utterance.onend = () => {
+              setIsPlayingAudio(false);
+              setPlayingAudioIndex(null);
+            };
+            window.speechSynthesis.speak(utterance);
+          } else {
+            setIsPlayingAudio(false);
+            setPlayingAudioIndex(null);
+          }
+        };
+
+        await audio.play();
+        return;
+      }
+    } catch (err) {
+      console.warn("[ChatPage] Fish Audio playback issue:", err);
+    }
+
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      const utterance = new SpeechSynthesisUtterance(clean.slice(0, 300));
+      utterance.onend = () => {
+        setIsPlayingAudio(false);
+        setPlayingAudioIndex(null);
+      };
+      window.speechSynthesis.speak(utterance);
+    } else {
+      setIsPlayingAudio(false);
+      setPlayingAudioIndex(null);
+    }
+  };
+
+  const toggleDictation = () => {
+    const SpeechRecognition =
+      typeof window !== "undefined" &&
+      (window.SpeechRecognition || window.webkitSpeechRecognition);
+
+    if (!SpeechRecognition) {
+      alert("Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari.");
+      return;
+    }
+
+    if (isDictating) {
+      if (dictationRecognitionRef.current) {
+        try {
+          dictationRecognitionRef.current.stop();
+        } catch {}
+        dictationRecognitionRef.current = null;
+      }
+      setIsDictating(false);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = "en-US";
+
+      recognition.onstart = () => {
+        setIsDictating(true);
+      };
+
+      recognition.onresult = (event) => {
+        let transcript = "";
+        for (let i = 0; i < event.results.length; ++i) {
+          transcript += event.results[i][0].transcript;
+        }
+        if (transcript) {
+          setInput(transcript);
+        }
+      };
+
+      recognition.onerror = (err) => {
+        if (err.error !== "no-speech") {
+          console.warn("[Dictation] Error:", err.error);
+        }
+      };
+
+      recognition.onend = () => {
+        setIsDictating(false);
+        dictationRecognitionRef.current = null;
+      };
+
+      dictationRecognitionRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      console.warn("[Dictation] Start issue:", err);
+      setIsDictating(false);
+    }
+  };
 
   const syncLibraryFiles = async () => {
     try {
@@ -1450,6 +1667,12 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       };
       updateActive(() => finalChat);
       await persistChat(finalChat).catch(() => {});
+      if (autoSpeakVoice) {
+        const lastMsg = finalChat.messages[finalChat.messages.length - 1];
+        if (lastMsg?.role === "assistant" && lastMsg.content) {
+          togglePlayVoice(lastMsg.content, finalChat.messages.length - 1);
+        }
+      }
     } finally {
       clearInterval(progressTimer);
       setIsWriting(false);
@@ -1938,6 +2161,24 @@ export default function ChatPage({ onHome, onAuthRequired }) {
             </div>
 
             <div className="beebotTopRightActions">
+              <button
+                type="button"
+                className={`beebotNewChatBtn ${autoSpeakVoice ? "border-indigo-300 text-indigo-600 dark:border-indigo-700 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/30" : ""}`}
+                onClick={() => setAutoSpeakVoice((v) => !v)}
+                title={autoSpeakVoice ? "Sally voice auto-speak is ON (Answers will be spoken automatically)" : "Enable Sally voice auto-speak (Click to hear answers aloud)"}
+              >
+                {autoSpeakVoice ? <Volume2 className="w-3.5 h-3.5 text-indigo-600" /> : <VolumeX className="w-3.5 h-3.5 text-slate-400" />}
+                <span>{autoSpeakVoice ? "Voice On" : "Voice Off"}</span>
+              </button>
+              <button
+                type="button"
+                className="beebotNewChatBtn border-emerald-300 text-emerald-700 dark:border-emerald-700 dark:text-emerald-300 bg-emerald-50/50 dark:bg-emerald-950/30 hover:bg-emerald-100/60"
+                onClick={() => setVoiceOverlayOpen(true)}
+                title="Start live conversational full-duplex voice call with Sally"
+              >
+                <PhoneCall className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Voice Call</span>
+              </button>
               <button className="beebotNewChatBtn" onClick={newChat}>
                 <Plus className="w-3.5 h-3.5" />
                 <span>New Chat</span>
@@ -2025,6 +2266,26 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                     >
                       <Layers3 className="w-3.5 h-3.5 text-indigo-500" />
                       <span>Workspaces</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className={`beebotPillBtn ${isDictating ? "active text-red-500 border-red-400 dark:border-red-600 animate-pulse" : ""}`}
+                      onClick={toggleDictation}
+                      title={isDictating ? "Stop voice dictation" : "Voice dictation (Speak to Sally)"}
+                    >
+                      {isDictating ? <MicOff className="w-3.5 h-3.5 text-red-500" /> : <Mic className="w-3.5 h-3.5 text-indigo-500" />}
+                      <span>{isDictating ? "Listening..." : "Dictate"}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="beebotPillBtn text-emerald-700 dark:text-emerald-300"
+                      onClick={() => setVoiceOverlayOpen(true)}
+                      title="Launch Sally Real-Time Voice Call"
+                    >
+                      <PhoneCall className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>Voice Call</span>
                     </button>
                   </div>
 
@@ -2122,6 +2383,23 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                         )}
 
                         <div className="beebotMessageActions">
+                          <button
+                            onClick={() => togglePlayVoice(message.content, index)}
+                            className={`beebotActionBtn ${playingAudioIndex === index && isPlayingAudio ? "text-indigo-600 font-semibold bg-indigo-50 dark:bg-indigo-950/40" : ""}`}
+                            title={playingAudioIndex === index && isPlayingAudio ? "Stop Sally's voice audio" : "Listen in Sally's voice (Fish Audio)"}
+                          >
+                            {playingAudioIndex === index && isPlayingAudio ? (
+                              <>
+                                <Square className="w-3 h-3 text-red-500 fill-red-500 animate-pulse" />
+                                <span className="text-red-600 font-medium">Stop audio</span>
+                              </>
+                            ) : (
+                              <>
+                                <Volume2 className="w-3 h-3 text-indigo-500" />
+                                <span>Play audio</span>
+                              </>
+                            )}
+                          </button>
                           <button
                             onClick={() => navigator.clipboard.writeText(message.content)}
                             className="beebotActionBtn"
@@ -2254,6 +2532,26 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                         <Layers3 className="w-3.5 h-3.5 text-indigo-500" />
                         <span>Workspaces</span>
                       </button>
+
+                      <button
+                        type="button"
+                        className={`beebotPillBtn ${isDictating ? "active text-red-500 border-red-400 dark:border-red-600 animate-pulse" : ""}`}
+                        onClick={toggleDictation}
+                        title={isDictating ? "Stop voice dictation" : "Voice dictation (Speak to Sally)"}
+                      >
+                        {isDictating ? <MicOff className="w-3.5 h-3.5 text-red-500" /> : <Mic className="w-3.5 h-3.5 text-indigo-500" />}
+                        <span>{isDictating ? "Listening..." : "Dictate"}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        className="beebotPillBtn text-emerald-700 dark:text-emerald-300"
+                        onClick={() => setVoiceOverlayOpen(true)}
+                        title="Launch Sally Real-Time Voice Call"
+                      >
+                        <PhoneCall className="w-3.5 h-3.5 text-emerald-500" />
+                        <span>Voice Call</span>
+                      </button>
                     </div>
                     <button
                       className="beebotSendBtn"
@@ -2288,6 +2586,18 @@ export default function ChatPage({ onHome, onAuthRequired }) {
               )}
             </div>
           )}
+
+      {/* Sally Full-Duplex Voice Call Overlay */}
+      {voiceOverlayOpen && (
+        <Suspense fallback={null}>
+          <VoiceOverlay
+            isOpen={voiceOverlayOpen}
+            onClose={() => setVoiceOverlayOpen(false)}
+            matterId={activeMatterId}
+            conversationId={active?.id}
+          />
+        </Suspense>
+      )}
 
       {/* Workspaces Launcher Modal */}
       {toolsOpen && (

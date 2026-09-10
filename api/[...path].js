@@ -31,9 +31,19 @@ import trademarkIntelligenceHandler from './_handlers/trademark-intelligence.js'
 import transparencyMetricsHandler from './_handlers/transparency-metrics.js'
 import vaultReviewsHandler from './_handlers/vault-reviews.js'
 import verificationDeskHandler from './_handlers/verification-desk.js'
+import speechHandler from './_handlers/speech.js'
 import workflowsHandler from './_handlers/workflows.js'
+import voiceSpeakHandler from './_handlers/voice-speak.js'
+import voiceTranscribeHandler from './_handlers/voice-transcribe.js'
+import voiceCancelHandler from './_handlers/voice-cancel.js'
+import voiceSessionHandler from './_handlers/voice-session.js'
 
 const handlers = {
+  'voice/speak': voiceSpeakHandler,
+  'voice/transcribe': voiceTranscribeHandler,
+  'voice/cancel': voiceCancelHandler,
+  'voice/session': voiceSessionHandler,
+  'speech': speechHandler,
   'artifacts': artifactsHandler,
   'auth': authHandler,
   'chat': chatHandler,

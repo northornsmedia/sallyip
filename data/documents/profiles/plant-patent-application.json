@@ -1,0 +1,283 @@
+{
+  "id": "plant-patent-application",
+  "slug": "plant-patent-application",
+  "name": "Plant Patent Application",
+  "document_number": "005",
+  "aliases": [
+    "plant patent",
+    "plant patent application",
+    "draft a plant patent application",
+    "prepare a plant patent",
+    "prepare a us plant patent application",
+    "patent this new plant variety",
+    "draft a patent for this new plant",
+    "prepare a plant patent for this cultivar",
+    "help me file a plant patent",
+    "uspto plant patent application"
+  ],
+  "category": "IP_INNOVATION",
+  "subcategory": "PATENT",
+  "document_family": "PLANT_PATENT_APPLICATION",
+  "family": "PLANT_PATENT_APPLICATION",
+  "practice_areas": ["patent_prosecution", "patent_drafting", "botanical_ip"],
+  "description": "A canonical United States plant patent application for a distinct and newly found or bred variety of plant, asexually reproduced, under 35 U.S.C. §§ 161–164 and 37 C.F.R. §§ 1.161–1.167.",
+  "status": "BETA",
+  "capability_level": "L3_DRAFTABLE",
+  "risk_level": "HIGH",
+  "jurisdiction_type": "JURISDICTION_SPECIFIC",
+  "primary_jurisdiction": "US",
+  "authority": "USPTO",
+  "jurisdiction_notes": "Primary implementation is strictly for United States / USPTO under 35 U.S.C. §§ 161–164 and 37 C.F.R. §§ 1.161–1.167. Does NOT cover Plant Variety Protection (PVP under 7 U.S.C. § 2321 et seq.), Community Plant Variety Rights (CPVR), UPOV Convention certificates, UK Plant Variety Rights, or other sui generis seed/plant breeder rights systems.",
+  "jurisdiction_scope": ["US"],
+  "governing_law_required": true,
+  "forum_required": false,
+  "party_roles": ["inventor", "applicant", "assignee", "propagator"],
+  "review_required": true,
+  "verification_required": true,
+  "interview_mode": "ONE_QUESTION_AT_A_TIME",
+  "drafting_status_default": "INFORMATION_GATHERING",
+  "claim_rules": {
+    "max_claims": 1,
+    "allow_dependent_claims": false,
+    "statutory_form": "A new and distinct variety of [plant type], substantially as herein shown and described."
+  },
+  "readiness_levels": ["NOT_READY", "PARTIALLY_READY", "READY_FOR_FIRST_DRAFT"],
+  "provenance_states": [
+    "USER_PROVIDED",
+    "MATTER_CONTEXT",
+    "SOURCE_DOCUMENT",
+    "SOURCE_IMAGE",
+    "AI_DRAFTED_FROM_SUPPORTED_FACTS",
+    "USER_EDITED",
+    "VERIFIED",
+    "UNVERIFIED",
+    "PLACEHOLDER"
+  ],
+  "required_inputs": [
+    {
+      "id": "botanical_name",
+      "label": "Botanical Latin Name (Genus and Species)",
+      "type": "text",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Latin genus and species of the plant (e.g., Rosa hybrida, Malus domestica)"
+    },
+    {
+      "id": "cultivar_name",
+      "label": "Cultivar Denomination / Variety Name",
+      "type": "text",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Cultivar denomination or working variety designation"
+    },
+    {
+      "id": "origin",
+      "label": "Origin of the Plant",
+      "type": "select",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "options": [
+        "SEEDLING",
+        "SPORT",
+        "MUTATION",
+        "HYBRID",
+        "CROSS",
+        "DISCOVERED_PLANT",
+        "BREEDING_PROGRAMME",
+        "TISSUE_CULTURE_DERIVED",
+        "OTHER",
+        "UNKNOWN"
+      ]
+    },
+    {
+      "id": "asexual_reproduction",
+      "label": "Asexual Reproduction Method and Confirmation",
+      "type": "textarea",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Method of asexual propagation (cuttings, grafting, tissue culture, etc.), location, and true-to-type stability"
+    },
+    {
+      "id": "distinctive_characteristics",
+      "label": "Distinguishing Characteristics",
+      "type": "textarea",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Observable botanical characteristics distinguishing the variety from other plants"
+    },
+    {
+      "id": "inventors",
+      "label": "Inventors / Discoverers",
+      "type": "array",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Natural persons who discovered/bred and asexually reproduced the variety"
+    },
+    {
+      "id": "jurisdiction",
+      "label": "Filing Jurisdiction",
+      "type": "select",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "default": "US",
+      "options": ["US"]
+    }
+  ],
+  "optional_inputs": [
+    {
+      "id": "parentage",
+      "label": "Parentage (Female/Seed Parent & Male/Pollen Parent)",
+      "type": "textarea",
+      "input_class": "RECOMMENDED"
+    },
+    {
+      "id": "closest_variety",
+      "label": "Closest Known Variety / Comparator",
+      "type": "text",
+      "input_class": "RECOMMENDED"
+    },
+    {
+      "id": "comparator_differences",
+      "label": "Differences from Closest Variety",
+      "type": "textarea",
+      "input_class": "RECOMMENDED"
+    },
+    {
+      "id": "botanical_description",
+      "label": "Detailed Botanical Description",
+      "type": "textarea",
+      "input_class": "RECOMMENDED"
+    },
+    {
+      "id": "colour_references",
+      "label": "Colour References (Descriptive or RHS Chart)",
+      "type": "textarea",
+      "input_class": "OPTIONAL"
+    },
+    {
+      "id": "photographs",
+      "label": "Photographs / Visual Assets",
+      "type": "array",
+      "input_class": "RECOMMENDED"
+    },
+    {
+      "id": "applicant",
+      "label": "Applicant / Assignee",
+      "type": "text",
+      "input_class": "OPTIONAL"
+    },
+    {
+      "id": "public_disclosures",
+      "label": "Public Disclosures or Commercial Sales",
+      "type": "array",
+      "input_class": "OPTIONAL"
+    }
+  ],
+  "matter_inputs": [
+    { "fact_type": "plant_name", "entity_types": ["plant", "invention"], "confidence_threshold": 0.8 },
+    { "fact_type": "genus_species", "entity_types": ["taxonomy"], "confidence_threshold": 0.85 },
+    { "fact_type": "inventor", "entity_types": ["person"], "confidence_threshold": 0.8 },
+    { "fact_type": "applicant", "entity_types": ["organization", "nursery"], "confidence_threshold": 0.8 },
+    { "fact_type": "jurisdiction", "entity_types": ["country"], "confidence_threshold": 0.9 }
+  ],
+  "sections": [
+    {
+      "id": "title",
+      "order": 1,
+      "heading": "Title of the Invention",
+      "cfr_reference": "37 C.F.R. § 1.163(c)(1)",
+      "required": true,
+      "clause_families": []
+    },
+    {
+      "id": "latin_name",
+      "order": 2,
+      "heading": "Latin Name of the Genus and Species",
+      "cfr_reference": "37 C.F.R. § 1.163(c)(2)",
+      "required": true,
+      "clause_families": []
+    },
+    {
+      "id": "variety_denomination",
+      "order": 3,
+      "heading": "Variety Denomination",
+      "cfr_reference": "37 C.F.R. § 1.163(c)(3)",
+      "required": true,
+      "clause_families": []
+    },
+    {
+      "id": "background_origin",
+      "order": 4,
+      "heading": "Background of the Invention (Origin and Breeding History)",
+      "cfr_reference": "37 C.F.R. § 1.163(c)(4)",
+      "required": true,
+      "clause_families": []
+    },
+    {
+      "id": "asexual_reproduction",
+      "order": 5,
+      "heading": "Asexual Reproduction of the Plant",
+      "cfr_reference": "37 C.F.R. § 1.163(c)(4)",
+      "required": true,
+      "clause_families": []
+    },
+    {
+      "id": "summary",
+      "order": 6,
+      "heading": "Brief Summary of the Invention",
+      "cfr_reference": "37 C.F.R. § 1.163(c)(5)",
+      "required": true,
+      "clause_families": []
+    },
+    {
+      "id": "drawings_photos",
+      "order": 7,
+      "heading": "Brief Description of the Photographs",
+      "cfr_reference": "37 C.F.R. § 1.165",
+      "required": false,
+      "clause_families": []
+    },
+    {
+      "id": "botanical_description",
+      "order": 8,
+      "heading": "Detailed Botanical Description",
+      "cfr_reference": "37 C.F.R. § 1.163(a)",
+      "required": true,
+      "clause_families": []
+    },
+    {
+      "id": "distinguishing_characteristics",
+      "order": 9,
+      "heading": "Distinguishing Characteristics & Comparison with Closest Known Varieties",
+      "cfr_reference": "37 C.F.R. § 1.163(a)",
+      "required": true,
+      "clause_families": []
+    },
+    {
+      "id": "claim",
+      "order": 10,
+      "heading": "Claim (35 U.S.C. § 162)",
+      "cfr_reference": "37 C.F.R. § 1.164",
+      "required": true,
+      "clause_families": ["patent.plant_claim"]
+    }
+  ],
+  "clause_families": ["patent.plant_claim", "patent.assignment", "patent.priority"],
+  "authority_required": [
+    "35 U.S.C. § 161",
+    "35 U.S.C. § 162",
+    "35 U.S.C. § 163",
+    "35 U.S.C. § 164",
+    "37 C.F.R. § 1.161",
+    "37 C.F.R. § 1.162",
+    "37 C.F.R. § 1.163",
+    "37 C.F.R. § 1.164",
+    "37 C.F.R. § 1.165",
+    "MPEP Chapter 1600"
+  ],
+  "review_flags": [
+    "PLANT_PATENT_ELIGIBILITY_REVIEW_REQUIRED",
+    "ASEXUAL_REPRODUCTION_INFORMATION_REQUIRED",
+    "IMAGE_OR_DESCRIPTION_CONFLICT",
+    "DISCLOSURE_REVIEW_REQUIRED",
+    "INVENTORSHIP_REVIEW_REQUIRED",
+    "PLANT_VARIETY_RIGHTS_DISTINCTION_REQUIRED"
+  ],
+  "output_formats": ["docx", "pdf", "md"],
+  "source_status": "CANONICAL_DOCUMENT_TRAINING_005",
+  "version": "1.0.0",
+  "last_reviewed": "2026-09-10"
+}

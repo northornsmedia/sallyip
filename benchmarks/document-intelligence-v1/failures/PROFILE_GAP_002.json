@@ -1,0 +1,12 @@
+{
+  "failure_id": "PROFILE_GAP_002",
+  "title": "Only 2 document profiles fully implemented",
+  "severity": "HIGH",
+  "type": "PROFILE_GAP",
+  "description": "Only 2 document profiles exist (nda-mutual.json, patent-application.json). The 23 other golden set documents and 375+ catalogue entries lack profiles with: pre-draft questions, structured outlines, clause families, jurisdiction awareness, verification requirements.",
+  "affected_documents": 398,
+  "impact": "Routing works but drafting falls back to generic template or fails. No structured questionnaire, no clause intelligence, no jurisdiction adaptation.",
+  "root_cause": "Phase 2 domain agents (2-8) created agent definitions but did not produce document profiles for their domains.",
+  "remediation": "Each domain agent must produce profiles for their golden set documents before L3 capability claimed.",
+  "regression_test": "Profile existence check: all 25 golden set documents must have profile in data/documents/profiles/."
+}

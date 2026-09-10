@@ -1,0 +1,77 @@
+{
+  "id": "nda-mutual",
+  "slug": "nda-mutual",
+  "name": "Mutual Non-Disclosure Agreement",
+  "aliases": ["mutual nda", "mutual confidentiality agreement", "mutual non-disclosure", "nda", "confidentiality agreement", "mutual cda"],
+  "category": "COMMERCIAL",
+  "subcategory": "NDA",
+  "document_family": "NDA",
+  "practice_areas": ["commercial", "ip", "employment"],
+  "description": "A reciprocal agreement between two parties establishing mutual obligations to protect confidential information shared for a defined purpose.",
+  "status": "AVAILABLE",
+  "risk_level": "MEDIUM",
+  "jurisdiction_scope": ["US", "UK", "EU", "CA", "AU"],
+  "jurisdiction_type": "JURISDICTION_ADAPTABLE",
+  "governing_law_required": true,
+  "forum_required": false,
+  "party_roles": ["discloser_a", "discloser_b", "recipient_a", "recipient_b"],
+  "required_inputs": [
+    {"id": "party_a", "label": "First Party", "type": "party", "input_class": "REQUIRED_BEFORE_DRAFT"},
+    {"id": "party_b", "label": "Second Party", "type": "party", "input_class": "REQUIRED_BEFORE_DRAFT"},
+    {"id": "effective_date", "label": "Effective Date", "type": "date", "input_class": "REQUIRED_BEFORE_DRAFT"},
+    {"id": "purpose", "label": "Authorized Purpose", "type": "text", "input_class": "REQUIRED_BEFORE_DRAFT"},
+    {"id": "governing_law", "label": "Governing Law", "type": "jurisdiction", "input_class": "REQUIRED_BEFORE_DRAFT"}
+  ],
+  "optional_inputs": [
+    {"id": "term_months", "label": "Confidentiality Term", "type": "number", "input_class": "OPTIONAL", "placeholder": "24"},
+    {"id": "survival_months", "label": "Survival Period", "type": "number", "input_class": "OPTIONAL", "placeholder": "36"},
+    {"id": "exclusions", "label": "Additional Exclusions", "type": "textarea", "input_class": "OPTIONAL"},
+    {"id": "trade_secrets_involved", "label": "Trade Secrets Involved?", "type": "boolean", "input_class": "OPTIONAL"},
+    {"id": "personal_data_involved", "label": "Personal Data Involved?", "type": "boolean", "input_class": "OPTIONAL"}
+  ],
+  "matter_inputs": [
+    {"fact_type": "counterparty", "entity_types": ["party"], "confidence_threshold": 0.7},
+    {"fact_type": "jurisdiction", "entity_types": [], "confidence_threshold": 0.7},
+    {"fact_type": "transaction", "entity_types": [], "confidence_threshold": 0.6}
+  ],
+  "pre_draft_questions": [
+    {"id": "q1", "question": "Is this mutual or one-way?", "input_field_id": "type", "required": true},
+    {"id": "q2", "question": "Who are the parties?", "input_field_id": "parties", "required": true},
+    {"id": "q3", "question": "What is the purpose of disclosure?", "input_field_id": "purpose", "required": true},
+    {"id": "q4", "question": "What jurisdiction governs?", "input_field_id": "governing_law", "required": true},
+    {"id": "q5", "question": "Does trade secret protection need emphasis?", "input_field_id": "trade_secrets_involved", "required": false},
+    {"id": "q6", "question": "Is personal data involved?", "input_field_id": "personal_data_involved", "required": false}
+  ],
+  "sections": [
+    {"id": "definitions", "heading": "Definition of Confidential Information", "order": 1, "required": true, "clause_families": ["confidentiality.definition", "confidentiality.exclusions"]},
+    {"id": "obligations", "heading": "Non-Disclosure and Restricted Use Obligations", "order": 2, "required": true, "clause_families": ["confidentiality.permitted_disclosure", "confidentiality.duration"]},
+    {"id": "return", "heading": "Return or Destruction of Materials", "order": 3, "required": true, "clause_families": []},
+    {"id": "no_license", "heading": "No License or IP Conveyance", "order": 4, "required": true, "clause_families": ["ip.background"]},
+    {"id": "equitable_relief", "heading": "Equitable Relief", "order": 5, "required": true, "clause_families": []},
+    {"id": "governing_law", "heading": "Governing Law and Dispute Resolution", "order": 6, "required": true, "clause_families": ["disputes.courts"]},
+    {"id": "miscellaneous", "heading": "Miscellaneous", "order": 7, "required": true, "clause_families": []}
+  ],
+  "clause_families": ["confidentiality.definition", "confidentiality.exclusions", "confidentiality.permitted_disclosure", "confidentiality.duration", "ip.background", "disputes.courts"],
+  "alternative_positions": [
+    {"section_id": "definitions", "position": "CUSTOMER_FRIENDLY", "description": "Broader definitions with more exclusions", "clause_family": "confidentiality.definition"},
+    {"section_id": "definitions", "position": "SUPPLIER_FRIENDLY", "description": "Narrower definitions with tighter exclusions", "clause_family": "confidentiality.definition"},
+    {"section_id": "duration", "position": "CUSTOMER_FRIENDLY", "description": "Shorter term, no survival", "clause_family": "confidentiality.duration"}
+  ],
+  "negotiation_variables": [
+    {"id": "term_length", "label": "Confidentiality Term", "description": "Duration of confidentiality obligations", "typical_range": "12-60 months", "market_norm": "24-36 months"},
+    {"id": "liability_cap", "label": "Liability Cap", "description": "Maximum liability for breach", "typical_range": "None to fees paid", "market_norm": "Uncapped for confidentiality"},
+    {"id": "solicitation_clause", "label": "Non-Solicitation", "description": "Restrictions on soliciting personnel or customers", "typical_range": "12-24 months", "market_norm": "Not standard in NDAs"}
+  ],
+  "risk_issues": [
+    {"id": "risk1", "level": "MEDIUM", "description": "Overly broad definitions may be unenforceable", "mitigation": "Ensure definitions are reasonable in scope and time"},
+    {"id": "risk2", "level": "LOW", "description": "Missing jurisdiction-specific notice provisions", "mitigation": "Add jurisdiction-specific notice requirements"}
+  ],
+  "authority_required": ["UTSA", "DTSA", "Restatement (Third) of Trusts", "common law fiduciary duty of confidence"],
+  "verification_required": false,
+  "review_required": true,
+  "output_formats": ["docx", "pdf", "md"],
+  "related_documents": ["nda-unilateral", "nda-investor", "nda-technology", "nda-employment"],
+  "source_status": "PRACTITIONER_REVIEWED",
+  "version": "1.0.0",
+  "last_reviewed": "2026-09-10"
+}

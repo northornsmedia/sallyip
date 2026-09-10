@@ -1,0 +1,230 @@
+{
+  "id": "pct-international-patent-application",
+  "slug": "pct-international-patent-application",
+  "name": "PCT International Patent Application",
+  "document_number": "006",
+  "aliases": [
+    "pct application",
+    "pct international patent application",
+    "draft a pct application",
+    "prepare a pct patent application",
+    "prepare an international patent application",
+    "draft an international patent filing",
+    "prepare a wipo pct application",
+    "file internationally under the pct",
+    "convert this patent application into a pct draft",
+    "wipo pct application",
+    "pct patent filing"
+  ],
+  "category": "IP_INNOVATION",
+  "subcategory": "PATENT",
+  "document_family": "INTERNATIONAL_PATENT_APPLICATION",
+  "family": "INTERNATIONAL_PATENT_APPLICATION",
+  "practice_areas": ["international_patent_law", "patent_drafting", "patent_prosecution", "pct_filings"],
+  "description": "A canonical Patent Cooperation Treaty (PCT) international patent application filed under the PCT treaty and regulations administered by the World Intellectual Property Organization (WIPO). Establishes an international filing date across all PCT Contracting States, governing the international phase prior to national phase entry.",
+  "status": "BETA",
+  "capability_level": "L3_DRAFTABLE",
+  "risk_level": "HIGH",
+  "jurisdiction_type": "INTERNATIONAL_TREATY_WORKFLOW",
+  "primary_jurisdiction": "PCT",
+  "authority": "WIPO",
+  "jurisdiction_notes": "Governed by the Patent Cooperation Treaty (PCT, 1970), Regulations under the PCT, and Administrative Instructions under the PCT administered by WIPO. Operates strictly in the INTERNATIONAL_PHASE. Does NOT grant a 'worldwide patent' or granted national patent rights. National/regional phase entry (Articles 22/39(1)) is required before designated national/regional offices to obtain enforceable patent rights.",
+  "jurisdiction_scope": ["PCT", "WIPO", "INTERNATIONAL"],
+  "governing_law_required": false,
+  "forum_required": false,
+  "party_roles": ["applicant", "inventor", "agent"],
+  "review_required": true,
+  "verification_required": true,
+  "interview_mode": "ONE_QUESTION_AT_A_TIME",
+  "drafting_status_default": "INFORMATION_GATHERING",
+  "claim_rules": {
+    "max_claims": 50,
+    "allow_dependent_claims": true,
+    "multi_category_claims": true,
+    "statutory_categories": ["method", "system", "apparatus", "device", "computer_readable_medium", "composition"]
+  },
+  "readiness_levels": ["NOT_READY", "PARTIALLY_READY", "READY_FOR_FIRST_DRAFT"],
+  "provenance_states": [
+    "USER_PROVIDED",
+    "MATTER_CONTEXT",
+    "SOURCE_EXTRACTED",
+    "AI_DRAFTED",
+    "USER_EDITED",
+    "VERIFIED",
+    "UNVERIFIED",
+    "PLACEHOLDER"
+  ],
+  "required_inputs": [
+    {
+      "id": "title",
+      "label": "Title of the Invention",
+      "type": "text",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Short and precise title indicating the technical subject matter (PCT Rule 4.3)"
+    },
+    {
+      "id": "priority_status",
+      "label": "Filing and Priority Path",
+      "type": "select",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "options": [
+        "FIRST_FILING_PCT",
+        "CLAIMS_PRIORITY_TO_PROVISIONAL",
+        "CLAIMS_PRIORITY_TO_NONPROVISIONAL",
+        "CLAIMS_PRIORITY_TO_FOREIGN_APPLICATION",
+        "CLAIMS_MULTIPLE_PRIORITIES",
+        "RELATED_APPLICATION",
+        "UNKNOWN"
+      ]
+    },
+    {
+      "id": "technical_field",
+      "label": "Technical Field",
+      "type": "text",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Technical field to which the invention relates (PCT Rule 5.1(a)(i))"
+    },
+    {
+      "id": "problem_solution",
+      "label": "Technical Problem and Solution",
+      "type": "textarea",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Underlying technical problem and the core inventive solution"
+    },
+    {
+      "id": "technical_features",
+      "label": "Detailed Technical Features and Mechanism",
+      "type": "textarea",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Structure, steps, data flow, components, and operation of the invention"
+    }
+  ],
+  "optional_inputs": [
+    {
+      "id": "priorities",
+      "label": "Priority Application Records",
+      "type": "json_array",
+      "input_class": "RECOMMENDED_BEFORE_DRAFT",
+      "description": "List of priority records with country/office, application number, and filing date (PCT Rule 4.10)"
+    },
+    {
+      "id": "applicants",
+      "label": "Applicant Details",
+      "type": "json_array",
+      "input_class": "RECOMMENDED_BEFORE_DRAFT",
+      "description": "Entity/person holding filing entitlement, including name, residence, and nationality (PCT Article 9)"
+    },
+    {
+      "id": "inventors",
+      "label": "Inventor Details",
+      "type": "json_array",
+      "input_class": "RECOMMENDED_BEFORE_DRAFT",
+      "description": "Natural persons who contributed to the conception of the invention"
+    },
+    {
+      "id": "receiving_office",
+      "label": "Receiving Office (RO)",
+      "type": "text",
+      "input_class": "RECOMMENDED_BEFORE_DRAFT",
+      "description": "Competent receiving office (e.g., RO/US, RO/IB, RO/EP) under PCT Rule 19"
+    },
+    {
+      "id": "drawings_description",
+      "label": "Brief Description of the Drawings",
+      "type": "textarea",
+      "input_class": "RECOMMENDED_BEFORE_DRAFT",
+      "description": "Summary of figures illustrating the invention (PCT Rule 5.1(a)(iv))"
+    },
+    {
+      "id": "public_disclosures",
+      "label": "Public Disclosures or Prior Sales",
+      "type": "textarea",
+      "input_class": "OPTIONAL",
+      "description": "Any public disclosure, publication, or commercial sale of the invention"
+    }
+  ],
+  "sections": [
+    {
+      "key": "title",
+      "heading": "Title of Invention",
+      "required": true,
+      "order": 1,
+      "authority": "PCT Rule 4.3"
+    },
+    {
+      "key": "technical_field",
+      "heading": "Technical Field",
+      "required": true,
+      "order": 2,
+      "authority": "PCT Rule 5.1(a)(i)"
+    },
+    {
+      "key": "background_art",
+      "heading": "Background Art",
+      "required": true,
+      "order": 3,
+      "authority": "PCT Rule 5.1(a)(ii)"
+    },
+    {
+      "key": "summary_of_invention",
+      "heading": "Disclosure of Invention",
+      "required": true,
+      "order": 4,
+      "authority": "PCT Rule 5.1(a)(iii)"
+    },
+    {
+      "key": "brief_description_drawings",
+      "heading": "Brief Description of the Drawings",
+      "required": false,
+      "order": 5,
+      "authority": "PCT Rule 5.1(a)(iv)"
+    },
+    {
+      "key": "detailed_description",
+      "heading": "Modes for Carrying Out the Invention",
+      "required": true,
+      "order": 6,
+      "authority": "PCT Rule 5.1(a)(v)"
+    },
+    {
+      "key": "examples",
+      "heading": "Examples",
+      "required": false,
+      "order": 7,
+      "authority": "PCT Rule 5.1(a)(v)"
+    },
+    {
+      "key": "industrial_applicability",
+      "heading": "Industrial Applicability",
+      "required": true,
+      "order": 8,
+      "authority": "PCT Rule 5.1(a)(vi)"
+    },
+    {
+      "key": "claims",
+      "heading": "Claims",
+      "required": true,
+      "order": 9,
+      "authority": "PCT Rule 6"
+    },
+    {
+      "key": "abstract",
+      "heading": "Abstract",
+      "required": true,
+      "order": 10,
+      "authority": "PCT Rule 8"
+    }
+  ],
+  "review_flags": [
+    "PCT_FILING_ELIGIBILITY_REVIEW_REQUIRED",
+    "PRIORITY_SUPPORT_REVIEW_REQUIRED",
+    "DISCLOSURE_REVIEW_REQUIRED",
+    "SPECIALIST_BIOTECH_REVIEW_REQUIRED",
+    "RECEIVING_OFFICE_REVIEW_REQUIRED",
+    "INTERNATIONAL_SEARCH_AUTHORITY_REVIEW_REQUIRED",
+    "INVENTOR_APPLICANT_ASSIGNMENT_REVIEW_REQUIRED",
+    "GLOBAL_PATENT_MISCONCEPTION_CLARIFIED",
+    "NATIONAL_PHASE_DISTINCTION_REQUIRED",
+    "DEADLINE_CALCULATION_UNVERIFIED"
+  ]
+}

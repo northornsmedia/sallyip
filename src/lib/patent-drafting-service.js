@@ -147,6 +147,64 @@ export function verifyClaimSupport112(claimsText = '', specText = '') {
   }
 }
 
+export const PROVENANCE_STATES = {
+  USER_PROVIDED: 'USER_PROVIDED',
+  MATTER_CONTEXT: 'MATTER_CONTEXT',
+  AI_DRAFTED: 'AI_DRAFTED',
+  USER_EDITED: 'USER_EDITED',
+  VERIFIED: 'VERIFIED',
+  UNVERIFIED: 'UNVERIFIED',
+  PLACEHOLDER: 'PLACEHOLDER'
+}
+
+// Machine-readable Claim Support Map (35 U.S.C. § 112(a))
+// Structure: CLAIM -> LIMITATION -> SUPPORTING DISCLOSURE -> SOURCE -> STATUS
+export function buildClaimSupportMap(claimsText = '', specText = '', disclosureFacts = {}) {
+  const v112 = verifyClaimSupport112(claimsText, specText)
+  const map = []
+
+  for (const item of v112.matrix) {
+    let source = PROVENANCE_STATES.AI_DRAFTED
+    const lim = item.limitation.toLowerCase()
+    if (
+      disclosureFacts.plain_description?.toLowerCase().includes(lim) ||
+      disclosureFacts.technical_mechanism?.toLowerCase().includes(lim) ||
+      disclosureFacts.components?.toLowerCase().includes(lim)
+    ) {
+      source = PROVENANCE_STATES.USER_PROVIDED
+    } else if (disclosureFacts.matter_title?.toLowerCase().includes(lim)) {
+      source = PROVENANCE_STATES.MATTER_CONTEXT
+    }
+
+    let status = 'UNSUPPORTED'
+    if (item.status === 'supported') {
+      status = 'SUPPORTED'
+    } else if (
+      disclosureFacts.technical_mechanism?.toLowerCase().includes(lim) ||
+      disclosureFacts.components?.toLowerCase().includes(lim)
+    ) {
+      status = 'PARTIALLY_SUPPORTED'
+    }
+
+    map.push({
+      claim: item.claimNumber,
+      limitation: item.limitation,
+      supporting_disclosure: item.status === 'supported' ? 'Explicitly recited in specification text' : 'Missing from Detailed Description',
+      source,
+      status
+    })
+  }
+
+  return {
+    supportMap: map,
+    hasUnsupportedLimitations: map.some(m => m.status === 'UNSUPPORTED'),
+    totalLimitations: map.length,
+    supportedLimitations: map.filter(m => m.status === 'SUPPORTED').length,
+    unsupportedLimitations: map.filter(m => m.status === 'UNSUPPORTED').length,
+    issues: v112.issues
+  }
+}
+
 // Create new structured patent draft
 export async function createPatentDraft(sql, userId, { matterId, title, filingType = 'provisional_111b', disclosureText = '' }) {
   const filingLabel = filingType === 'nonprovisional_111a' ? 'Nonprovisional (35 U.S.C. § 111(a))' : 'Provisional (35 U.S.C. § 111(b))'

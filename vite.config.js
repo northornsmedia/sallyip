@@ -1,5 +1,8 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import dotenv from 'dotenv'
+dotenv.config()
+dotenv.config({ path: '.env.local', override: true })
 import { fileURLToPath, URL } from 'node:url'
 import { spawn } from 'node:child_process'
 import { neon } from '@neondatabase/serverless'
@@ -126,6 +129,103 @@ function sallyChatApi(apiKey, databaseUrl, model, embeddingKey, embeddingModel, 
           const data = await response.json(); res.statusCode = response.status; return res.end(JSON.stringify(data))
         } catch (error) { res.statusCode = 500; return res.end(JSON.stringify({error:{message:error.message}})) }
       })
+      server.middlewares.use('/api/voice/speak', async (req, res) => {
+        if (req.method !== 'POST') { res.statusCode = 405; res.setHeader('Content-Type','application/json'); return res.end(JSON.stringify({error:{message:'Method not allowed'}})) }
+        try {
+          let raw = ''; for await (const chunk of req) raw += chunk
+          const { input, text, model } = JSON.parse(raw || '{}')
+          const speechText = String(input || text || '').trim()
+          if (!speechText) { res.statusCode = 400; res.setHeader('Content-Type','application/json'); return res.end(JSON.stringify({error:{message:'Speech text is required'}})) }
+          const speechApiKey = process.env.OPENROUTER_SPEECH_API_KEY || apiKey
+          const speechModel = model || process.env.SALLYIP_SPEECH_MODEL || 'fish-audio/s2.1-pro-free:free'
+          const response = await fetch('https://openrouter.ai/api/v1/audio/speech', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${speechApiKey}`,
+              'Content-Type': 'application/json',
+              'HTTP-Referer': 'https://sallyip.com',
+              'X-Title': 'SallyIP Voice Mode'
+            },
+            body: JSON.stringify({
+              model: speechModel,
+              input: speechText,
+              response_format: 'mp3'
+            })
+          })
+          if (!response.ok) {
+            const err = await response.json().catch(() => ({}))
+            res.statusCode = response.status
+            res.setHeader('Content-Type', 'application/json')
+            return res.end(JSON.stringify(err))
+          }
+          const buf = Buffer.from(await response.arrayBuffer())
+          res.statusCode = 200
+          res.setHeader('Content-Type', 'audio/mpeg')
+          res.setHeader('Content-Length', String(buf.length))
+          return res.end(buf)
+        } catch (error) {
+          res.statusCode = 500
+          res.setHeader('Content-Type', 'application/json')
+          return res.end(JSON.stringify({error:{message:error.message}}))
+        }
+      })
+      server.middlewares.use('/api/voice/cancel', async (req, res) => {
+        res.setHeader('Content-Type', 'application/json')
+        if (req.method !== 'POST') { res.statusCode = 405; return res.end(JSON.stringify({error:{message:'Method not allowed'}})) }
+        let raw = ''; for await (const chunk of req) raw += chunk
+        const body = JSON.parse(raw || '{}')
+        return res.end(JSON.stringify({ ok: true, cancelled: true, session_id: body.session_id, generation_id: body.generation_id, timestamp: Date.now() }))
+      })
+      server.middlewares.use('/api/voice/session', async (req, res) => {
+        res.setHeader('Content-Type', 'application/json')
+        if (req.method !== 'POST') { res.statusCode = 405; return res.end(JSON.stringify({error:{message:'Method not allowed'}})) }
+        return res.end(JSON.stringify({
+          session_id: `vsess-${crypto.randomUUID()}`,
+          tts_model: process.env.SALLYIP_SPEECH_MODEL || 'fish-audio/s2.1-pro-free:free',
+          sample_rate: 24000,
+          created_at: Date.now()
+        }))
+      })
+      server.middlewares.use('/api/speech', async (req, res) => {
+        if (req.method !== 'POST') { res.statusCode = 405; res.setHeader('Content-Type','application/json'); return res.end(JSON.stringify({error:{message:'Method not allowed'}})) }
+        try {
+          let raw = ''; for await (const chunk of req) raw += chunk
+          const { input, text, model } = JSON.parse(raw || '{}')
+          const speechText = String(input || text || '').trim()
+          if (!speechText) { res.statusCode = 400; res.setHeader('Content-Type','application/json'); return res.end(JSON.stringify({error:{message:'input text is required'}})) }
+          const speechApiKey = process.env.OPENROUTER_SPEECH_API_KEY || apiKey
+          const speechModel = model || process.env.SALLYIP_SPEECH_MODEL || 'fish-audio/s2.1-pro-free:free'
+          const response = await fetch('https://openrouter.ai/api/v1/audio/speech', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${speechApiKey}`,
+              'Content-Type': 'application/json',
+              'HTTP-Referer': 'https://sallyip.com',
+              'X-Title': 'SallyIP Voice Agent'
+            },
+            body: JSON.stringify({
+              model: speechModel,
+              input: speechText,
+              response_format: 'mp3'
+            })
+          })
+          if (!response.ok) {
+            const err = await response.json().catch(() => ({}))
+            res.statusCode = response.status
+            res.setHeader('Content-Type', 'application/json')
+            return res.end(JSON.stringify(err))
+          }
+          const buf = Buffer.from(await response.arrayBuffer())
+          res.statusCode = 200
+          res.setHeader('Content-Type', 'audio/mpeg')
+          res.setHeader('Content-Length', String(buf.length))
+          return res.end(buf)
+        } catch (error) {
+          res.statusCode = 500
+          res.setHeader('Content-Type', 'application/json')
+          return res.end(JSON.stringify({error:{message:error.message}}))
+        }
+      })
       server.middlewares.use('/api/embeddings', async (req, res) => {
         res.setHeader('Content-Type', 'application/json')
         if (req.method !== 'POST') { res.statusCode = 405; return res.end(JSON.stringify({error:{message:'Method not allowed'}})) }
@@ -188,7 +288,8 @@ function sallyChatApi(apiKey, databaseUrl, model, embeddingKey, embeddingModel, 
           const body=JSON.parse(raw||'{}'),messages=body.messages||[],latest=[...messages].reverse().find(message=>message.role==='user')?.content||''
           const matter=await getMatterContext(sql,user.id,body.matter_id),[conversation]=body.conversation_id?await sql`SELECT id FROM conversations WHERE id=${body.conversation_id} AND user_id=${user.id}`:[];if(conversation&&matter)await sql`UPDATE conversations SET matter_id=${matter.matter.id},updated_at=now() WHERE id=${conversation.id}`;const route=routeSpecialists(latest,{deepResearch:Boolean(body.deep_research),matterJurisdictions:matter?.matter?.jurisdictions||[]}),evidence=await retrieveHybridEvidence(sql,user.id,matter?.matter?.id,latest,{limit:body.deep_research?14:8,embeddingKey,embeddingModel,packCodes:packCodesFor([...matter?.matter?.jurisdictions||[],...route.jurisdictions||[]]),minOverlap:2}),verification=verificationSummary(evidence,route)
           const context={role:'system',content:`SALLY TASK ROUTE\nTask: ${route.task_class}\nSpecialists: ${route.specialists.join(', ')}\nJurisdictions: ${route.jurisdictions.join(', ')||'unresolved'}\nResearch mode: ${route.research_mode}\n\n${matterContextPrompt(matter)}\n\n${evidencePrompt(evidence)}\n\nQUALITY GATE: Distinguish facts, retrieved sources, model knowledge, and inference. Never fabricate research or citations. Include counterarguments and research gaps when material.${draftGuidanceFor(messages,latest)}`}
-          const result = await orchestrateSally([context,...messages],{...process.env,OPENROUTER_API_KEY:apiKey,SALLYIP_MODEL:model,OPENROUTER_EMBEDDING_API_KEY:embeddingKey,SALLYIP_EMBEDDING_MODEL:embeddingModel,OPENROUTER_LFM_CHAT_API_KEY:lfmChatKey,SALLYIP_LFM_CHAT_MODEL:lfmChatModel,OPENROUTER_DOTS_API_KEY:dotsKey,SALLYIP_DOTS_MODEL:dotsModel,OPENROUTER_GEMMA_API_KEY:gemmaKey,SALLYIP_GEMMA_MODEL:gemmaModel,OPENROUTER_RERANK_API_KEY:rerankKey,SALLYIP_RERANK_MODEL:rerankModel,OPENROUTER_OX_API_KEY:oxKey,SALLYIP_OX_MODEL:oxModel,OMNIROUTE_API_KEY:omniRouteKey,OMNIROUTE_BASE_URL:omniRouteBaseUrl},'http://localhost:3000',{sql:neon(databaseUrl||''),conversation_id:String(conversation?.id||''),task_class:route.task_class,preferredEngine:body.engine})
+          const mode = body.mode || (body.matter_id ? (process.env.SALLYIP_EXECUTION_MODE || 'CONFIDENTIAL_IP') : (process.env.SALLYIP_EXECUTION_MODE || 'PUBLIC_RESEARCH'))
+          const result = await orchestrateSally([context,...messages],{...process.env,OPENROUTER_API_KEY:apiKey||process.env.OPENROUTER_API_KEY||process.env.OPENROUTER_SPEECH_API_KEY,SALLYIP_MODEL:model,OPENROUTER_EMBEDDING_API_KEY:embeddingKey,SALLYIP_EMBEDDING_MODEL:embeddingModel,OPENROUTER_LFM_CHAT_API_KEY:lfmChatKey,SALLYIP_LFM_CHAT_MODEL:lfmChatModel,OPENROUTER_DOTS_API_KEY:dotsKey,SALLYIP_DOTS_MODEL:dotsModel,OPENROUTER_GEMMA_API_KEY:gemmaKey,SALLYIP_GEMMA_MODEL:gemmaModel,OPENROUTER_RERANK_API_KEY:rerankKey,SALLYIP_RERANK_MODEL:rerankModel,OPENROUTER_OX_API_KEY:oxKey,SALLYIP_OX_MODEL:oxModel,OMNIROUTE_API_KEY:omniRouteKey,OMNIROUTE_BASE_URL:omniRouteBaseUrl},'http://localhost:3000',{sql:neon(databaseUrl||''),conversation_id:String(conversation?.id||''),task_class:route.task_class,preferredEngine:body.engine,mode})
           const [run]=await sql`INSERT INTO specialist_agent_runs(user_id,matter_id,conversation_id,task_class,specialists,jurisdictions,research_mode,source_basis,verification_status) VALUES(${user.id},${matter?.matter?.id||null},${conversation?.id||null},${route.task_class},${route.specialists},${route.jurisdictions},${route.research_mode},${verification.source_basis},${verification.status}) RETURNING id`
           await recordSallyTelemetry(databaseUrl,result.meta).catch(()=>{})
           const guarded=guardAnswerCitations(result.answer,evidence,verification)
@@ -218,8 +319,9 @@ const route=routeSpecialists(latest,{deepResearch:Boolean(body.deep_research),ma
           res.setHeader('X-Accel-Buffering', 'no')
           const send=event=>{try{res.write(`data: ${JSON.stringify(event)}\n\n`)}catch{}}
           send({type:'status',stage:'engines'})
+          const mode = body.mode || (body.matter_id ? (process.env.SALLYIP_EXECUTION_MODE || 'CONFIDENTIAL_IP') : (process.env.SALLYIP_EXECUTION_MODE || 'PUBLIC_RESEARCH'))
           try {
-            const result = await orchestrateSallyStreaming([context,...messages],{...process.env,OPENROUTER_API_KEY:apiKey,SALLYIP_MODEL:model,OPENROUTER_EMBEDDING_API_KEY:embeddingKey,SALLYIP_EMBEDDING_MODEL:embeddingModel,OPENROUTER_LFM_CHAT_API_KEY:lfmChatKey,SALLYIP_LFM_CHAT_MODEL:lfmChatModel,OPENROUTER_DOTS_API_KEY:dotsKey,SALLYIP_DOTS_MODEL:dotsModel,OPENROUTER_GEMMA_API_KEY:gemmaKey,SALLYIP_GEMMA_MODEL:gemmaModel,OPENROUTER_RERANK_API_KEY:rerankKey,SALLYIP_RERANK_MODEL:rerankModel,OPENROUTER_OX_API_KEY:oxKey,SALLYIP_OX_MODEL:oxModel,OMNIROUTE_API_KEY:omniRouteKey,OMNIROUTE_BASE_URL:omniRouteBaseUrl},'http://localhost:5173',delta=>send({type:'delta',delta}),{sql:neon(databaseUrl||''),conversation_id:String(conversation?.id||''),task_class:route.task_class,preferredEngine:body.engine})
+            const result = await orchestrateSallyStreaming([context,...messages],{...process.env,OPENROUTER_API_KEY:apiKey||process.env.OPENROUTER_API_KEY||process.env.OPENROUTER_SPEECH_API_KEY,SALLYIP_MODEL:model,OPENROUTER_EMBEDDING_API_KEY:embeddingKey,SALLYIP_EMBEDDING_MODEL:embeddingModel,OPENROUTER_LFM_CHAT_API_KEY:lfmChatKey,SALLYIP_LFM_CHAT_MODEL:lfmChatModel,OPENROUTER_DOTS_API_KEY:dotsKey,SALLYIP_DOTS_MODEL:dotsModel,OPENROUTER_GEMMA_API_KEY:gemmaKey,SALLYIP_GEMMA_MODEL:gemmaModel,OPENROUTER_RERANK_API_KEY:rerankKey,SALLYIP_RERANK_MODEL:rerankModel,OPENROUTER_OX_API_KEY:oxKey,SALLYIP_OX_MODEL:oxModel,OMNIROUTE_API_KEY:omniRouteKey,OMNIROUTE_BASE_URL:omniRouteBaseUrl},'http://localhost:5173',delta=>send({type:'delta',delta}),{sql:neon(databaseUrl||''),conversation_id:String(conversation?.id||''),task_class:route.task_class,preferredEngine:body.engine,mode})
             const [run]=await sql`INSERT INTO specialist_agent_runs(user_id,matter_id,conversation_id,task_class,specialists,jurisdictions,research_mode,source_basis,verification_status) VALUES(${user.id},${matter?.matter?.id||null},${conversation?.id||null},${route.task_class},${route.specialists},${route.jurisdictions},${route.research_mode},${verification.source_basis},${verification.status}) RETURNING id`
             await recordSallyTelemetry(databaseUrl,result.meta).catch(()=>{})
             const guardedStream=guardAnswerCitations(result.answer,evidence,verification)

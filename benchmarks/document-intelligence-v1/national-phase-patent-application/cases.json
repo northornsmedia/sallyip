@@ -1,0 +1,287 @@
+{
+  "$schema": "https://sallyip.com/schemas/document-benchmark-v1.json",
+  "document_id": "national-phase-patent-application",
+  "document_number": "007",
+  "name": "National Phase Patent Application Benchmark Suite v1",
+  "version": "1.0.0",
+  "benchmark_type": "SYNTHETIC_EVALUATION",
+  "total_cases": 18,
+  "cases": [
+    {
+      "id": "CASE-01-US-NATIONAL-PHASE",
+      "title": "US National Phase Entry (35 U.S.C. § 371)",
+      "inputs": {
+        "pct_application_number": "PCT/US2024/012345",
+        "international_filing_date": "2024-03-15",
+        "priority_date": "2023-04-10",
+        "target_jurisdiction": "US",
+        "claim_set_source": "PCT_AS_FILED",
+        "title": "Adaptive Neural Network Quantization Engine",
+        "applicants": [{ "name": "SiliconAI Corp", "residence": "US" }],
+        "inventors": [{ "name": "Dr. Alan Turing", "residence": "US" }]
+      },
+      "expected": {
+        "target_jurisdiction": "US",
+        "deadline_months": 30,
+        "deadline_rule": "35 U.S.C. 371(c) / 37 CFR 1.495",
+        "readiness": "READY_FOR_DRAFT",
+        "formalities": ["oath_declaration", "ids_submission"]
+      }
+    },
+    {
+      "id": "CASE-02-EPO-REGIONAL-PHASE",
+      "title": "EPO Regional Phase Entry (EPC Rule 159)",
+      "inputs": {
+        "pct_application_number": "PCT/EP2024/054321",
+        "international_filing_date": "2024-05-20",
+        "priority_date": "2023-06-01",
+        "target_jurisdiction": "EPO",
+        "claim_set_source": "PCT_AS_FILED",
+        "title": "Solid State Battery Electrolyte",
+        "applicants": [{ "name": "EuroPower AG", "residence": "DE" }]
+      },
+      "expected": {
+        "target_jurisdiction": "EPO",
+        "deadline_months": 31,
+        "deadline_rule": "EPC Rule 159(1)",
+        "readiness": "READY_FOR_DRAFT",
+        "formalities": ["form_1200", "rule_161_162_response"]
+      }
+    },
+    {
+      "id": "CASE-03-CA-NATIONAL-PHASE",
+      "title": "Canadian National Phase Entry (Patent Rules s. 210)",
+      "inputs": {
+        "pct_application_number": "PCT/CA2024/098765",
+        "international_filing_date": "2024-02-10",
+        "priority_date": "2023-03-01",
+        "target_jurisdiction": "CA",
+        "claim_set_source": "PCT_AS_FILED",
+        "title": "Subsea Pipeline Monitoring Node"
+      },
+      "expected": {
+        "target_jurisdiction": "CA",
+        "deadline_months": 30,
+        "deadline_rule": "Canadian Patent Rules s. 210",
+        "late_reinstatement_available": true
+      }
+    },
+    {
+      "id": "CASE-04-AU-NATIONAL-PHASE",
+      "title": "Australian National Phase Entry (Patents Act s. 49/r. 8.1)",
+      "inputs": {
+        "pct_application_number": "PCT/AU2024/011223",
+        "international_filing_date": "2024-01-15",
+        "priority_date": "2023-02-01",
+        "target_jurisdiction": "AU",
+        "claim_set_source": "PCT_AS_FILED",
+        "title": "Agricultural Crop Canopy Sensing"
+      },
+      "expected": {
+        "target_jurisdiction": "AU",
+        "deadline_months": 31,
+        "deadline_rule": "Australian Patents Act s. 49 / r. 8.1"
+      }
+    },
+    {
+      "id": "CASE-05-IN-NATIONAL-PHASE",
+      "title": "Indian National Phase Entry (Patents Act s. 138/r. 20)",
+      "inputs": {
+        "pct_application_number": "PCT/IB2024/077889",
+        "international_filing_date": "2024-04-05",
+        "priority_date": "2023-05-15",
+        "target_jurisdiction": "IN",
+        "claim_set_source": "PCT_AS_FILED",
+        "title": "Enzymatic Biocatalyst Synthesis Process"
+      },
+      "expected": {
+        "target_jurisdiction": "IN",
+        "deadline_months": 31,
+        "deadline_rule": "Indian Patents Act s. 138 / Patent Rules r. 20",
+        "formalities": ["form_1", "form_2", "form_3_undertaking"]
+      }
+    },
+    {
+      "id": "CASE-06-MULTI-JURISDICTION",
+      "title": "Multi-Jurisdiction Filing Request (US, Europe, and India)",
+      "inputs": {
+        "user_message": "We want to enter US, Europe and India from PCT/US2024/000111 filed on 2024-01-10 claiming priority 2023-02-01",
+        "pct_application_number": "PCT/US2024/000111",
+        "priority_date": "2023-02-01"
+      },
+      "expected": {
+        "multi_jurisdiction": true,
+        "jurisdictions": ["US", "EPO", "IN"],
+        "separate_child_workflows": true
+      }
+    },
+    {
+      "id": "CASE-07-SINGLE-PRIORITY",
+      "title": "Single Priority Date Traceability",
+      "inputs": {
+        "pct_application_number": "PCT/US2024/022233",
+        "priority_date": "2023-05-10",
+        "target_jurisdiction": "US"
+      },
+      "expected": {
+        "priority_count": 1,
+        "base_calculation_date": "2023-05-10"
+      }
+    },
+    {
+      "id": "CASE-08-MULTIPLE-PRIORITIES",
+      "title": "Multiple Priorities — Earliest Date Anchored",
+      "inputs": {
+        "pct_application_number": "PCT/EP2024/033344",
+        "priority_records": [
+          { "number": "EP23150111", "date": "2023-01-15" },
+          { "number": "EP23170222", "date": "2023-07-20" }
+        ],
+        "target_jurisdiction": "EPO"
+      },
+      "expected": {
+        "earliest_priority_date": "2023-01-15",
+        "base_calculation_date": "2023-01-15"
+      }
+    },
+    {
+      "id": "CASE-09-UNKNOWN-DEADLINE-DATA",
+      "title": "Missing Filing and Priority Date — Cannot Calculate",
+      "inputs": {
+        "pct_application_number": "PCT/US2024/099999",
+        "target_jurisdiction": "US"
+      },
+      "expected": {
+        "deadline_status": "CANNOT_CALCULATE",
+        "prevent_invented_dates": true
+      }
+    },
+    {
+      "id": "CASE-10-ARTICLE-19-AMENDMENTS",
+      "title": "Article 19 Claim Set Selection & Traceability",
+      "inputs": {
+        "pct_application_number": "PCT/US2024/044455",
+        "claim_set_source": "ARTICLE_19_AMENDED",
+        "has_art19": true,
+        "has_as_filed": true,
+        "target_jurisdiction": "US"
+      },
+      "expected": {
+        "selected_claim_source": "ARTICLE_19_AMENDED",
+        "claim_provenance_preserved": true
+      }
+    },
+    {
+      "id": "CASE-11-ARTICLE-34-AMENDMENTS",
+      "title": "Article 34 Chapter II Claim Set Selection",
+      "inputs": {
+        "pct_application_number": "PCT/EP2024/055566",
+        "claim_set_source": "ARTICLE_34_AMENDED",
+        "has_art34": true,
+        "target_jurisdiction": "EPO"
+      },
+      "expected": {
+        "selected_claim_source": "ARTICLE_34_AMENDED",
+        "claim_provenance_preserved": true
+      }
+    },
+    {
+      "id": "CASE-12-TRANSLATION-REQUIRED",
+      "title": "Non-Official Language PCT Entering Target Jurisdiction",
+      "inputs": {
+        "pct_application_number": "PCT/JP2024/066677",
+        "source_language": "ja",
+        "target_jurisdiction": "US",
+        "translation_status": "MISSING"
+      },
+      "expected": {
+        "translation_status": "MISSING",
+        "review_flag": "TRANSLATION_REVIEW_REQUIRED",
+        "prevent_fabricated_translation": true
+      }
+    },
+    {
+      "id": "CASE-13-OWNERSHIP-CHANGE",
+      "title": "Post-PCT Assignment / Ownership Chain",
+      "inputs": {
+        "pct_application_number": "PCT/US2024/077788",
+        "pct_applicant": "Startup Tech Alpha LLC",
+        "new_owner": "Enterprise MegaCorp Inc",
+        "assignment_date": "2024-08-01",
+        "target_jurisdiction": "US"
+      },
+      "expected": {
+        "ownership_chain_flag": "OWNERSHIP_CHAIN_REVIEW_REQUIRED",
+        "prior_applicant_preserved": true
+      }
+    },
+    {
+      "id": "CASE-14-NEW-MATTER-GATE",
+      "title": "Unsupported Technical Feature Request (LiDAR in Camera PCT)",
+      "inputs": {
+        "pct_disclosure": "An optical camera system with image sensor and convolutional filter.",
+        "proposed_addition": "Add a pulsed solid-state LiDAR sensor to claim 1",
+        "target_jurisdiction": "US"
+      },
+      "expected": {
+        "support_status": "NOT_FOUND_IN_PCT",
+        "review_flag": "ADDED_SUBJECT_MATTER_REVIEW_REQUIRED",
+        "silent_insertion_prevented": true
+      }
+    },
+    {
+      "id": "CASE-15-ISR-WRITTEN-OPINION",
+      "title": "International Search Written Opinion Unfavorable Finding",
+      "inputs": {
+        "pct_application_number": "PCT/US2024/088899",
+        "isr_written_opinion": "Claims 1-4 lack inventive step under PCT Article 33(3) over Document D1 (US 2020/0123456).",
+        "target_jurisdiction": "EPO"
+      },
+      "expected": {
+        "isr_captured": true,
+        "not_treated_as_final_rejection": true,
+        "fallback_positions_suggested": true
+      }
+    },
+    {
+      "id": "CASE-16-UNSUPPORTED-JURISDICTION",
+      "title": "Unsupported Jurisdiction Handled Safely (e.g. BR or JP)",
+      "inputs": {
+        "target_jurisdiction": "BR"
+      },
+      "expected": {
+        "support_status": "RESEARCH_REQUIRED",
+        "prevent_invented_local_rules": true
+      }
+    },
+    {
+      "id": "CASE-17-EXISTING-MATTER-PRESERVATION",
+      "title": "Pre-Existing Matter Facts Not Re-Asked",
+      "inputs": {
+        "matter_facts": {
+          "target_jurisdiction": "US",
+          "pct_application_number": "PCT/US2024/000999",
+          "priority_date": "2023-01-01",
+          "applicant_name": "Acme Labs"
+        }
+      },
+      "expected": {
+        "re_ask_target_jurisdiction": false,
+        "re_ask_pct_number": false
+      }
+    },
+    {
+      "id": "CASE-18-LATE-DEADLINE-WARNING",
+      "title": "Past Due / Late Deadline Flagging",
+      "inputs": {
+        "priority_date": "2020-01-01",
+        "target_jurisdiction": "US"
+      },
+      "expected": {
+        "warning_level": "PAST_DUE_REVIEW_REQUIRED",
+        "late_entry_flag": "LATE_ENTRY_OR_REINSTATEMENT_REVIEW_REQUIRED",
+        "not_declared_legally_impossible": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,154 @@
+{
+  "benchmark_id": "doc-intel-v1-utility-patent-application",
+  "document_id": "utility-patent-application",
+  "document_number": "001",
+  "name": "Utility Patent Application Intelligence Benchmark",
+  "version": "1.0.0",
+  "created_at": "2026-09-10T17:50:00Z",
+  "cases": [
+    {
+      "id": "CASE-01-SOFTWARE",
+      "title": "Software Distributed Consensus Engine",
+      "invention_type": "SOFTWARE",
+      "inputs": {
+        "title": "Distributed Transaction Ordering Protocol",
+        "description": "An asynchronous Byzantine fault tolerant state machine replication system that eliminates leader bottlenecks.",
+        "mechanism": "Nodes exchange threshold cryptographic signatures over peer-to-peer gossip channels with DAG ordering.",
+        "components": "Gossip communication module, DAG ledger buffer, threshold signature verifier, state machine committer."
+      },
+      "expected": {
+        "branched_type": "SOFTWARE",
+        "readiness": "READY_FOR_FIRST_DRAFT",
+        "required_101_screen": true
+      }
+    },
+    {
+      "id": "CASE-02-MECHANICAL",
+      "title": "Dual-Axis Robotic Gripper",
+      "invention_type": "MECHANICAL",
+      "inputs": {
+        "title": "Adaptive Compliant Gripper Assembly",
+        "description": "A robotic end-effector capable of passively adapting to irregular geometry objects without motor overload.",
+        "mechanism": "Tendon-driven articulated fingers coupled through differential planetary gearing with torsional spring compliance.",
+        "components": "Mounting flange, planetary differential gear train, three articulated finger segments, elastomer grip pads."
+      },
+      "expected": {
+        "branched_type": "MECHANICAL",
+        "readiness": "READY_FOR_FIRST_DRAFT",
+        "required_101_screen": false
+      }
+    },
+    {
+      "id": "CASE-03-AI-ML",
+      "title": "Sparse Attention Transformer for Real-Time Sensor Streams",
+      "invention_type": "AI_ML",
+      "inputs": {
+        "title": "Dynamic Sparse Attention Neural Network for Sensor Timeseries",
+        "description": "A deep learning architecture that dynamically computes sparse attention masks over high-frequency multi-modal sensor streams.",
+        "mechanism": "A routing neural network computes cluster centroids in latent space, routing attention tokens to top-k matching clusters.",
+        "components": "Input encoder, routing neural network, sparse cross-attention layers, linear projection head."
+      },
+      "expected": {
+        "branched_type": "AI_ML",
+        "readiness": "READY_FOR_FIRST_DRAFT",
+        "required_101_screen": true
+      }
+    },
+    {
+      "id": "CASE-04-EXISTING-MATTER",
+      "title": "Matter Context Pre-Population",
+      "matter_context": {
+        "matter": {
+          "title": "SmartLens Automated Inspection",
+          "client_name": "VisionTech Inc.",
+          "jurisdictions": ["US"]
+        },
+        "facts": [
+          { "fact_type": "inventor", "value": "Jane Smith", "confidence": 0.95 }
+        ]
+      },
+      "prompt": "Draft the utility patent application for this matter.",
+      "expected": {
+        "skipped_fields": ["title", "inventors", "applicant", "jurisdiction"],
+        "first_question_field": "plain_description"
+      }
+    },
+    {
+      "id": "CASE-05-PRIORITY-CLAIM",
+      "title": "Provisional Priority Benefit Claim",
+      "inputs": {
+        "title": "Ultra-Low Power IoT Transceiver",
+        "description": "A wake-up radio receiver consuming under 100 nanowatts in continuous listening mode.",
+        "priority_claims": [
+          { "type": "provisional", "number": "63/800,123", "date": "2025-10-15" }
+        ]
+      },
+      "expected": {
+        "has_priority": true,
+        "priority_section_included": true
+      }
+    },
+    {
+      "id": "CASE-06-PUBLIC-DISCLOSURE",
+      "title": "Pre-Filing Conference Presentation",
+      "inputs": {
+        "title": "Biodegradable Packaging Polymer",
+        "description": "A compostable starch-lignin composite packaging film.",
+        "disclosure": "Presented at GreenTech Expo Berlin 6 months ago with public poster display."
+      },
+      "expected": {
+        "flag": "DISCLOSURE_TIMING_REVIEW_REQUIRED",
+        "conclude_rights_lost": false,
+        "conclude_invalid": false
+      }
+    },
+    {
+      "id": "CASE-07-MULTIPLE-INVENTORS",
+      "title": "Cross-Functional Co-Inventorship",
+      "inputs": {
+        "title": "Acoustic Levitation Micromanipulator",
+        "inventors": ["Alice Walker", "Bob Zhang", "Carol Martinez"]
+      },
+      "expected": {
+        "flag": "INVENTORSHIP_REVIEW_REQUIRED",
+        "inventor_count": 3
+      }
+    },
+    {
+      "id": "CASE-08-KNOWN-PRIOR-ART",
+      "title": "Distinguishing Known Closest Art",
+      "inputs": {
+        "title": "High-Efficiency Electrolyzer Cell",
+        "prior_art": [
+          "US Patent 9,876,543 (Smith et al.) describing alkaline water electrolysis with nickel mesh"
+        ]
+      },
+      "expected": {
+        "prior_art_captured": true,
+        "fabricate_prior_art": false
+      }
+    },
+    {
+      "id": "CASE-09-MISSING-INFO-SKIP",
+      "title": "User Skips Optional or Non-Blocking Fields",
+      "inputs": {
+        "title": "Optical Sensor Array",
+        "drawings_answer": "I don't know yet, can we decide later?"
+      },
+      "expected": {
+        "placeholder_stored": true,
+        "blocked": false
+      }
+    },
+    {
+      "id": "CASE-10-UNSUPPORTED-CLAIM-LIMITATION",
+      "title": "Claim Term Without Specification Support",
+      "spec_text": "The system comprises a camera and an image processor configured to detect defects in semiconductor wafers.",
+      "claims_text": "1. An inspection system comprising:\na camera;\nan image processor; and\na cryogenic cooling jacket surrounding said camera.",
+      "expected": {
+        "unsupported_terms": ["cryogenic cooling jacket"],
+        "has_unsupported_limitations": true
+      }
+    }
+  ]
+}

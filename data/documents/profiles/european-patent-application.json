@@ -1,0 +1,225 @@
+{
+  "id": "european-patent-application",
+  "slug": "european-patent-application",
+  "name": "European Patent Application",
+  "document_number": "008",
+  "aliases": [
+    "draft a european patent application",
+    "prepare an epo patent application",
+    "prepare an ep patent application",
+    "file a european patent application",
+    "draft a patent application for the epo",
+    "prepare a direct european filing",
+    "draft the ep application",
+    "european patent application",
+    "epo patent application",
+    "ep patent application"
+  ],
+  "category": "IP_INNOVATION",
+  "subcategory": "PATENT",
+  "document_family": "EUROPEAN_PATENT_APPLICATION",
+  "family": "EUROPEAN_PATENT_APPLICATION",
+  "practice_areas": ["european_patent_law", "epc_prosecution", "patent_drafting", "epo_filings"],
+  "description": "A direct European patent application filed before the European Patent Office (EPO) under the European Patent Convention (EPC, Articles 75, 78, 87, 88, 123(2) and Rules 42, 43). Establishes an EP filing date and priority position across all EPC Contracting States.",
+  "status": "BETA",
+  "capability_level": "L3_DRAFTABLE",
+  "risk_level": "HIGH",
+  "jurisdiction_type": "REGIONAL_PATENT_WORKFLOW",
+  "jurisdiction": "EP",
+  "primary_jurisdiction": "EP",
+  "authority": "EPO",
+  "jurisdiction_classification": "REGIONAL_PATENT_WORKFLOW",
+  "jurisdiction_notes": "Governed by the European Patent Convention (EPC, 1973/2000), Regulations under the EPC, and the EPO Guidelines for Examination. Direct EP filing must be strictly distinguished from entry into the European regional phase from an existing PCT application (PCT Articles 22/39(1) / Rule 159 EPC).",
+  "jurisdiction_scope": ["EP", "EPO"],
+  "governing_law_required": false,
+  "forum_required": false,
+  "party_roles": ["applicant", "inventor", "representative"],
+  "review_required": true,
+  "verification_required": true,
+  "interview_mode": "ONE_QUESTION_AT_A_TIME",
+  "drafting_status_default": "INFORMATION_GATHERING",
+  "claim_rules": {
+    "max_claims": 50,
+    "excess_claims_fee_threshold": 15,
+    "allow_dependent_claims": true,
+    "multi_category_claims": true,
+    "two_part_form_rule": "Rule 43(1) EPC — preamble and characterising portion when closest prior art is known; neutral formulation when unknown",
+    "multiple_independent_claims_rule": "Rule 43(2) EPC — restricted to plural interrelated products, different uses, or alternative solutions to a specific problem",
+    "statutory_categories": ["apparatus", "method", "computer_program", "computer_implemented_method", "product", "substance", "composition", "use"]
+  },
+  "readiness_levels": ["NOT_READY", "PARTIALLY_READY", "READY_FOR_FIRST_DRAFT"],
+  "provenance_states": [
+    "USER_PROVIDED",
+    "MATTER_CONTEXT",
+    "SOURCE_EXTRACTED",
+    "AUTHORITY_SOURCE",
+    "AI_DRAFTED",
+    "USER_EDITED",
+    "VERIFIED",
+    "UNVERIFIED",
+    "PLACEHOLDER"
+  ],
+  "required_inputs": [
+    {
+      "id": "title",
+      "label": "Title of the Invention",
+      "type": "text",
+      "required": true,
+      "epc_rule": "Rule 41(2)(b) EPC"
+    },
+    {
+      "id": "technical_field",
+      "label": "Technical Field",
+      "type": "textarea",
+      "required": true,
+      "epc_rule": "Rule 42(1)(a) EPC"
+    },
+    {
+      "id": "technical_problem",
+      "label": "Technical Problem and Limitations of Existing Approaches",
+      "type": "textarea",
+      "required": true,
+      "epc_rule": "Rule 42(1)(c) EPC"
+    },
+    {
+      "id": "technical_solution",
+      "label": "Technical Solution and Core Inventive Concept",
+      "type": "textarea",
+      "required": true,
+      "epc_rule": "Rule 42(1)(c) EPC"
+    },
+    {
+      "id": "technical_effect",
+      "label": "Technical Effect and Advantages",
+      "type": "textarea",
+      "required": true,
+      "epc_rule": "Rule 42(1)(c) EPC"
+    },
+    {
+      "id": "embodiments",
+      "label": "Detailed Description of Embodiments",
+      "type": "textarea",
+      "required": true,
+      "epc_rule": "Rule 42(1)(e) EPC"
+    },
+    {
+      "id": "claims",
+      "label": "Claims",
+      "type": "textarea",
+      "required": true,
+      "epc_rule": "Rule 43 EPC"
+    }
+  ],
+  "optional_inputs": [
+    {
+      "id": "background_art",
+      "label": "Background Art / Known References",
+      "type": "textarea",
+      "required": false,
+      "epc_rule": "Rule 42(1)(b) EPC"
+    },
+    {
+      "id": "closest_prior_art",
+      "label": "Closest Prior Art",
+      "type": "text",
+      "required": false
+    },
+    {
+      "id": "drawings_description",
+      "label": "Brief Description of the Drawings",
+      "type": "textarea",
+      "required": false,
+      "epc_rule": "Rule 42(1)(d) EPC"
+    },
+    {
+      "id": "priority_claims",
+      "label": "Earlier Priority Claims",
+      "type": "array",
+      "required": false,
+      "epc_article": "Articles 87, 88 EPC"
+    },
+    {
+      "id": "abstract",
+      "label": "Abstract",
+      "type": "textarea",
+      "required": false,
+      "epc_rule": "Rule 47 EPC / Article 85 EPC"
+    }
+  ],
+  "sections": [
+    {
+      "id": "title_of_invention",
+      "title": "TITLE OF THE INVENTION",
+      "order": 1,
+      "required": true,
+      "epc_rule": "Rule 41(2)(b) EPC",
+      "description": "Short, clear, and technical title indicating the technical subject matter without fancy names."
+    },
+    {
+      "id": "technical_field",
+      "title": "TECHNICAL FIELD",
+      "order": 2,
+      "required": true,
+      "epc_rule": "Rule 42(1)(a) EPC",
+      "description": "Specifies the technical field to which the invention relates."
+    },
+    {
+      "id": "background_art",
+      "title": "BACKGROUND ART",
+      "order": 3,
+      "required": true,
+      "epc_rule": "Rule 42(1)(b) EPC",
+      "description": "Mentions the background art which can be regarded as useful for understanding the invention. Stated neutrally if no closest prior art is known."
+    },
+    {
+      "id": "summary_of_invention",
+      "title": "SUMMARY OF THE INVENTION",
+      "order": 4,
+      "required": true,
+      "epc_rule": "Rule 42(1)(c) EPC",
+      "description": "Discloses the invention in technical terms such that the technical problem and its solution can be understood, stating the technical effects and advantages."
+    },
+    {
+      "id": "brief_description_drawings",
+      "title": "BRIEF DESCRIPTION OF THE DRAWINGS",
+      "order": 5,
+      "required": false,
+      "epc_rule": "Rule 42(1)(d) EPC",
+      "description": "Briefly describes the figures in the drawings, if any."
+    },
+    {
+      "id": "detailed_description",
+      "title": "DETAILED DESCRIPTION OF EMBODIMENTS",
+      "order": 6,
+      "required": true,
+      "epc_rule": "Rule 42(1)(e) EPC",
+      "description": "Describes in detail at least one way of carrying out the invention, using examples where appropriate and referring to drawings."
+    },
+    {
+      "id": "claims",
+      "title": "CLAIMS",
+      "order": 7,
+      "required": true,
+      "epc_rule": "Rule 43 EPC",
+      "description": "Defines the matter for which protection is sought in terms of technical features, clear and concise, supported by description."
+    },
+    {
+      "id": "abstract",
+      "title": "ABSTRACT",
+      "order": 8,
+      "required": true,
+      "epc_rule": "Rule 47 EPC / Article 85 EPC",
+      "description": "Concise summary of the disclosure serving exclusively for technical information purposes, preferably not exceeding 150 words."
+    }
+  ],
+  "review_flags": [
+    "CII_ELIGIBILITY_REVIEW_REQUIRED",
+    "PRIORITY_SUPPORT_REVIEW_REQUIRED",
+    "ADDED_SUBJECT_MATTER_REVIEW_REQUIRED",
+    "MULTIPLE_INDEPENDENT_CLAIM_REVIEW_REQUIRED",
+    "UNITY_REVIEW_REQUIRED",
+    "DISCLOSURE_REVIEW_REQUIRED",
+    "OWNERSHIP_REVIEW_REQUIRED",
+    "TWO_PART_CLAIM_REVIEW_REQUIRED"
+  ]
+}

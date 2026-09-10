@@ -1,0 +1,333 @@
+{
+  "$schema": "https://sallyip.com/schemas/document-benchmark-v1.json",
+  "document_id": "european-patent-application",
+  "document_number": "008",
+  "name": "European Patent Application Benchmark Suite v1",
+  "version": "1.0.0",
+  "benchmark_type": "SYNTHETIC_EVALUATION",
+  "total_cases": 19,
+  "cases": [
+    {
+      "id": "CASE-01-DIRECT-EP-FIRST-FILING",
+      "title": "Direct EP First Filing (No Priority Claim)",
+      "inputs": {
+        "filing_route": "DIRECT_EP_FILING",
+        "has_priority": false,
+        "title": "Autonomous Drone Docking Station with Inductive Charging",
+        "applicants": [{ "name": "AeroTech Innovations AG", "country": "CH" }],
+        "inventors": [{ "name": "Hans Meier", "country": "CH" }]
+      },
+      "expected": {
+        "filing_type": "FIRST_FILING",
+        "priority_status": "NO_PRIORITY",
+        "is_direct_ep": true,
+        "claims_priority": false
+      }
+    },
+    {
+      "id": "CASE-02-PRIORITY-TO-US-PROVISIONAL",
+      "title": "Direct EP Claiming Priority to Earlier US Provisional",
+      "inputs": {
+        "filing_route": "DIRECT_EP_FILING",
+        "has_priority": true,
+        "priority_records": [
+          {
+            "priority_id": "PRIO-01",
+            "country_or_office": "US",
+            "application_number": "63/123,456",
+            "filing_date": "2024-05-10",
+            "applicant": "Silicon Sensor Inc.",
+            "source": "USER_PROVIDED",
+            "verification_status": "UNVERIFIED"
+          }
+        ]
+      },
+      "expected": {
+        "priority_type": "CLAIMS_PRIORITY_TO_US_PROVISIONAL",
+        "earliest_priority_date": "2024-05-10",
+        "deadline_months": 12,
+        "deadline_rule": "Article 87(1) EPC / Paris Convention Article 4(A)(1)",
+        "calculated_deadline": "2025-05-10"
+      }
+    },
+    {
+      "id": "CASE-03-MULTIPLE-PRIORITIES",
+      "title": "Direct EP Claiming Multiple Priorities",
+      "inputs": {
+        "filing_route": "DIRECT_EP_FILING",
+        "priority_records": [
+          {
+            "priority_id": "PRIO-01",
+            "country_or_office": "US",
+            "application_number": "63/111,111",
+            "filing_date": "2024-01-10"
+          },
+          {
+            "priority_id": "PRIO-02",
+            "country_or_office": "EP",
+            "application_number": "EP24123456.7",
+            "filing_date": "2024-06-15"
+          }
+        ]
+      },
+      "expected": {
+        "multiple_priorities": true,
+        "count": 2,
+        "earliest_priority_date": "2024-01-10",
+        "deadline_months": 12,
+        "calculated_deadline": "2025-01-10"
+      }
+    },
+    {
+      "id": "CASE-04-SOFTWARE-CII",
+      "title": "Computer-Implemented Invention (CII) Branch",
+      "inputs": {
+        "title": "Dynamic Hash Ring Load Balancing Method for Microservice Clusters",
+        "technical_problem": "High network latency and uneven distribution of requests under sudden burst loads",
+        "technical_solution": "A distributed hash ring with consistent virtual nodes weighted by server telemetry",
+        "technical_effect": "Reduces peak latency by 35% without centralized coordination overhead",
+        "invention_type": "SOFTWARE"
+      },
+      "expected": {
+        "invention_type": "SOFTWARE",
+        "cii_review_required": true,
+        "review_flag": "CII_ELIGIBILITY_REVIEW_REQUIRED"
+      }
+    },
+    {
+      "id": "CASE-05-AI-ML",
+      "title": "Artificial Intelligence / Machine Learning Branch",
+      "inputs": {
+        "title": "Real-Time Seismic Fault Line Detection Using Convolutional Neural Networks",
+        "technical_problem": "Manual seismic fault interpretation is slow and susceptible to acoustic noise artifacts",
+        "technical_solution": "A deep convolutional network trained on synthetic acoustic impedance volumes",
+        "technical_effect": "Accelerates structural boundary demarcation while filtering acoustic reverberations",
+        "invention_type": "AI_ML"
+      },
+      "expected": {
+        "invention_type": "AI_ML",
+        "cii_review_required": true,
+        "review_flag": "CII_ELIGIBILITY_REVIEW_REQUIRED"
+      }
+    },
+    {
+      "id": "CASE-06-MECHANICAL-INVENTION",
+      "title": "Mechanical Invention Branch",
+      "inputs": {
+        "title": "High-Torque Planetary Gearbox with Torsional Vibration Damping",
+        "technical_problem": "Torsional resonance at critical rotational speeds causes premature gear tooth wear",
+        "technical_solution": "Resilient elastomer bushings integrated into the planet carrier mounting pins",
+        "technical_effect": "Attenuates harmonic vibration peaks across operating frequency spectrum",
+        "invention_type": "MECHANICAL"
+      },
+      "expected": {
+        "invention_type": "MECHANICAL",
+        "cii_review_required": false
+      }
+    },
+    {
+      "id": "CASE-07-ELECTRONICS-INVENTION",
+      "title": "Electronics / Semiconductor Invention Branch",
+      "inputs": {
+        "title": "Ultra-Low-Noise Differential Amplifier with Capacitive Feedback",
+        "technical_problem": "Flicker noise in input differential pairs degrades signal-to-noise ratio at audio frequencies",
+        "technical_solution": "Chopper-stabilized topology coupled with correlated double sampling capacitive network",
+        "technical_effect": "Suppresses 1/f noise while maintaining sub-milliwatt power consumption",
+        "invention_type": "ELECTRONICS"
+      },
+      "expected": {
+        "invention_type": "ELECTRONICS",
+        "cii_review_required": false
+      }
+    },
+    {
+      "id": "CASE-08-CHEMICAL-INVENTION",
+      "title": "Chemical Composition Branch",
+      "inputs": {
+        "title": "High-Temperature Resistant Polyamide Polymer Composition",
+        "technical_problem": "Thermal degradation and loss of tensile modulus above 200 degrees Celsius",
+        "technical_solution": "A blend of 45-65 wt% semi-aromatic polyamide, 20-35 wt% glass fibers, and 0.5-2 wt% organosilane crosslinker",
+        "technical_effect": "Retains over 80% tensile strength after 1000 hours at 220 degrees Celsius",
+        "invention_type": "CHEMICAL"
+      },
+      "expected": {
+        "invention_type": "CHEMICAL",
+        "experimental_support_required": true
+      }
+    },
+    {
+      "id": "CASE-09-BIOTECH-SPECIALIST-FLAG",
+      "title": "Biotechnology Subject Matter with Specialist Review Flag",
+      "inputs": {
+        "title": "Engineered Single-Guide RNA for Selective Oncogene Disruption",
+        "technical_problem": "Off-target cleavage by wild-type Cas9 nucleases in eukaryotic genomes",
+        "technical_solution": "Modified 20-nucleotide spacer sequence with 2'-O-methyl phosphorothioate backbones",
+        "technical_effect": "Reduces detectable off-target double-strand breaks by greater than 90%",
+        "invention_type": "BIOTECH"
+      },
+      "expected": {
+        "invention_type": "BIOTECH",
+        "review_flag": "BIOTECH_SPECIALIST_REVIEW_REQUIRED"
+      }
+    },
+    {
+      "id": "CASE-10-UNKNOWN-PRIOR-ART",
+      "title": "Unknown Closest Prior Art (No Fabricated Two-Part Claim)",
+      "inputs": {
+        "closest_prior_art": null,
+        "claim_text": "An apparatus comprising a housing, a rotor mounted in the housing, and a stator surrounding the rotor."
+      },
+      "expected": {
+        "two_part_appropriate": false,
+        "two_part_forced": false,
+        "reason": "Closest prior art is unknown; neutral claim structuring preserved under Rule 43(1) EPC"
+      }
+    },
+    {
+      "id": "CASE-11-TWO-PART-CLAIM-AMBIGUITY",
+      "title": "Two-Part Claim Structuring with Verified Closest Prior Art",
+      "inputs": {
+        "closest_prior_art": "EP 3 124 567 A1 disclosing a motor with housing and rotor",
+        "distinguishing_feature": "a magnetic fluid sealing ring positioned between the rotor shaft and the housing",
+        "independent_claim_elements": [
+          "a housing",
+          "a rotor mounted in the housing",
+          "a magnetic fluid sealing ring positioned between the rotor shaft and the housing"
+        ]
+      },
+      "expected": {
+        "two_part_appropriate": true,
+        "characterising_portion_present": true,
+        "rule": "Rule 43(1) EPC"
+      }
+    },
+    {
+      "id": "CASE-12-MULTIPLE-INDEPENDENT-CLAIMS",
+      "title": "Multiple Independent Claims in Same Category (Rule 43(2) EPC)",
+      "inputs": {
+        "claims": [
+          { "number": 1, "category": "apparatus", "is_independent": true, "text": "An apparatus for data processing..." },
+          { "number": 2, "category": "apparatus", "is_independent": true, "text": "An apparatus for network routing..." },
+          { "number": 3, "category": "apparatus", "is_independent": true, "text": "A computing system comprising processors..." }
+        ]
+      },
+      "expected": {
+        "multiple_independent_in_category": true,
+        "review_flag": "MULTIPLE_INDEPENDENT_CLAIM_REVIEW_REQUIRED",
+        "rule": "Rule 43(2) EPC"
+      }
+    },
+    {
+      "id": "CASE-13-UNITY-CONCERN",
+      "title": "Unity of Invention Concern (Article 82 EPC)",
+      "inputs": {
+        "concepts": [
+          "A centrifugal slurry pump impeller geometry with curved vanes",
+          "An asymmetric cryptographic handshake protocol for IoT microcontrollers"
+        ]
+      },
+      "expected": {
+        "unity_review_required": true,
+        "review_flag": "UNITY_REVIEW_REQUIRED",
+        "rule": "Article 82 EPC"
+      }
+    },
+    {
+      "id": "CASE-14-PUBLIC-DISCLOSURE",
+      "title": "Pre-Filing Public Disclosure (Article 54(2) EPC Absolute Novelty)",
+      "inputs": {
+        "public_disclosure": {
+          "disclosed": true,
+          "date": "2024-07-15",
+          "event": "Public presentation at ACM SIGCOMM 2024 conference",
+          "description": "Full technical architecture was presented on slide deck distributed to attendees"
+        }
+      },
+      "expected": {
+        "disclosure_review_required": true,
+        "review_flag": "DISCLOSURE_REVIEW_REQUIRED",
+        "legal_standard": "EPC Art. 54(2) - Absolute Novelty"
+      }
+    },
+    {
+      "id": "CASE-15-NEW-MATTER",
+      "title": "Added Subject Matter Gate (Article 123(2) EPC)",
+      "inputs": {
+        "original_disclosure": "The system includes an optical CMOS sensor that captures 60 fps images of the conveyor belt.",
+        "proposed_addition": "The system further includes a time-of-flight LiDAR scanner operating at 905 nm to generate 3D point clouds."
+      },
+      "expected": {
+        "is_supported": false,
+        "support_status": "NEWLY_ADDED",
+        "review_flag": "ADDED_SUBJECT_MATTER_REVIEW_REQUIRED",
+        "rule": "EPC Art. 123(2)"
+      }
+    },
+    {
+      "id": "CASE-16-EXISTING-MATTER",
+      "title": "Existing Matter Context Preservation (Known Facts Not Re-Asked)",
+      "inputs": {
+        "matter_facts": {
+          "title": "High-Efficiency Photovoltaic Tandem Cell",
+          "inventor_names": ["Dr. Clara Meyer", "Stefan Vogel"],
+          "applicant_name": "HelioPower Technologies GmbH",
+          "technical_field": "Perovskite-silicon tandem solar cells",
+          "priority_records": [
+            {
+              "country_or_office": "EP",
+              "application_number": "EP24155555.1",
+              "filing_date": "2024-03-01"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "known_fields": ["title", "inventor_names", "applicant_name", "technical_field", "priority_records"],
+        "reask_known_facts": false
+      }
+    },
+    {
+      "id": "CASE-17-MISSING-DEADLINE-INFORMATION",
+      "title": "Missing Priority Date for Deadline Calculation (No Guessing)",
+      "inputs": {
+        "priority_date": null,
+        "priority_number": "US 63/999,999"
+      },
+      "expected": {
+        "deadline_status": "CANNOT_CALCULATE",
+        "calculated_deadline": null,
+        "request_input": true
+      }
+    },
+    {
+      "id": "CASE-18-PCT-REGIONAL-PHASE-MISROUTING",
+      "title": "PCT Regional Phase Misrouting Interception",
+      "inputs": {
+        "user_message": "We already have a PCT and now want to enter Europe."
+      },
+      "expected": {
+        "is_pct_regional_phase": true,
+        "target_document": "national-phase-patent-application",
+        "target_office": "EPO",
+        "rule": "EPC Rule 159(1)"
+      }
+    },
+    {
+      "id": "CASE-19-UNSUPPORTED-CLAIM-FEATURE",
+      "title": "Unsupported Claim Feature Detection (Article 84 EPC)",
+      "inputs": {
+        "disclosure": "A mobile device comprising an OLED display, a battery, and a capacitive touchscreen controller.",
+        "claim_features": [
+          "an OLED display",
+          "a cryogenic cooling jacket enveloping the battery"
+        ]
+      },
+      "expected": {
+        "feature_1_status": "SUPPORTED",
+        "feature_2_status": "UNSUPPORTED",
+        "has_unsupported_features": true,
+        "review_flag": "CLAIM_SUPPORT_REVIEW_REQUIRED"
+      }
+    }
+  ]
+}

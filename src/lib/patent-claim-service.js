@@ -24,3 +24,51 @@ export function buildClaimTree(claims){
   for(const claim of nodes.values())for(const parent of claim.depends_on)nodes.get(parent)?.children.push(claim.claim_number)
   return[...nodes.values()].filter(claim=>!claim.depends_on.length)
 }
+
+// Canonical dependency-aware decomposition used by claims, prior-art and
+// novelty workflows. It preserves the exact claim wording and carries every
+// inherited limitation into the effective dependent-claim set.
+export function buildEffectiveClaimLimitations(claims = [], claimSetVersion = null) {
+  const byNumber = new Map((claims || []).map((claim) => [Number(claim.claim_number), claim]))
+  const cache = new Map()
+
+  const visit = (claimNumber, trail = []) => {
+    if (cache.has(claimNumber)) return cache.get(claimNumber)
+    if (trail.includes(claimNumber)) throw new Error(`Circular claim dependency: ${[...trail, claimNumber].join(' -> ')}`)
+    const claim = byNumber.get(claimNumber)
+    if (!claim) throw new Error(`Claim ${claimNumber} not found`)
+    const own = (claim.elements?.length ? claim.elements : splitClaimElements(claim.claim_text)).map((text, index) => ({
+      limitation_id: `${claimSetVersion || 'UNVERSIONED'}:claim-${claimNumber}:limitation-${index + 1}`,
+      claim_number: claimNumber,
+      ordinal: index + 1,
+      exact_text: String(text || '').trim(),
+      normalized_concept: String(text || '').replace(/\s+/g, ' ').trim().toLowerCase(),
+      dependency_source: claimNumber,
+      inherited: false,
+      specification_support: claim.specification_support?.[index] || 'UNKNOWN',
+      priority_support: claim.priority_support?.[index] || 'UNCERTAIN',
+      analysis_status: 'UNREVIEWED',
+    }))
+    const inherited = []
+    for (const parent of claim.depends_on || []) {
+      for (const limitation of visit(Number(parent), [...trail, claimNumber]).full_effective_limitations) {
+        inherited.push({ ...limitation, inherited: true })
+      }
+    }
+    const deduped = [...inherited, ...own].filter((item, index, all) =>
+      all.findIndex((candidate) => candidate.limitation_id === item.limitation_id) === index)
+    const result = {
+      claim_number: claimNumber,
+      claim_text: claim.claim_text,
+      claim_type: (claim.depends_on || []).length ? 'dependent' : 'independent',
+      depends_on: [...(claim.depends_on || [])],
+      inherited_limitations: deduped.filter((item) => item.inherited),
+      added_limitations: own,
+      full_effective_limitations: deduped,
+    }
+    cache.set(claimNumber, result)
+    return result
+  }
+
+  return [...byNumber.keys()].sort((a, b) => a - b).map((number) => visit(number))
+}

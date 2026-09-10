@@ -1,0 +1,419 @@
+{
+  "$schema": "https://sallyip.com/schemas/golden-set.json",
+  "version": "1.0.0",
+  "generated_at": "2026-09-10T16:30:00Z",
+  "baseline_sha": "808fdf88e92207a0c797cef3a812acbf0ecc5bee",
+  "description": "Frozen 25-document golden set for document intelligence runtime validation",
+  "documents": [
+    {
+      "id": 1,
+      "document_type": "nda-mutual",
+      "name": "Mutual NDA",
+      "category": "COMMERCIAL",
+      "subcategory": "NDA",
+      "natural_requests": [
+        "Draft an NDA.",
+        "I need a two-way confidentiality agreement.",
+        "Prepare something so both companies keep the information secret.",
+        "Draft a mutual non-disclosure agreement between Company A and Company B."
+      ],
+      "required_inputs": ["party_a", "party_b", "purpose", "effective_date", "governing_law"],
+      "optional_inputs": ["term_months", "survival_months", "trade_secrets_involved", "personal_data_involved"],
+      "jurisdictions_tested": ["US", "UK", "EU"],
+      "expected_status": "AVAILABLE"
+    },
+    {
+      "id": 2,
+      "document_type": "nda-unilateral",
+      "name": "One-Way NDA",
+      "category": "COMMERCIAL",
+      "subcategory": "NDA",
+      "natural_requests": [
+        "Draft a one-way NDA.",
+        "I need a unilateral confidentiality agreement where only we disclose.",
+        "Prepare an NDA where Company A discloses to Company B."
+      ],
+      "required_inputs": ["discloser", "recipient", "purpose", "effective_date", "governing_law"],
+      "optional_inputs": ["term_months", "survival_months"],
+      "jurisdictions_tested": ["US", "UK"],
+      "expected_status": "PLANNED"
+    },
+    {
+      "id": 3,
+      "document_type": "msa-services",
+      "name": "Master Services Agreement",
+      "category": "COMMERCIAL",
+      "subcategory": "MSA",
+      "natural_requests": [
+        "Draft an MSA.",
+        "Prepare a master services agreement for consulting services.",
+        "We need an MSA between the provider and client."
+      ],
+      "required_inputs": ["provider", "client", "effective_date", "services", "payment_terms", "liability_cap", "notice_days", "governing_law"],
+      "optional_inputs": [],
+      "jurisdictions_tested": ["US", "UK"],
+      "expected_status": "PLANNED"
+    },
+    {
+      "id": 4,
+      "document_type": "saas-agreement",
+      "name": "SaaS Agreement",
+      "category": "COMMERCIAL",
+      "subcategory": "SAAS",
+      "natural_requests": [
+        "Draft a SaaS agreement.",
+        "Prepare a software-as-a-service agreement.",
+        "We need a SaaS subscription agreement for our product."
+      ],
+      "required_inputs": ["provider", "product", "client", "seats", "sla", "liability_cap", "governing_law"],
+      "optional_inputs": [],
+      "jurisdictions_tested": ["US", "EU", "UK"],
+      "expected_status": "PLANNED"
+    },
+    {
+      "id": 5,
+      "document_type": "software-licence",
+      "name": "Software Licence",
+      "category": "TECHNOLOGY",
+      "subcategory": "SOFTWARE_LICENCE",
+      "natural_requests": [
+        "Draft a software licence.",
+        "Prepare a software license agreement.",
+        "We need an EULA for our software."
+      ],
+      "required_inputs": ["licensor", "licensee", "exclusivity", "ip_description", "territory", "term", "royalties", "governing_law"],
+      "optional_inputs": [],
+      "jurisdictions_tested": ["US", "UK", "EU"],
+      "expected_status": "PLANNED"
+    },
+    {
+      "id": 6,
+      "document_type": "data-processing-agreement",
+      "name": "Data Processing Agreement",
+      "category": "PRIVACY",
+      "subcategory": "DPA",
+      "natural_requests": [
+        "We need a DPA for this SaaS deal.",
+        "Prepare a data processing agreement.",
+        "Draft a GDPR-compliant DPA."
+      ],
+      "required_inputs": ["controller", "processor", "personal_data_categories", "processing_purposes", "transfer_mechanism", "security_measures", "governing_law"],
+      "optional_inputs": ["subprocessor_approval", "audit_rights", "liability_cap"],
+      "jurisdictions_tested": ["EU", "UK", "US"],
+      "expected_status": "PLANNED"
+    },
+    {
+      "id": 7,
+      "document_type": "privacy-policy",
+      "name": "Privacy Notice / Policy",
+      "category": "PRIVACY",
+      "subcategory": "PRIVACY_POLICY",
+      "natural_requests": [
+        "Prepare a privacy notice for our website.",
+        "Draft a privacy policy for our SaaS product.",
+        "We need a GDPR/CCPA compliant privacy notice."
+      ],
+      "required_inputs": ["entity_name", "data_categories", "purposes", "legal_bases", "retention_periods", "data_subject_rights", "contact_details", "governing_law"],
+      "optional_inputs": ["cookies_used", "third_party_sharing", "international_transfers"],
+      "jurisdictions_tested": ["US", "EU", "UK", "CA"],
+      "expected_status": "PLANNED"
+    },
+    {
+      "id": 8,
+      "document_type": "patent-assignment",
+      "name": "Patent Assignment",
+      "category": "IP_INNOVATION",
+      "subcategory": "PATENT",
+      "natural_requests": [
+        "Draft an agreement assigning this patent to the buyer.",
+        "Prepare a patent assignment agreement.",
+        "We need to assign patent US1234567 to the acquiring company."
+      ],
+      "required_inputs": ["assignor", "assignee", "patent_number", "patent_title", "consideration", "effective_date", "governing_law"],
+      "optional_inputs": ["further_assurances", "warranties", "recordation"],
+      "jurisdictions_tested": ["US", "UK", "EU"],
+      "expected_status": "PLANNED"
+    },
+    {
+      "id": 9,
+      "document_type": "ip-licence",
+      "name": "IP Licence",
+      "category": "IP_INNOVATION",
+      "subcategory": "LICENSING",
+      "natural_requests": [
+        "Draft an IP licence agreement.",
+        "Prepare a licence for our patented technology.",
+        "We need a trademark licence for our brand."
+      ],
+      "required_inputs": ["licensor", "licensee", "exclusivity", "ip_description", "territory", "term", "royalties", "governing_law"],
+      "optional_inputs": ["sublicensing", "improvements", "quality_control", "audit_rights"],
+      "jurisdictions_tested": ["US", "UK", "EU"],
+      "expected_status": "PLANNED"
+    },
+    {
+      "id": 10,
+      "document_type": "trademark-coexistence",
+      "name": "Trademark Coexistence Agreement",
+      "category": "IP_INNOVATION",
+      "subcategory": "TRADEMARK",
+      "natural_requests": [
+        "Prepare a trademark coexistence agreement.",
+        "Draft a coexistence agreement for two similar marks.",
+        "We need a trademark coexistence agreement for both parties to use similar marks."
+      ],
+      "required_inputs": ["party_a", "party_b", "mark_a", "mark_b", "goods_services_a", "goods_services_b", "territory", "governing_law"],
+      "optional_inputs": ["geographic_restrictions", "quality_control", "dispute_resolution"],
+      "jurisdictions_tested": ["US", "EU", "UK"],
+      "expected_status": "PLANNED"
+    },
+    {
+      "id": 11,
+      "document_type": "trademark-cease-desist",
+      "name": "Trademark Cease and Desist Letter",
+      "category": "LETTERS",
+      "subcategory": "CEASE_DESIST",
+      "natural_requests": [
+        "Write a letter telling them to stop using our trademark.",
+        "Draft a cease and desist letter for trademark infringement.",
+        "Prepare a trademark cease and desist notice."
+      ],
+      "required_inputs": ["sender", "recipient", "infringing_mark", "our_mark", "registration_number", "jurisdiction", "demand", "deadline"],
+      "optional_inputs": ["damages_demand", "undertakings_requested"],
+      "jurisdictions_tested": ["US", "UK", "EU"],
+      "expected_status": "PLANNED"
+    },
+    {
+      "id": 12,
+      "document_type": "patent-application",
+      "name": "Patent Application Drafting Workflow",
+      "category": "IP_INNOVATION",
+      "subcategory": "PATENT",
+      "natural_requests": [
+        "Draft a patent application for this invention.",
+        "Prepare a utility patent application.",
+        "We need a nonprovisional patent application."
+      ],
+      "required_inputs": ["invention_title", "inventor_names", "field_of_invention", "technical_description", "jurisdiction", "posture"],
+      "optional_inputs": ["prior_art_references", "drawings", "claims_text", "abstract"],
+      "jurisdictions_tested": ["US", "EPO", "PCT", "UK"],
+      "expected_status": "BETA"
+    },
+    {
+      "id": 13,
+      "document_type": "patent-office-action-response-103",
+      "name": "§103 Office Action Response",
+      "category": "IP_INNOVATION",
+      "subcategory": "PATENT",
+      "natural_requests": [
+        "Prepare our response to this 103 rejection.",
+        "Draft a response to the obviousness rejection.",
+        "We need to argue against the examiner's §103 rejection."
+      ],
+      "required_inputs": ["office_action_text", "claims_under_rejection", "prior_art_cited", "distinguishing_arguments", "jurisdiction"],
+      "optional_inputs": ["amendment_proposed", "declaration_evidence", "interview_summary"],
+      "jurisdictions_tested": ["US"],
+      "expected_status": "PLANNED"
+    },
+    {
+      "id": 14,
+      "document_type": "invention-assignment",
+      "name": "Invention Assignment Agreement",
+      "category": "EMPLOYMENT",
+      "subcategory": "EMPLOYMENT_AGREEMENT",
+      "natural_requests": [
+        "Draft an invention assignment for this employee.",
+        "Prepare an employee IP assignment agreement.",
+        "We need an agreement assigning all inventions to the company."
+      ],
+      "required_inputs": ["employer", "employee", "scope_of_assignment", "pre_existing_inventions", "effective_date", "governing_law"],
+      "optional_inputs": ["consideration", "moral_rights_waiver", "further_assurances"],
+      "jurisdictions_tested": ["US", "UK"],
+      "expected_status": "PLANNED"
+    },
+    {
+      "id": 15,
+      "document_type": "employment-agreement",
+      "name": "Employment Agreement",
+      "category": "EMPLOYMENT",
+      "subcategory": "EMPLOYMENT_AGREEMENT",
+      "natural_requests": [
+        "Draft an employment agreement for a new hire.",
+        "Prepare an executive employment agreement.",
+        "We need an employment contract with IP provisions."
+      ],
+      "required_inputs": ["employer", "employee", "start_date", "role", "base_salary", "equity_awards", "termination_provisions", "governing_law"],
+      "optional_inputs": ["bonus_target", "benefits", "non_compete", "non_solicit", "confidentiality_term"],
+      "jurisdictions_tested": ["US", "UK"],
+      "expected_status": "PLANNED"
+    },
+    {
+      "id": 16,
+      "document_type": "employment-termination",
+      "name": "Employment Termination Letter",
+      "category": "EMPLOYMENT",
+      "subcategory": "TERMINATION",
+      "natural_requests": [
+        "Prepare the documents for terminating this employee.",
+        "Draft a termination letter.",
+        "We need a separation agreement for this employee."
+      ],
+      "required_inputs": ["employer", "employee", "termination_date", "reason", "severance_amount", "release_of_claims", "governing_law"],
+      "optional_inputs": ["non_disparagement", "reference_terms", "return_of_property"],
+      "jurisdictions_tested": ["US", "UK"],
+      "expected_status": "PLANNED"
+    },
+    {
+      "id": 17,
+      "document_type": "independent-contractor-agreement",
+      "name": "Independent Contractor Agreement",
+      "category": "EMPLOYMENT",
+      "subcategory": "CONTRACTOR",
+      "natural_requests": [
+        "Draft a contractor agreement.",
+        "Prepare an independent contractor agreement.",
+        "We need a consulting agreement with IP assignment."
+      ],
+      "required_inputs": ["company", "contractor", "services", "compensation", "ip_assignment", "confidentiality", "termination", "governing_law"],
+      "optional_inputs": ["non_compete", "non_solicit", "expenses", "insurance"],
+      "jurisdictions_tested": ["US", "UK"],
+      "expected_status": "PLANNED"
+    },
+    {
+      "id": 18,
+      "document_type": "share-purchase-agreement",
+      "name": "Share Purchase Agreement",
+      "category": "CORPORATE",
+      "subcategory": "ACQUISITION",
+      "natural_requests": [
+        "Draft a share purchase agreement.",
+        "Prepare an SPA for the acquisition.",
+        "We need a share purchase agreement for buying all shares."
+      ],
+      "required_inputs": ["buyer", "seller", "target_company", "shares", "purchase_price", "closing_conditions", "representations", "indemnification", "governing_law"],
+      "optional_inputs": ["earnout", "escrow", "non_compete", "transition_services"],
+      "jurisdictions_tested": ["US", "UK", "EU"],
+      "expected_status": "PLANNED"
+    },
+    {
+      "id": 19,
+      "document_type": "shareholders-agreement",
+      "name": "Shareholders' Agreement",
+      "category": "CORPORATE",
+      "subcategory": "GOVERNANCE",
+      "natural_requests": [
+        "Draft a shareholders' agreement.",
+        "Prepare a SHA for the new company.",
+        "We need a shareholders agreement with drag/tag rights."
+      ],
+      "required_inputs": ["company", "shareholders", "board_composition", "voting_rights", "transfer_restrictions", "drag_along", "tag_along", "governing_law"],
+      "optional_inputs": ["preemptive_rights", "deadlock_resolution", "information_rights", "non_compete"],
+      "jurisdictions_tested": ["US", "UK"],
+      "expected_status": "PLANNED"
+    },
+    {
+      "id": 20,
+      "document_type": "board-resolution",
+      "name": "Board Resolution",
+      "category": "CORPORATE",
+      "subcategory": "GOVERNANCE",
+      "natural_requests": [
+        "Draft a board resolution approving the transaction.",
+        "Prepare a board resolution for the financing.",
+        "We need a board resolution authorizing the SPA."
+      ],
+      "required_inputs": ["company", "date", "directors_present", "resolutions", "secretary", "governing_law"],
+      "optional_inputs": ["recitals", "exhibits"],
+      "jurisdictions_tested": ["US", "UK"],
+      "expected_status": "PLANNED"
+    },
+    {
+      "id": 21,
+      "document_type": "settlement-agreement",
+      "name": "Settlement Agreement",
+      "category": "LITIGATION",
+      "subcategory": "SETTLEMENT",
+      "natural_requests": [
+        "Draft a settlement agreement for this dispute.",
+        "Prepare a settlement agreement to resolve the litigation.",
+        "We need a settlement with mutual releases."
+      ],
+      "required_inputs": ["party_a", "party_b", "dispute_description", "settlement_amount", "release_scope", "confidentiality", "governing_law", "forum"],
+      "optional_inputs": ["non_disparagement", "structured_payments", "tax_allocation"],
+      "jurisdictions_tested": ["US", "UK"],
+      "expected_status": "PLANNED"
+    },
+    {
+      "id": 22,
+      "document_type": "arbitration-notice",
+      "name": "Arbitration Notice",
+      "category": "LITIGATION",
+      "subcategory": "ARBITRATION",
+      "natural_requests": [
+        "Prepare an arbitration notice.",
+        "Draft a notice of arbitration.",
+        "We need to commence arbitration under the contract."
+      ],
+      "required_inputs": ["claimant", "respondent", "contract_reference", "arbitration_rules", "seat", "language", "claims_summary", "relief_sought"],
+      "optional_inputs": ["arbitrator_nomination", "witness_list", "document_production"],
+      "jurisdictions_tested": ["US", "UK", "EU"],
+      "expected_status": "PLANNED"
+    },
+    {
+      "id": 23,
+      "document_type": "legal-research-memorandum",
+      "name": "Legal Research Memorandum",
+      "category": "LEGAL_RESEARCH",
+      "subcategory": "LEGAL_MEMO",
+      "natural_requests": [
+        "Prepare a legal research memorandum on this issue.",
+        "Draft a memo analyzing the patent eligibility question.",
+        "We need a memo on the enforceability of non-competes in California."
+      ],
+      "required_inputs": ["question_presented", "jurisdiction", "facts", "applicable_law", "analysis", "conclusion"],
+      "optional_inputs": ["contrary_authority", "confidence_level", "recommendations"],
+      "jurisdictions_tested": ["US", "UK", "EU"],
+      "expected_status": "PLANNED"
+    },
+    {
+      "id": 24,
+      "document_type": "litigation-hold-notice",
+      "name": "Litigation Hold Notice",
+      "category": "LITIGATION",
+      "subcategory": "PLEADINGS",
+      "natural_requests": [
+        "Prepare a litigation hold notice.",
+        "Draft a document preservation notice.",
+        "We need to issue a legal hold for this matter."
+      ],
+      "required_inputs": ["entity", "matter_description", "custodians", "date_range", "data_sources", "preservation_instructions", "compliance_deadline"],
+      "optional_inputs": ["it_contact", "legal_contact", "escalation_procedure"],
+      "jurisdictions_tested": ["US", "UK"],
+      "expected_status": "PLANNED"
+    },
+    {
+      "id": 25,
+      "document_type": "commercial-demand-letter",
+      "name": "Commercial Demand Letter",
+      "category": "LETTERS",
+      "subcategory": "DEMAND_LETTER",
+      "natural_requests": [
+        "Write a demand letter for unpaid invoices.",
+        "Draft a formal demand for breach of contract.",
+        "Prepare a demand letter before filing suit."
+      ],
+      "required_inputs": ["sender", "recipient", "basis_of_claim", "amount_demanded", "deadline", "consequences_of_nonpayment", "governing_law"],
+      "optional_inputs": ["attachment_references", "settlement_offer", "statutory_notices"],
+      "jurisdictions_tested": ["US", "UK"],
+      "expected_status": "PLANNED"
+    }
+  ],
+  "routing_tests": {
+    "total_natural_requests": 75,
+    "expected_correct_category": 75,
+    "expected_correct_family": 75,
+    "expected_correct_document": 50,
+    "expected_correct_jurisdiction_handling": 60,
+    "expected_correct_clarification": 75,
+    "expected_correct_matter_context_use": 30
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "failure_id": "CAPABILITY_GAP_001",
+  "title": "Only 2 of 400 catalogue documents are draftable",
+  "severity": "HIGH",
+  "type": "COVERAGE_GAP",
+  "description": "The catalogue contains 400 document types but only 2 (Mutual NDA, Patent Application) have full drafting capability (L3 DRAFTABLE). The remaining 398 are metadata-only (L0 CATALOGUED).",
+  "affected_documents": 398,
+  "impact": "Users see 400 document types in the UI but can only draft 2. This creates false competence perception.",
+  "root_cause": "Document profiles not created for most catalogue entries. Only 2 profiles exist in data/documents/profiles/.",
+  "remediation": "Create document profiles for remaining golden set documents, then expand to full catalogue.",
+  "regression_test": "Capability matrix audit should fail if L3 count < golden set size (25)."
+}

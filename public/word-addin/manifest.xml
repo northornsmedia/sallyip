@@ -1,23 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="TaskPaneApp">
-  <!-- Replace https://sallyip.vercel.app with your production domain, then sideload in Word -->
   <Id>3f4c8c1a-7b2e-4d9a-9c1e-sallyip000001</Id>
   <Version>1.0.0</Version>
   <ProviderName>SallyIP</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="SallyIP for Word" />
   <Description DefaultValue="Run SallyIP playbooks and insert reviewed results into the document." />
-  <IconUrl DefaultValue="https://sallyip.vercel.app/sallyip-logo.png" />
-  <HighResolutionIconUrl DefaultValue="https://sallyip.vercel.app/sallyip-logo.png" />
-  <SupportUrl DefaultValue="https://sallyip.vercel.app" />
+  <IconUrl DefaultValue="https://sallyip.com/sallyip-logo.png" />
+  <HighResolutionIconUrl DefaultValue="https://sallyip.com/sallyip-logo.png" />
+  <SupportUrl DefaultValue="https://sallyip.com" />
   <AppDomains>
-    <AppDomain>https://sallyip.vercel.app</AppDomain>
+    <AppDomain>https://sallyip.com</AppDomain>
   </AppDomains>
   <Hosts>
     <Host Name="Document" />
   </Hosts>
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://sallyip.vercel.app/word-addin/taskpane.html" />
+    <SourceLocation DefaultValue="https://sallyip.com/word-addin/taskpane.html" />
   </DefaultSettings>
   <Permissions>ReadWriteDocument</Permissions>
 </OfficeApp>

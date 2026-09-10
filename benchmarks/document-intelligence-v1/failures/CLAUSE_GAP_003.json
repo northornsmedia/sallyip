@@ -1,0 +1,21 @@
+{
+  "failure_id": "CLAUSE_GAP_003",
+  "title": "Clause variant intelligence only implemented for NDA",
+  "severity": "MEDIUM",
+  "type": "CLAUSE_GAP",
+  "description": "28 clause families defined in data/documents/clause-families.json with 9 drafting positions each, but only NDA clause families (confidentiality.*, ip.background, disputes.courts) have actual variant implementations in getClauseVariant(). Remaining 22 families return null.",
+  "affected_families": [
+    "ip.foreground", "ip.assignment", "ip.licence", "ip.improvements",
+    "liability.cap", "liability.exclusions", "liability.indirect_loss",
+    "indemnity.ip", "indemnity.third_party",
+    "termination.convenience", "termination.cause",
+    "data.controller_processor", "data.security", "data.subprocessors", "data.transfers",
+    "disputes.arbitration", "disputes.mediation",
+    "ip.claims", "ip.priority", "ip.assignment_patent",
+    "warranty.general", "warranty.limitation"
+  ],
+  "impact": "Users can request alternative positions (customer-friendly, supplier-friendly, etc.) but only get results for NDA clauses. Other documents cannot use clause intelligence features.",
+  "root_cause": "getClauseVariant() in document-engine.js only has hardcoded variants for confidentiality.duration. No systematic variant generation from clause-families.json.",
+  "remediation": "Implement variant templates in clause-families.json for all families, or build programmatic variant generator.",
+  "regression_test": "Clause variant test: all 28 families should return non-null for at least NEUTRAL position."
+}

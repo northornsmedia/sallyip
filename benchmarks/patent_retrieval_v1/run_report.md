@@ -1,6 +1,6 @@
 # Retrieval Benchmark v1 — run report
 
-- Date: 2026-09-10T07:35:56.439Z
+- Date: 2026-09-10T10:37:19.713Z
 - Dataset: v1-frozen (19 cases)
 - Passed: 99, Failed: 21
 - Gated (need provider keys): recall@k, precision@k, ground-truth rank (no provider keys)

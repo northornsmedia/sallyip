@@ -37,11 +37,12 @@ export default function VoiceChatWidget() {
   const [callState, setCallState] = useState("idle"); // 'idle' | 'connecting' | 'listening' | 'speaking'
   const [callDuration, setCallDuration] = useState(0);
   const [inputValue, setInputValue] = useState("");
+  const [liveUserSpeech, setLiveUserSpeech] = useState("");
   const [messages, setMessages] = useState([
     {
       id: "welcome",
       role: "assistant",
-      text: "Hello! I am SallyIP Conversational Agent powered by ElevenLabs. How can I assist with your patent, trademark, or legal research today?",
+      text: "Hello! I am SallyIP Conversational Agent powered by Fish Audio S2.1 Pro. How can I assist with your patent, trademark, or legal research today?",
       time: "Just now",
     },
   ]);
@@ -50,6 +51,13 @@ export default function VoiceChatWidget() {
   const recognitionRef = useRef(null);
   const langMenuRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const currentAudioRef = useRef(null);
+  const callStateRef = useRef(callState);
+
+  // Sync callStateRef to avoid stale closures in SpeechRecognition callbacks
+  useEffect(() => {
+    callStateRef.current = callState;
+  }, [callState]);
 
   // Close language menu on outside click
   useEffect(() => {
@@ -84,33 +92,71 @@ export default function VoiceChatWidget() {
     }
   }, [messages, activeTab]);
 
-  // Speak response using SpeechSynthesis
-  const speakText = (text) => {
+  const fallbackSpeech = (text) => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = selectedLang.voiceLang;
       utterance.rate = 1.05;
       utterance.pitch = 1.0;
-
-      utterance.onstart = () => {
-        setCallState("speaking");
-      };
-
-      utterance.onend = () => {
-        setCallState("listening");
-      };
-
-      utterance.onerror = () => {
-        setCallState("listening");
-      };
-
+      utterance.onstart = () => setCallState("speaking");
+      utterance.onend = () => setCallState("listening");
+      utterance.onerror = () => setCallState("listening");
       window.speechSynthesis.speak(utterance);
     } else {
-      // Fallback
       setCallState("speaking");
       setTimeout(() => setCallState("listening"), 3000);
     }
+  };
+
+  // Speak response using Fish Audio S2.1 Pro Free via /api/speech with SpeechSynthesis fallback
+  const speakText = async (text) => {
+    if (currentAudioRef.current) {
+      try {
+        currentAudioRef.current.pause();
+        currentAudioRef.current.currentTime = 0;
+      } catch {}
+      currentAudioRef.current = null;
+    }
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    setCallState("speaking");
+
+    try {
+      const res = await fetch("/api/speech", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ input: text, model: "fish-audio/s2.1-pro-free:free" }),
+      });
+
+      if (res.ok) {
+        const blob = await res.blob();
+        const audioUrl = URL.createObjectURL(blob);
+        const audio = new Audio(audioUrl);
+        currentAudioRef.current = audio;
+
+        audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+          currentAudioRef.current = null;
+          setCallState("listening");
+        };
+
+        audio.onerror = () => {
+          URL.revokeObjectURL(audioUrl);
+          currentAudioRef.current = null;
+          fallbackSpeech(text);
+        };
+
+        await audio.play();
+        return;
+      }
+    } catch (err) {
+      console.warn("Fish Audio TTS failed, falling back to local speech:", err);
+    }
+
+    fallbackSpeech(text);
   };
 
   // Start speech recognition
@@ -119,37 +165,76 @@ export default function VoiceChatWidget() {
       window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
       try {
+        if (recognitionRef.current) {
+          try { recognitionRef.current.stop(); } catch {}
+        }
+
         const recognition = new SpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
+        recognition.continuous = true;
+        recognition.interimResults = true;
         recognition.lang = selectedLang.voiceLang;
 
         recognition.onstart = () => {
-          setCallState("listening");
-        };
-
-        recognition.onresult = (event) => {
-          const transcript = event.results[0][0].transcript;
-          if (transcript) {
-            handleUserUtterance(transcript);
+          if (callStateRef.current !== "speaking") {
+            setCallState("listening");
           }
         };
 
-        recognition.onerror = () => {
-          // If error or silence, keep in listening or simulate
-          setCallState("listening");
+        recognition.onresult = (event) => {
+          let interim = "";
+          let final = "";
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              final += event.results[i][0].transcript;
+            } else {
+              interim += event.results[i][0].transcript;
+            }
+          }
+
+          const heardText = (interim || final).trim();
+
+          // Interruption / Barge-in model:
+          // If the user starts speaking while Sally is speaking, cut off Sally's audio immediately!
+          if (heardText.length > 1 && callStateRef.current === "speaking") {
+            if (currentAudioRef.current) {
+              try {
+                currentAudioRef.current.pause();
+                currentAudioRef.current.currentTime = 0;
+              } catch {}
+              currentAudioRef.current = null;
+            }
+            if (typeof window !== "undefined" && "speechSynthesis" in window) {
+              window.speechSynthesis.cancel();
+            }
+            setCallState("listening");
+          }
+
+          if (interim) {
+            setLiveUserSpeech(interim);
+          }
+
+          if (final) {
+            setLiveUserSpeech("");
+            handleUserUtterance(final.trim());
+          }
+        };
+
+        recognition.onerror = (err) => {
+          if (err.error !== "no-speech") {
+            console.warn("SpeechRecognition error:", err.error);
+          }
         };
 
         recognition.onend = () => {
-          // If call is still active and not speaking, restart listening after a pause
-          if (callState === "listening") {
+          // If call is still active, automatically restart recognition so listening never drops
+          if (callStateRef.current !== "idle") {
             setTimeout(() => {
               try {
-                recognition.start();
-              } catch {
-                // already active
-              }
-            }, 800);
+                if (callStateRef.current !== "idle" && recognitionRef.current) {
+                  recognition.start();
+                }
+              } catch {}
+            }, 300);
           }
         };
 
@@ -163,6 +248,14 @@ export default function VoiceChatWidget() {
 
   // Stop speech recognition and synthesis
   const stopListeningAndSpeech = () => {
+    setLiveUserSpeech("");
+    if (currentAudioRef.current) {
+      try {
+        currentAudioRef.current.pause();
+        currentAudioRef.current.currentTime = 0;
+      } catch {}
+      currentAudioRef.current = null;
+    }
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
@@ -174,24 +267,40 @@ export default function VoiceChatWidget() {
     }
   };
 
+  // Immediate interruption / barge-in handler
+  const interruptSpeech = () => {
+    if (currentAudioRef.current) {
+      try {
+        currentAudioRef.current.pause();
+        currentAudioRef.current.currentTime = 0;
+      } catch {}
+      currentAudioRef.current = null;
+    }
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    setLiveUserSpeech("");
+    setCallState("listening");
+  };
+
   // Toggle call
   const toggleCall = () => {
     if (callState === "idle") {
       setCallState("connecting");
       setTimeout(() => {
-        const greeting = `Welcome! I'm connected. What can I check in SallyIP for you today?`;
+        const greeting = `Hello! I'm Sally. What intellectual property matter or patent can I check for you today?`;
         setCallState("speaking");
-        speakText(greeting);
         startListening();
-      }, 900);
+        speakText(greeting);
+      }, 700);
     } else {
       stopListeningAndSpeech();
       setCallState("idle");
     }
   };
 
-  // Generate simulated AI reply
-  const handleUserUtterance = (text) => {
+  // Generate AI reply and speak it
+  const handleUserUtterance = async (text) => {
     const userMsg = {
       id: Date.now().toString(),
       role: "user",
@@ -202,27 +311,46 @@ export default function VoiceChatWidget() {
     setMessages((prev) => [...prev, userMsg]);
     setCallState("speaking");
 
-    // Dynamic response generation based on IP and legal queries
-    let reply = "I've processed that with SallyIP's legal intelligence models. What matter or patent jurisdiction would you like to explore next?";
-    const lower = text.toLowerCase();
-    if (lower.includes("patent") || lower.includes("claim") || lower.includes("novelty")) {
-      reply = "Our patent claims analyzer can evaluate prior art, claim charts, and novelty across USPTO and EPO filings. Would you like me to start a novelty check?";
-    } else if (lower.includes("trademark") || lower.includes("brand") || lower.includes("class")) {
-      reply = "For trademark clearance, I can run similarity matrices across EUIPO and USPTO registers. Which mark or classification are you reviewing?";
-    } else if (lower.includes("hello") || lower.includes("hi") || lower.includes("hey")) {
-      reply = "Hello! SallyIP conversational agent is ready. Ask me about patent analysis, trademark clearance, or workflow automation.";
+    let reply = "";
+    try {
+      const chatRes = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "PUBLIC_RESEARCH",
+          messages: [
+            ...messages
+              .filter((m) => !m.text.includes("trouble reaching the reasoning engine"))
+              .slice(-4)
+              .map((m) => ({ role: m.role, content: m.text })),
+            { role: "user", content: text + " (Please answer concisely in 2 clear sentences for conversational voice response)" },
+          ],
+        }),
+      });
+
+      if (chatRes.ok) {
+        const data = await chatRes.json();
+        reply = data.choices?.[0]?.message?.content || "";
+      } else {
+        const errData = await chatRes.json().catch(() => ({}));
+        console.warn("Chat API returned error:", chatRes.status, errData);
+      }
+    } catch (e) {
+      console.warn("Chat API fetch issue:", e);
     }
 
-    setTimeout(() => {
-      const aiMsg = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        text: reply,
-        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      };
-      setMessages((prev) => [...prev, aiMsg]);
-      speakText(reply);
-    }, 600);
+    if (!reply) {
+      reply = "I'm having trouble reaching the reasoning engine right now. Please try your request again in a moment.";
+    }
+
+    const aiMsg = {
+      id: (Date.now() + 1).toString(),
+      role: "assistant",
+      text: reply,
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    };
+    setMessages((prev) => [...prev, aiMsg]);
+    speakText(reply);
   };
 
   // Handle text message submit
@@ -409,31 +537,53 @@ export default function VoiceChatWidget() {
                 {/* Call Status Badge */}
                 {callState !== "idle" ? (
                   <div style={{ textAlign: "center", marginTop: "16px" }}>
-                    <div className="voice-status-badge">
-                      <span className="voice-status-dot" />
+                    <div className={`voice-status-badge ${callState}`}>
+                      <span className={`voice-status-dot ${callState}`} />
                       <span>
                         {callState === "connecting"
                           ? "Connecting..."
                           : callState === "speaking"
                           ? "Sally AI speaking..."
-                          : "Listening..."}{" "}
+                          : "Listening to your mic..."}{" "}
                         · {formatTime(callDuration)}
                       </span>
                     </div>
 
-                    <div className="voice-live-audio-bars">
+                    <div className={`voice-live-audio-bars ${callState === "listening" ? "listening-bars" : ""}`}>
                       <span className="voice-live-bar" />
                       <span className="voice-live-bar" />
                       <span className="voice-live-bar" />
                       <span className="voice-live-bar" />
                       <span className="voice-live-bar" />
                     </div>
+
+                    {/* Real-time visual feedback: shows user what the mic is hearing */}
+                    {callState === "listening" && liveUserSpeech && (
+                      <div className="voice-live-transcript-bubble">
+                        <span className="voice-live-mic-icon">🎙️</span>
+                        <em>"{liveUserSpeech}"</em>
+                      </div>
+                    )}
+
+                    {/* Interruption UI: shows user they can interrupt Sally anytime */}
+                    {callState === "speaking" && (
+                      <div style={{ marginTop: "6px" }}>
+                        <button
+                          type="button"
+                          className="voice-interrupt-pill-btn"
+                          onClick={interruptSpeech}
+                          title="Click or speak to interrupt Sally"
+                        >
+                          ✋ Tap or speak to interrupt
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  /* Subtitle text matching user's exact screenshot */
+                  /* Subtitle text matching user's voice model */
                   <p className="voice-subtitle">
                     Discover the capabilities of Conversational Agents powered by
-                    ElevenLabs
+                    Fish Audio S2.1 Pro
                   </p>
                 )}
               </div>
@@ -447,7 +597,8 @@ export default function VoiceChatWidget() {
                       className={`voice-msg-bubble ${msg.role === "user" ? "user" : "assistant"}`}
                     >
                       <div className={`voice-msg-author ${msg.role === "assistant" ? "assistant" : ""}`}>
-                        {msg.role === "assistant" ? "Sally Voice Agent" : "You"} · {msg.time}
+                        {msg.role === "assistant" ? "Sally Voice Agent" : "You"} · {msg.time || "Just now"}
+                        {msg.interrupted && <span className="voice-msg-interrupted-tag">Interrupted</span>}
                       </div>
                       <div>{msg.text}</div>
                       {msg.role === "assistant" && (

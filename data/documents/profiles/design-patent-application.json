@@ -1,0 +1,340 @@
+{
+  "id": "design-patent-application",
+  "slug": "design-patent-application",
+  "name": "Design Patent Application",
+  "document_number": "004",
+  "aliases": [
+    "design patent application",
+    "design patent",
+    "draft a design patent application",
+    "prepare a design patent",
+    "file a design patent",
+    "prepare a us design application",
+    "draft a patent for the appearance of my product",
+    "protect the design of this product",
+    "prepare a design patent for this article",
+    "us design patent",
+    "design patent filing"
+  ],
+  "category": "IP_INNOVATION",
+  "subcategory": "PATENT",
+  "document_family": "DESIGN_PATENT_APPLICATION",
+  "family": "DESIGN_PATENT_APPLICATION",
+  "practice_areas": ["patent_prosecution", "patent_drafting", "design_patents"],
+  "description": "A canonical United States design patent application under 35 U.S.C. § 171 and 37 C.F.R. § 1.152 for the ornamental design of an article of manufacture.",
+  "status": "BETA",
+  "capability_level": "L1_ROUTABLE",
+  "risk_level": "HIGH",
+  "jurisdiction_type": "JURISDICTION_SPECIFIC",
+  "primary_jurisdiction": "US",
+  "authority": "USPTO",
+  "jurisdiction_classification": "JURISDICTION_SPECIFIC",
+  "jurisdiction_scope": ["US"],
+  "governing_law_required": true,
+  "forum_required": false,
+  "party_roles": ["inventor", "applicant", "assignee"],
+  "review_required": true,
+  "verification_required": true,
+  "interview_mode": "ONE_QUESTION_AT_A_TIME",
+  "drafting_status_default": "INFORMATION_GATHERING",
+  "readiness_levels": ["NOT_READY", "PARTIALLY_READY", "READY_FOR_FIRST_DRAFT"],
+  "provenance_states": [
+    "USER_PROVIDED",
+    "MATTER_CONTEXT",
+    "SOURCE_IMAGE",
+    "AI_DRAFTED",
+    "USER_EDITED",
+    "VERIFIED",
+    "UNVERIFIED",
+    "PLACEHOLDER"
+  ],
+  "required_inputs": [
+    {
+      "id": "article_name",
+      "label": "Article Name",
+      "type": "text",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Name of the article of manufacture the design relates to (e.g., 'Smart Speaker', 'Mobile Phone', 'Furniture Item')"
+    },
+    {
+      "id": "design_title",
+      "label": "Design Title",
+      "type": "text",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Title for the design patent application (USPTO prefers neutral article name)"
+    },
+    {
+      "id": "design_type",
+      "label": "Design Type",
+      "type": "select",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "options": [
+        "PHYSICAL_PRODUCT",
+        "PARTIAL_PRODUCT",
+        "SURFACE_ORNAMENTATION",
+        "GUI",
+        "ICON",
+        "DISPLAY_SCREEN",
+        "PACKAGING",
+        "FURNITURE",
+        "DEVICE",
+        "CONTAINER",
+        "WEARABLE",
+        "OTHER"
+      ],
+      "description": "Type of design being protected"
+    },
+    {
+      "id": "claimed_portion",
+      "label": "Claimed Portion",
+      "type": "select",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "options": ["ENTIRE_ARTICLE", "PORTION_OF_ARTICLE"],
+      "description": "Whether the claim covers the entire article or a specific portion"
+    },
+    {
+      "id": "inventors",
+      "label": "Inventors",
+      "type": "array",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Natural persons who contributed to the ornamental design conception"
+    },
+    {
+      "id": "jurisdiction",
+      "label": "Filing Jurisdiction",
+      "type": "select",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "default": "US",
+      "options": ["US"]
+    }
+  ],
+  "optional_inputs": [
+    {
+      "id": "ornamental_features",
+      "label": "Ornamental Features",
+      "type": "textarea",
+      "input_class": "RECOMMENDED",
+      "description": "Description of the visually distinctive ornamental features"
+    },
+    {
+      "id": "design_description",
+      "label": "Design Description",
+      "type": "textarea",
+      "input_class": "RECOMMENDED",
+      "description": "Overall design concept and ornamental appearance"
+    },
+    {
+      "id": "whole_vs_partial",
+      "label": "Whole Article vs Partial Design Detail",
+      "type": "textarea",
+      "input_class": "RECOMMENDED",
+      "description": "If partial design, identify claimed ornamental portion and unclaimed/environmental portions"
+    },
+    {
+      "id": "surface_ornamentation",
+      "label": "Surface Ornamentation",
+      "type": "boolean",
+      "input_class": "OPTIONAL",
+      "description": "Whether the design includes surface ornamentation"
+    },
+    {
+      "id": "configuration_shape",
+      "label": "Configuration/Shape",
+      "type": "boolean",
+      "input_class": "OPTIONAL",
+      "description": "Whether the design includes configuration or shape features"
+    },
+    {
+      "id": "physical_or_gui",
+      "label": "Physical Product or GUI",
+      "type": "select",
+      "input_class": "RECOMMENDED",
+      "options": ["PHYSICAL", "GUI", "ICON", "DISPLAY_SCREEN", "BOTH"],
+      "description": "Whether the design is for a physical product, GUI, icon, or display screen"
+    },
+    {
+      "id": "transparency_translucency",
+      "label": "Transparency/Translucency",
+      "type": "boolean",
+      "input_class": "OPTIONAL",
+      "description": "Whether transparent or translucent portions exist"
+    },
+    {
+      "id": "colour_significance",
+      "label": "Colour Significance",
+      "type": "select",
+      "input_class": "OPTIONAL",
+      "options": ["CLAIMED", "ILLUSTRATIVE", "NOT_APPLICABLE"],
+      "description": "Whether colour is claimed as part of the design"
+    },
+    {
+      "id": "unclaimed_features",
+      "label": "Unclaimed/Environmental Features",
+      "type": "textarea",
+      "input_class": "OPTIONAL",
+      "description": "Features shown in drawings but not claimed (broken lines)"
+    },
+    {
+      "id": "multiple_embodiments",
+      "label": "Multiple Embodiments",
+      "type": "boolean",
+      "input_class": "OPTIONAL",
+      "description": "Whether there are multiple embodiments or closely related variants"
+    },
+    {
+      "id": "embodiments_detail",
+      "label": "Embodiments Detail",
+      "type": "textarea",
+      "input_class": "OPTIONAL",
+      "description": "Description of each embodiment and its distinguishing features"
+    },
+    {
+      "id": "gui_display_article",
+      "label": "GUI Display Article",
+      "type": "text",
+      "input_class": "OPTIONAL",
+      "description": "For GUI designs: what display/article the GUI appears on (e.g., 'mobile phone screen', 'vehicle dashboard')"
+    },
+    {
+      "id": "gui_static_animated",
+      "label": "GUI Static or Animated",
+      "type": "select",
+      "input_class": "OPTIONAL",
+      "options": ["STATIC", "ANIMATED", "SEQUENCE"],
+      "description": "For GUI designs: whether the design is static, animated, or a sequence of states"
+    },
+    {
+      "id": "gui_states",
+      "label": "GUI States/Frames",
+      "type": "number",
+      "input_class": "OPTIONAL",
+      "description": "For animated GUIs: number of states or frames"
+    },
+    {
+      "id": "gui_transitions",
+      "label": "GUI Transitions",
+      "type": "textarea",
+      "input_class": "OPTIONAL",
+      "description": "For animated GUIs: description of transitions between states"
+    },
+    {
+      "id": "applicant",
+      "label": "Applicant / Assignee",
+      "type": "text",
+      "input_class": "OPTIONAL"
+    },
+    {
+      "id": "priority_claims",
+      "label": "Priority / Related Applications",
+      "type": "array",
+      "input_class": "OPTIONAL"
+    },
+    {
+      "id": "public_disclosures",
+      "label": "Public Disclosures",
+      "type": "array",
+      "input_class": "OPTIONAL"
+    },
+    {
+      "id": "existing_products",
+      "label": "Existing Products / Known Similar Designs",
+      "type": "array",
+      "input_class": "OPTIONAL"
+    },
+    {
+      "id": "available_views",
+      "label": "Available Drawing Views",
+      "type": "array",
+      "input_class": "RECOMMENDED",
+      "options": ["PERSPECTIVE", "FRONT", "REAR", "LEFT", "RIGHT", "TOP", "BOTTOM"],
+      "description": "Drawing views available or planned"
+    },
+    {
+      "id": "line_treatment",
+      "label": "Line Treatment Understanding",
+      "type": "select",
+      "input_class": "RECOMMENDED",
+      "options": ["SOLID_CLAIMED_BROKEN_UNCLAIMED", "NOT_CONFIRMED"],
+      "description": "Whether solid lines = claimed design, broken lines = unclaimed/environmental"
+    }
+  ],
+  "matter_inputs": [
+    { "fact_type": "article_name", "entity_types": ["patent", "invention", "design"], "confidence_threshold": 0.8 },
+    { "fact_type": "inventor", "entity_types": ["person"], "confidence_threshold": 0.8 },
+    { "fact_type": "applicant", "entity_types": ["organization", "client"], "confidence_threshold": 0.8 },
+    { "fact_type": "jurisdiction", "entity_types": ["country", "jurisdiction"], "confidence_threshold": 0.9 },
+    { "fact_type": "design_drawing", "entity_types": ["drawing", "image"], "confidence_threshold": 0.7 }
+  ],
+  "sections": [
+    {
+      "id": "title",
+      "order": 1,
+      "heading": "Title",
+      "required": true,
+      "cfr_reference": "37 C.F.R. § 1.152(a)",
+      "clause_families": []
+    },
+    {
+      "id": "cross_references",
+      "order": 2,
+      "heading": "Cross-Reference to Related Applications",
+      "required": false,
+      "cfr_reference": "37 C.F.R. § 1.77(b)(2)",
+      "clause_families": ["patent.priority"]
+    },
+    {
+      "id": "federally_sponsored_research",
+      "order": 3,
+      "heading": "Statement Regarding Federally Sponsored Research or Development",
+      "required": false,
+      "cfr_reference": "37 C.F.R. § 1.77(b)(3)",
+      "clause_families": []
+    },
+    {
+      "id": "figure_descriptions",
+      "order": 4,
+      "heading": "Description of the Figures",
+      "required": true,
+      "cfr_reference": "37 C.F.R. § 1.152(b)",
+      "clause_families": []
+    },
+    {
+      "id": "claim",
+      "order": 5,
+      "heading": "Claim",
+      "required": true,
+      "cfr_reference": "35 U.S.C. § 171; 37 C.F.R. § 1.153",
+      "clause_families": ["design_patent.claim"]
+    },
+    {
+      "id": "design_description_section",
+      "order": 6,
+      "heading": "Description of the Design",
+      "required": false,
+      "cfr_reference": "37 C.F.R. § 1.152(c)",
+      "clause_families": []
+    }
+  ],
+  "clause_families": ["design_patent.claim", "patent.priority", "patent.assignment"],
+  "authority_required": [
+    "35 U.S.C. § 171",
+    "35 U.S.C. § 172",
+    "35 U.S.C. § 173",
+    "37 C.F.R. § 1.152",
+    "37 C.F.R. § 1.153",
+    "MPEP Chapter 1500 (Design Patents)"
+  ],
+  "review_flags": [
+    "DISCLOSURE_TIMING_REVIEW_REQUIRED",
+    "INVENTORSHIP_REVIEW_REQUIRED",
+    "FUNCTIONALITY_REVIEW_REQUIRED",
+    "CLAIM_BOUNDARY_REVIEW_REQUIRED",
+    "DRAWING_INCONSISTENCY",
+    "UNITY_OR_MULTIPLE_DESIGN_REVIEW_REQUIRED",
+    "CONFIDENTIAL_MATTER_UNPUBLISHED"
+  ],
+  "output_formats": ["docx", "pdf", "md"],
+  "source_status": "CANONICAL_DOCUMENT_TRAINING_004",
+  "version": "1.0.0",
+  "last_reviewed": "2026-09-10"
+}

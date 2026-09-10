@@ -1,0 +1,287 @@
+{
+  "id": "utility-patent-application",
+  "slug": "utility-patent-application",
+  "name": "Utility Patent Application",
+  "document_number": "001",
+  "aliases": [
+    "utility patent application",
+    "utility patent",
+    "draft a utility patent application",
+    "prepare a utility patent application",
+    "write my patent application",
+    "draft my patent",
+    "prepare a us patent application",
+    "prepare a nonprovisional patent application",
+    "draft a non-provisional patent",
+    "help me patent my invention",
+    "nonprovisional patent application",
+    "uspto patent application"
+  ],
+  "category": "IP_INNOVATION",
+  "subcategory": "PATENT",
+  "document_family": "PATENT_APPLICATION",
+  "family": "PATENT_APPLICATION",
+  "practice_areas": ["patent_prosecution", "patent_drafting"],
+  "description": "A canonical United States nonprovisional utility patent application under 35 U.S.C. § 111(a) and 37 C.F.R. § 1.77.",
+  "status": "BETA",
+  "capability_level": "L3_DRAFTABLE",
+  "risk_level": "HIGH",
+  "jurisdiction_type": "JURISDICTION_SPECIFIC",
+  "primary_jurisdiction": "US",
+  "jurisdiction_notes": "Primary implementation is for United States / USPTO under 35 U.S.C. §§ 101, 102, 103, 111, 112 and 37 C.F.R. § 1.77. Does NOT automatically satisfy EPO, PCT, UKIPO, CIPO, IP Australia, or Indian Patent Office formal filing requirements without jurisdiction-specific adaptation.",
+  "jurisdiction_scope": ["US"],
+  "governing_law_required": true,
+  "forum_required": false,
+  "party_roles": ["inventor", "applicant", "assignee"],
+  "review_required": true,
+  "verification_required": true,
+  "interview_mode": "ONE_QUESTION_AT_A_TIME",
+  "drafting_status_default": "INFORMATION_GATHERING",
+  "readiness_levels": ["NOT_READY", "PARTIALLY_READY", "READY_FOR_FIRST_DRAFT"],
+  "provenance_states": [
+    "USER_PROVIDED",
+    "MATTER_CONTEXT",
+    "AI_DRAFTED",
+    "USER_EDITED",
+    "VERIFIED",
+    "UNVERIFIED",
+    "PLACEHOLDER"
+  ],
+  "required_inputs": [
+    {
+      "id": "title",
+      "label": "Working Invention Title",
+      "type": "text",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Short, technically descriptive title avoiding laudatory terms"
+    },
+    {
+      "id": "plain_description",
+      "label": "Invention Description & Problem",
+      "type": "textarea",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Plain-English description of what the invention does and what problem it solves"
+    },
+    {
+      "id": "technical_mechanism",
+      "label": "Core Inventive Concept / How it Works",
+      "type": "textarea",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Step-by-step technical explanation of the operating principle and data/material flow"
+    },
+    {
+      "id": "components",
+      "label": "Major Components & Architecture",
+      "type": "textarea",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Key structural, functional, or algorithmic elements"
+    },
+    {
+      "id": "inventors",
+      "label": "Inventors",
+      "type": "array",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Natural persons who contributed to the conception of at least one claim limitation"
+    },
+    {
+      "id": "jurisdiction",
+      "label": "Filing Jurisdiction",
+      "type": "select",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "default": "US",
+      "options": ["US"]
+    }
+  ],
+  "optional_inputs": [
+    {
+      "id": "invention_type",
+      "label": "Invention Type",
+      "type": "select",
+      "input_class": "RECOMMENDED",
+      "options": [
+        "SYSTEM",
+        "METHOD",
+        "DEVICE",
+        "APPARATUS",
+        "MACHINE",
+        "PROCESS",
+        "SOFTWARE",
+        "COMPUTER_IMPLEMENTED_METHOD",
+        "AI_ML",
+        "CHEMICAL",
+        "COMPOSITION",
+        "MANUFACTURING",
+        "BIOTECH",
+        "OTHER"
+      ]
+    },
+    {
+      "id": "applicant",
+      "label": "Applicant / Assignee",
+      "type": "text",
+      "input_class": "OPTIONAL"
+    },
+    {
+      "id": "priority_claims",
+      "label": "Priority / Related Applications",
+      "type": "array",
+      "input_class": "OPTIONAL"
+    },
+    {
+      "id": "public_disclosures",
+      "label": "Public Disclosures / Prior Demonstrations",
+      "type": "array",
+      "input_class": "OPTIONAL"
+    },
+    {
+      "id": "prior_art",
+      "label": "User-Known Prior Art References",
+      "type": "array",
+      "input_class": "OPTIONAL"
+    },
+    {
+      "id": "drawings",
+      "label": "Drawings & Figures Plan",
+      "type": "array",
+      "input_class": "OPTIONAL"
+    },
+    {
+      "id": "alternative_embodiments",
+      "label": "Alternative Embodiments / Variations",
+      "type": "textarea",
+      "input_class": "OPTIONAL"
+    }
+  ],
+  "matter_inputs": [
+    { "fact_type": "title", "entity_types": ["patent", "invention"], "confidence_threshold": 0.8 },
+    { "fact_type": "inventor", "entity_types": ["person"], "confidence_threshold": 0.8 },
+    { "fact_type": "applicant", "entity_types": ["organization", "client"], "confidence_threshold": 0.8 },
+    { "fact_type": "jurisdiction", "entity_types": ["country", "jurisdiction"], "confidence_threshold": 0.9 }
+  ],
+  "sections": [
+    {
+      "id": "title",
+      "order": 1,
+      "heading": "Title of the Invention",
+      "cfr_reference": "37 C.F.R. § 1.77(b)(1)",
+      "required": true,
+      "clause_families": []
+    },
+    {
+      "id": "cross_references",
+      "order": 2,
+      "heading": "Cross-Reference to Related Applications",
+      "cfr_reference": "37 C.F.R. § 1.77(b)(2)",
+      "required": false,
+      "clause_families": ["patent.priority"]
+    },
+    {
+      "id": "federally_sponsored_research",
+      "order": 3,
+      "heading": "Statement Regarding Federally Sponsored Research or Development",
+      "cfr_reference": "37 C.F.R. § 1.77(b)(3)",
+      "required": false,
+      "clause_families": []
+    },
+    {
+      "id": "joint_research_agreement",
+      "order": 4,
+      "heading": "Names of Parties to a Joint Research Agreement",
+      "cfr_reference": "37 C.F.R. § 1.77(b)(4)",
+      "required": false,
+      "clause_families": []
+    },
+    {
+      "id": "incorporation_by_reference",
+      "order": 5,
+      "heading": "Reference to an Incorporation-by-Reference Material",
+      "cfr_reference": "37 C.F.R. § 1.77(b)(5)",
+      "required": false,
+      "clause_families": []
+    },
+    {
+      "id": "background",
+      "order": 6,
+      "heading": "Background of the Invention",
+      "cfr_reference": "37 C.F.R. § 1.77(b)(6)",
+      "required": true,
+      "clause_families": []
+    },
+    {
+      "id": "summary",
+      "order": 7,
+      "heading": "Brief Summary of the Invention",
+      "cfr_reference": "37 C.F.R. § 1.77(b)(7)",
+      "required": true,
+      "clause_families": []
+    },
+    {
+      "id": "drawings",
+      "order": 8,
+      "heading": "Brief Description of the Several Views of the Drawing",
+      "cfr_reference": "37 C.F.R. § 1.77(b)(8)",
+      "required": false,
+      "clause_families": []
+    },
+    {
+      "id": "detailed_description",
+      "order": 9,
+      "heading": "Detailed Description of Preferred Embodiments",
+      "cfr_reference": "37 C.F.R. § 1.77(b)(9)",
+      "required": true,
+      "clause_families": []
+    },
+    {
+      "id": "claims",
+      "order": 10,
+      "heading": "Claims (35 U.S.C. § 112)",
+      "cfr_reference": "37 C.F.R. § 1.77(b)(10)",
+      "required": true,
+      "clause_families": ["patent.claims"]
+    },
+    {
+      "id": "abstract",
+      "order": 11,
+      "heading": "Abstract of the Disclosure (≤ 150 words)",
+      "cfr_reference": "37 C.F.R. § 1.77(b)(11)",
+      "required": true,
+      "clause_families": []
+    },
+    {
+      "id": "sequence_listing",
+      "order": 12,
+      "heading": "Sequence Listing",
+      "cfr_reference": "37 C.F.R. § 1.77(b)(12)",
+      "required": false,
+      "clause_families": []
+    }
+  ],
+  "clause_families": ["patent.claims", "patent.priority", "patent.assignment"],
+  "authority_required": [
+    "35 U.S.C. § 101",
+    "35 U.S.C. § 102",
+    "35 U.S.C. § 103",
+    "35 U.S.C. § 111",
+    "35 U.S.C. § 112",
+    "37 C.F.R. § 1.77",
+    "MPEP Chapter 600",
+    "MPEP Chapter 2100"
+  ],
+  "claim_support_rules": {
+    "require_antecedent_basis": true,
+    "require_written_description_mapping": true,
+    "disallow_unsupported_limitations": true,
+    "track_support_matrix": true
+  },
+  "review_flags": [
+    "DISCLOSURE_TIMING_REVIEW_REQUIRED",
+    "INVENTORSHIP_REVIEW_REQUIRED",
+    "UNSUPPORTED_LIMITATION_FLAGGED",
+    "SUBJECT_MATTER_101_RISK",
+    "CONFIDENTIAL_MATTER_UNPUBLISHED"
+  ],
+  "output_formats": ["docx", "pdf", "md"],
+  "source_status": "CANONICAL_DOCUMENT_TRAINING_001",
+  "version": "1.0.0",
+  "last_reviewed": "2026-09-10"
+}

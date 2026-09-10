@@ -1,0 +1,257 @@
+{
+  "clause_families": [
+    {
+      "id": "confidentiality.definition",
+      "name": "Confidentiality Definition",
+      "category": "confidentiality",
+      "description": "Defines the scope of information protected as confidential",
+      "variants": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY", "EMPLOYER_FRIENDLY", "EMPLOYEE_FRIENDLY"],
+      "dependencies": [],
+      "incompatibilities": [],
+      "tags": ["nda", "dpa", "employment"]
+    },
+    {
+      "id": "confidentiality.exclusions",
+      "name": "Confidentiality Exclusions",
+      "category": "confidentiality",
+      "description": "Information excluded from confidentiality obligations",
+      "variants": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY"],
+      "dependencies": ["confidentiality.definition"],
+      "tags": ["nda", "dpa"]
+    },
+    {
+      "id": "confidentiality.permitted_disclosure",
+      "name": "Permitted Disclosure",
+      "category": "confidentiality",
+      "description": "Circumstances under which confidential information may be disclosed",
+      "variants": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY"],
+      "dependencies": ["confidentiality.definition"],
+      "tags": ["nda", "dpa"]
+    },
+    {
+      "id": "confidentiality.duration",
+      "name": "Confidentiality Duration",
+      "category": "confidentiality",
+      "description": "Time period for confidentiality obligations",
+      "variants": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY", "LICENSOR_FRIENDLY", "LICENSEE_FRIENDLY", "EMPLOYER_FRIENDLY", "EMPLOYEE_FRIENDLY"],
+      "dependencies": [],
+      "tags": ["nda", "dpa", "employment"]
+    },
+    {
+      "id": "ip.background",
+      "name": "IP Background",
+      "category": "ip",
+      "description": "Pre-existing intellectual property rights",
+      "variants": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY"],
+      "dependencies": [],
+      "tags": ["msa", "saas", "employment", "partnership"]
+    },
+    {
+      "id": "ip.foreground",
+      "name": "IP Foreground",
+      "category": "ip",
+      "description": "IP created during the engagement",
+      "variants": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY", "EMPLOYER_FRIENDLY", "EMPLOYEE_FRIENDLY"],
+      "dependencies": ["ip.background"],
+      "tags": ["msa", "saas", "employment", "development"]
+    },
+    {
+      "id": "ip.assignment",
+      "name": "IP Assignment",
+      "category": "ip",
+      "description": "Transfer of IP ownership",
+      "variants": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY"],
+      "dependencies": [],
+      "tags": ["assignment", "employment", "contractor"]
+    },
+    {
+      "id": "ip.licence",
+      "name": "IP Licence",
+      "category": "ip",
+      "description": "Grant of rights to use IP",
+      "variants": ["NEUTRAL", "LICENSOR_FRIENDLY", "LICENSEE_FRIENDLY"],
+      "dependencies": [],
+      "tags": ["licence", "msa", "saas", "distribution"]
+    },
+    {
+      "id": "ip.improvements",
+      "name": "IP Improvements",
+      "category": "ip",
+      "description": "Rights to improvements and enhancements",
+      "variants": ["NEUTRAL", "LICENSOR_FRIENDLY", "LICENSEE_FRIENDLY"],
+      "dependencies": ["ip.foreground"],
+      "tags": ["licence", "development"]
+    },
+    {
+      "id": "liability.cap",
+      "name": "Liability Cap",
+      "category": "liability",
+      "description": "Maximum liability for breach",
+      "variants": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY", "BUYER_FRIENDLY", "SELLER_FRIENDLY"],
+      "dependencies": [],
+      "tags": ["msa", "saas", "vendor", "distribution"]
+    },
+    {
+      "id": "liability.exclusions",
+      "name": "Liability Exclusions",
+      "category": "liability",
+      "description": "Types of damages excluded from liability",
+      "variants": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY"],
+      "dependencies": ["liability.cap"],
+      "tags": ["msa", "saas", "vendor"]
+    },
+    {
+      "id": "liability.indirect_loss",
+      "name": "Indirect Loss",
+      "category": "liability",
+      "description": "Consequential, indirect, or special damages treatment",
+      "variants": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY"],
+      "dependencies": ["liability.cap"],
+      "tags": ["msa", "saas", "vendor"]
+    },
+    {
+      "id": "indemnity.ip",
+      "name": "IP Indemnification",
+      "category": "indemnity",
+      "description": "Indemnity for intellectual property infringement claims",
+      "variants": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY"],
+      "dependencies": [],
+      "tags": ["msa", "saas", "licence", "distribution"]
+    },
+    {
+      "id": "indemnity.third_party",
+      "name": "Third Party Indemnification",
+      "category": "indemnity",
+      "description": "Indemnity for third-party claims",
+      "variants": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY"],
+      "dependencies": [],
+      "tags": ["msa", "saas", "vendor"]
+    },
+    {
+      "id": "termination.convenience",
+      "name": "Termination for Convenience",
+      "category": "termination",
+      "description": "Right to terminate without cause",
+      "variants": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY"],
+      "dependencies": [],
+      "tags": ["msa", "saas", "vendor", "distribution"]
+    },
+    {
+      "id": "termination.cause",
+      "name": "Termination for Cause",
+      "category": "termination",
+      "description": "Right to terminate for breach or other cause",
+      "variants": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY"],
+      "dependencies": [],
+      "tags": ["msa", "saas", "vendor"]
+    },
+    {
+      "id": "data.controller_processor",
+      "name": "Controller-Processor Relationship",
+      "category": "data",
+      "description": "Defines roles under data protection law",
+      "variants": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY"],
+      "dependencies": [],
+      "tags": ["dpa", "saas", "cloud"]
+    },
+    {
+      "id": "data.security",
+      "name": "Security Measures",
+      "category": "data",
+      "description": "Technical and organizational security requirements",
+      "variants": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY"],
+      "dependencies": ["data.controller_processor"],
+      "tags": ["dpa", "saas", "cloud"]
+    },
+    {
+      "id": "data.subprocessors",
+      "name": "Subprocessor Management",
+      "category": "data",
+      "description": "Management of subprocessors handling personal data",
+      "variants": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY"],
+      "dependencies": ["data.controller_processor"],
+      "tags": ["dpa", "saas", "cloud"]
+    },
+    {
+      "id": "data.transfers",
+      "name": "International Data Transfers",
+      "category": "data",
+      "description": "Cross-border data transfer mechanisms",
+      "variants": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY"],
+      "dependencies": ["data.controller_processor"],
+      "tags": ["dpa", "saas", "cloud"]
+    },
+    {
+      "id": "disputes.courts",
+      "name": "Court Dispute Resolution",
+      "category": "disputes",
+      "description": "Jurisdiction and venue for court proceedings",
+      "variants": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY"],
+      "dependencies": [],
+      "tags": ["msa", "nda", "commercial"]
+    },
+    {
+      "id": "disputes.arbitration",
+      "name": "Arbitration",
+      "category": "disputes",
+      "description": "Arbitration clause and procedures",
+      "variants": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY"],
+      "dependencies": [],
+      "tags": ["msa", "commercial", "licence"]
+    },
+    {
+      "id": "disputes.mediation",
+      "name": "Mediation",
+      "category": "disputes",
+      "description": "Mediation requirement before arbitration/litigation",
+      "variants": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY"],
+      "dependencies": [],
+      "tags": ["msa", "commercial"]
+    },
+    {
+      "id": "ip.claims",
+      "name": "Patent Claims",
+      "category": "ip",
+      "description": "Patent claim structure and format",
+      "variants": ["NEUTRAL"],
+      "dependencies": [],
+      "tags": ["patent", "prosecution"]
+    },
+    {
+      "id": "ip.priority",
+      "name": "Patent Priority",
+      "category": "ip",
+      "description": "Priority claims and filing dates",
+      "variants": ["NEUTRAL"],
+      "dependencies": [],
+      "tags": ["patent", "prosecution"]
+    },
+    {
+      "id": "ip.assignment_patent",
+      "name": "Patent Assignment",
+      "category": "ip",
+      "description": "Assignment of patent rights",
+      "variants": ["NEUTRAL", "EMPLOYER_FRIENDLY", "EMPLOYEE_FRIENDLY"],
+      "dependencies": ["ip.priority"],
+      "tags": ["patent", "employment"]
+    },
+    {
+      "id": "warranty.general",
+      "name": "General Warranty",
+      "category": "warranty",
+      "description": "Basic warranties for services or products",
+      "variants": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY"],
+      "dependencies": [],
+      "tags": ["msa", "saas", "vendor"]
+    },
+    {
+      "id": "warranty.limitation",
+      "name": "Warranty Limitation",
+      "category": "warranty",
+      "description": "Limitations on warranty scope and duration",
+      "variants": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY"],
+      "dependencies": ["warranty.general"],
+      "tags": ["msa", "saas", "vendor"]
+    }
+  ]
+}

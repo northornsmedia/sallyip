@@ -358,21 +358,144 @@
   align-items: center;
   gap: 6px;
   margin-top: 18px;
-  padding: 4px 12px;
+  padding: 5px 14px;
   background: #f0fdf4;
   border: 1px solid #bbf7d0;
   border-radius: 9999px;
   font-size: 12px;
   font-weight: 500;
   color: #166534;
+  transition: all 0.2s ease;
+}
+
+.voice-status-badge.speaking {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1e40af;
+}
+
+.voice-status-badge.listening {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #15803d;
 }
 
 .voice-status-dot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: #22c55e;
   animation: pulse-dot 1.5s infinite;
+}
+
+.voice-status-dot.speaking {
+  background: #3b82f6;
+  animation: pulse-dot 0.9s infinite;
+}
+
+.voice-status-dot.listening {
+  background: #22c55e;
+}
+
+.voice-status-badge.thinking {
+  background: #faf5ff;
+  border-color: #e9d5ff;
+  color: #7e22ce;
+}
+
+.voice-status-badge.interrupting {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #c2410c;
+}
+
+.voice-status-badge.error {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.voice-status-dot.thinking {
+  background: #a855f7;
+  animation: pulse-dot 0.8s infinite;
+}
+
+.voice-status-dot.interrupting {
+  background: #f97316;
+  animation: pulse-dot 0.5s infinite;
+}
+
+.voice-status-dot.error {
+  background: #ef4444;
+}
+
+.voice-msg-interrupted-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #b91c1c;
+  vertical-align: middle;
+}
+
+.voice-orb-glow.interrupting {
+  background: radial-gradient(circle, rgba(249, 115, 22, 0.4) 0%, rgba(249, 115, 22, 0) 70%);
+}
+
+.voice-orb-gradient.interrupting {
+  background: conic-gradient(from 0deg, #f97316, #ea580c, #fb923c, #f97316);
+}
+
+.voice-orb-gradient.thinking {
+  background: conic-gradient(from 0deg, #8b5cf6, #6366f1, #a855f7, #8b5cf6);
+  animation: rotate-orb 3s linear infinite;
+}
+
+.voice-orb-gradient.hearing {
+  background: conic-gradient(from 0deg, #10b981, #059669, #34d399, #10b981);
+}
+
+/* Live transcript bubble showing user's live voice in real time */
+.voice-live-transcript-bubble {
+  margin: 10px auto 0 auto;
+  padding: 6px 14px;
+  background: #f8fafc;
+  border: 1px dashed #94a3b8;
+  border-radius: 12px;
+  font-size: 13px;
+  color: #0f172a;
+  max-width: 290px;
+  word-break: break-word;
+  animation: fadeIn 0.15s ease;
+}
+
+.voice-live-mic-icon {
+  margin-right: 4px;
+  font-size: 12px;
+}
+
+/* Tap to interrupt pill button */
+.voice-interrupt-pill-btn {
+  display: inline-block;
+  margin-top: 8px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.voice-interrupt-pill-btn:hover {
+  background: #fee2e2;
+  transform: scale(1.03);
 }
 
 .voice-subtitle {
@@ -401,6 +524,10 @@
   background: #0ea5e9;
   border-radius: 3px;
   animation: audio-bar-bounce 1s ease-in-out infinite alternate;
+}
+
+.voice-live-audio-bars.listening-bars .voice-live-bar {
+  background: #10b981;
 }
 
 .voice-live-bar:nth-child(2) { animation-delay: 0.15s; height: 14px; }
@@ -579,4 +706,23 @@
   .voice-card.is-expanded {
     width: calc(100vw - 32px);
   }
+}
+
+/* Fullscreen Voice Modal Overlay */
+.voice-overlay-container {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(8px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeInVoiceOverlay 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInVoiceOverlay {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
 }

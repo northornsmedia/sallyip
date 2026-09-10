@@ -27,8 +27,9 @@ const engineUrl=(engine,env)=>{
 const engineCredential=(engine,env)=>{
   if(!engine) return null
   if(engine.key && env[engine.key]) return env[engine.key]
+  if(engine.key === 'OPENROUTER_API_KEY') return env.OPENROUTER_API_KEY || env.OPENROUTER_SPEECH_API_KEY || null
   if(engine.key === 'GEMINI_API_KEY' || engine.key === 'GOOGLE_API_KEY') return env.GEMINI_API_KEY || env.GOOGLE_API_KEY || null
-  return !engine.baseUrl ? env.OPENROUTER_API_KEY : null
+  return !engine.baseUrl ? (env.OPENROUTER_API_KEY || env.OPENROUTER_SPEECH_API_KEY) : null
 }
 const RETRY_FAST_FAIL_MS=1000
 const STRAGGLER_ABORT_MS=25000
@@ -54,6 +55,17 @@ export function isTruncatedOrCutOff(text) {
 // SALLYIP_EXTRA_ENGINES=[{"slug":"...","name":"...","key":"ENV_NAME","weight":20}]
 export function resolveEngines(env={}){
   const engines=[...CHAT_ENGINES]
+  if(env.AI_GATEWAY_API_KEY && !engines.some(e => e.key === 'AI_GATEWAY_API_KEY')){
+    const gwModel = env.AI_GATEWAY_MODEL || 'poolside/laguna-s-2.1-free'
+    engines.unshift({
+      slug: gwModel,
+      name: `Vercel AI Gateway (${gwModel})`,
+      key: 'AI_GATEWAY_API_KEY',
+      baseUrl: 'https://ai-gateway.vercel.sh/v1',
+      weight: 120,
+      role: 'Vercel AI Gateway flagship reasoning',
+    })
+  }
   const primarySlug=String(env.SALLYIP_PRIMARY_MODEL||'').trim()
   if(primarySlug&&!engines.some(engine=>engine.slug===primarySlug)){
     engines.unshift({
@@ -320,13 +332,14 @@ export async function orchestrateSallyStreaming(messages,env,siteUrl=(process.en
 
   // Model pipeline: env-configured flagship first, then Nemotron fallbacks.
   // Set SALLYIP_PRIMARY_MODEL to change the flagship without code changes.
-  const primarySlug = String(env.SALLYIP_PRIMARY_MODEL || 'gemini-3.7-flash').trim()
+  const defaultPrimary = env.AI_GATEWAY_API_KEY ? (env.AI_GATEWAY_MODEL || 'poolside/laguna-s-2.1-free') : 'gemini-3.7-flash'
+  const primarySlug = String(env.SALLYIP_PRIMARY_MODEL || defaultPrimary).trim()
   const geminiEngine = ENGINES.find(e => e.slug === primarySlug) || {
     slug: primarySlug,
-    name: String(env.SALLYIP_PRIMARY_NAME || 'Primary flagship').slice(0, 80),
-    key: String(env.SALLYIP_PRIMARY_KEY || 'GEMINI_API_KEY').slice(0, 80),
-    baseUrl: env.SALLYIP_PRIMARY_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta/openai',
-    weight: 100,
+    name: env.AI_GATEWAY_API_KEY && !env.SALLYIP_PRIMARY_MODEL ? `Vercel AI Gateway (${primarySlug})` : String(env.SALLYIP_PRIMARY_NAME || 'Primary flagship').slice(0, 80),
+    key: env.AI_GATEWAY_API_KEY && !env.SALLYIP_PRIMARY_MODEL ? 'AI_GATEWAY_API_KEY' : String(env.SALLYIP_PRIMARY_KEY || 'GEMINI_API_KEY').slice(0, 80),
+    baseUrl: env.AI_GATEWAY_API_KEY && !env.SALLYIP_PRIMARY_MODEL ? 'https://ai-gateway.vercel.sh/v1' : (env.SALLYIP_PRIMARY_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta/openai'),
+    weight: 120,
     role: 'Primary flagship legal reasoning & drafting'
   }
 
@@ -338,7 +351,16 @@ export async function orchestrateSallyStreaming(messages,env,siteUrl=(process.en
     )
   }
 
-  const pipeline = [geminiEngine, ...nemotronEngines]
+  const openRouterFlash = {
+    slug: 'inclusionai/ling-3.0-flash-sante:free',
+    name: 'InclusionAI Ling 3.0 Flash (OpenRouter)',
+    key: 'OPENROUTER_API_KEY',
+    weight: 95,
+    role: 'Fast fallback reasoning'
+  }
+
+  const rawPipeline = [geminiEngine, openRouterFlash, ...nemotronEngines]
+  const pipeline = rawPipeline.filter((e, idx, arr) => arr.findIndex(x => x.slug === e.slug && (x.baseUrl || '') === (e.baseUrl || '')) === idx)
 
   // Allow explicit engine choice if specified (before policy gate so unapproved preference fails closed)
   const preferredSlug = String(options.preferredEngine || '').trim()

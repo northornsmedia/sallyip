@@ -1,0 +1,287 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://sallyip.com/schemas/document-taxonomy-v1.json",
+  "title": "SallyIP Canonical Document Taxonomy",
+  "version": "1.0.0",
+  "description": "Single source of truth for all document types, categories, and metadata across the SallyIP Legal Document Intelligence system",
+  "type": "object",
+  "properties": {
+    "catalogue": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/documentRecord" }
+    },
+    "categories": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/category" }
+    },
+    "subcategories": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/subcategory" }
+    },
+    "documentFamilies": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/documentFamily" }
+    },
+    "clauseFamilies": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/clauseFamily" }
+    },
+    "jurisdictions": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/jurisdiction" }
+    },
+    "partyRoles": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/partyRole" }
+    },
+    "statusValues": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["AVAILABLE", "BETA", "RESEARCH_ONLY", "PLANNED"] }
+    },
+    "sourceStatusValues": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["UNRESEARCHED", "STRUCTURED", "REVIEWED", "PRACTITIONER_REVIEWED"] }
+    },
+    "riskLevels": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "VERY_HIGH"] }
+    },
+    "jurisdictionTypes": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["JURISDICTION_AGNOSTIC_STRUCTURE", "JURISDICTION_ADAPTABLE", "JURISDICTION_SPECIFIC", "FORUM_SPECIFIC"] }
+    },
+    "inputClasses": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["REQUIRED_BEFORE_DRAFT", "AVAILABLE_FROM_MATTER", "SAFE_PLACEHOLDER", "OPTIONAL"] }
+    },
+    "draftingPositions": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["NEUTRAL", "CUSTOMER_FRIENDLY", "SUPPLIER_FRIENDLY", "LICENSOR_FRIENDLY", "LICENSEE_FRIENDLY", "EMPLOYER_FRIENDLY", "EMPLOYEE_FRIENDLY", "BUYER_FRIENDLY", "SELLER_FRIENDLY"] }
+    },
+    "provenanceTags": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["AI_GENERATED", "USER_EDITED", "VERIFIED", "UNVERIFIED", "PLACEHOLDER"] }
+    }
+  },
+  "definitions": {
+    "documentRecord": {
+      "type": "object",
+      "required": ["id", "slug", "name", "category", "subcategory", "document_family", "status", "risk_level", "jurisdiction_scope", "governing_law_required", "party_roles", "required_inputs", "optional_inputs", "matter_inputs", "pre_draft_questions", "sections", "clause_families", "authority_required", "verification_required", "review_required", "output_formats", "related_documents", "source_status", "version", "last_reviewed"],
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "slug": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "name": { "type": "string" },
+        "aliases": { "type": "array", "items": { "type": "string" } },
+        "category": { "type": "string" },
+        "subcategory": { "type": "string" },
+        "document_family": { "type": "string" },
+        "practice_areas": { "type": "array", "items": { "type": "string" } },
+        "description": { "type": "string" },
+        "status": { "$ref": "#/properties/statusValues" },
+        "risk_level": { "$ref": "#/properties/riskLevels" },
+        "jurisdiction_scope": { "type": "array", "items": { "type": "string" } },
+        "jurisdiction_type": { "$ref": "#/properties/jurisdictionTypes" },
+        "governing_law_required": { "type": "boolean" },
+        "forum_required": { "type": "boolean", "default": false },
+        "party_roles": { "type": "array", "items": { "$ref": "#/definitions/partyRole" } },
+        "required_inputs": { "type": "array", "items": { "$ref": "#/definitions/inputField" } },
+        "optional_inputs": { "type": "array", "items": { "$ref": "#/definitions/inputField" } },
+        "matter_inputs": { "type": "array", "items": { "$ref": "#/definitions/matterInput" } },
+        "pre_draft_questions": { "type": "array", "items": { "$ref": "#/definitions/preDraftQuestion" } },
+        "sections": { "type": "array", "items": { "$ref": "#/definitions/section" } },
+        "clause_families": { "type": "array", "items": { "type": "string" } },
+        "alternative_positions": { "type": "array", "items": { "$ref": "#/definitions/alternativePosition" } },
+        "negotiation_variables": { "type": "array", "items": { "$ref": "#/definitions/negotiationVariable" } },
+        "risk_issues": { "type": "array", "items": { "$ref": "#/definitions/riskIssue" } },
+        "authority_required": { "type": "array", "items": { "type": "string" } },
+        "verification_required": { "type": "boolean", "default": false },
+        "review_required": { "type": "boolean", "default": false },
+        "output_formats": { "type": "array", "items": { "type": "string", "enum": ["docx", "pdf", "md", "html", "txt", "json"] } },
+        "related_documents": { "type": "array", "items": { "type": "string" } },
+        "source_status": { "$ref": "#/properties/sourceStatusValues" },
+        "version": { "type": "string" },
+        "last_reviewed": { "type": "string", "format": "date" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "category": {
+      "type": "object",
+      "required": ["id", "name", "description", "icon", "order"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "icon": { "type": "string" },
+        "order": { "type": "integer" },
+        "subcategories": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "subcategory": {
+      "type": "object",
+      "required": ["id", "category_id", "name", "description", "order"],
+      "properties": {
+        "id": { "type": "string" },
+        "category_id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "order": { "type": "integer" },
+        "document_families": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "documentFamily": {
+      "type": "object",
+      "required": ["id", "subcategory_id", "name", "description", "order"],
+      "properties": {
+        "id": { "type": "string" },
+        "subcategory_id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "order": { "type": "integer" },
+        "document_types": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "inputField": {
+      "type": "object",
+      "required": ["id", "label", "type", "input_class"],
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "description": { "type": "string" },
+        "type": { "type": "string", "enum": ["text", "textarea", "select", "multiselect", "date", "number", "boolean", "party", "jurisdiction", "currency", "percentage"] },
+        "input_class": { "$ref": "#/properties/inputClasses" },
+        "options": { "type": "array", "items": { "type": "string" } },
+        "placeholder": { "type": "string" },
+        "validation": { "type": "string" },
+        "depends_on": { "type": "string" },
+        "show_if": { "type": "string" }
+      }
+    },
+    "matterInput": {
+      "type": "object",
+      "required": ["fact_type", "label", "entity_types"],
+      "properties": {
+        "fact_type": { "type": "string" },
+        "label": { "type": "string" },
+        "entity_types": { "type": "array", "items": { "type": "string" } },
+        "confidence_threshold": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.7 },
+        "status_filter": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "preDraftQuestion": {
+      "type": "object",
+      "required": ["id", "question", "input_field_id", "required"],
+      "properties": {
+        "id": { "type": "string" },
+        "question": { "type": "string" },
+        "input_field_id": { "type": "string" },
+        "required": { "type": "boolean" },
+        "help_text": { "type": "string" },
+        "depends_on": { "type": "string" },
+        "show_if": { "type": "string" }
+      }
+    },
+    "section": {
+      "type": "object",
+      "required": ["id", "heading", "order", "required"],
+      "properties": {
+        "id": { "type": "string" },
+        "heading": { "type": "string" },
+        "description": { "type": "string" },
+        "order": { "type": "integer" },
+        "required": { "type": "boolean" },
+        "clause_families": { "type": "array", "items": { "type": "string" } },
+        "variant_of": { "type": "string" },
+        "show_if": { "type": "string" },
+        "repeatable": { "type": "boolean", "default": false }
+      }
+    },
+    "clauseFamily": {
+      "type": "object",
+      "required": ["id", "name", "category", "description"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "variants": { "type": "array", "items": { "$ref": "#/definitions/clauseVariant" } },
+        "dependencies": { "type": "array", "items": { "type": "string" } },
+        "incompatibilities": { "type": "array", "items": { "type": "string" } },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "clauseVariant": {
+      "type": "object",
+      "required": ["id", "position", "content_template", "jurisdictions"],
+      "properties": {
+        "id": { "type": "string" },
+        "position": { "$ref": "#/properties/draftingPositions" },
+        "content_template": { "type": "string" },
+        "jurisdictions": { "type": "array", "items": { "type": "string" } },
+        "variables": { "type": "array", "items": { "type": "string" } },
+        "description": { "type": "string" },
+        "risk_notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "alternativePosition": {
+      "type": "object",
+      "required": ["section_id", "position", "description", "clause_family"],
+      "properties": {
+        "section_id": { "type": "string" },
+        "position": { "$ref": "#/properties/draftingPositions" },
+        "description": { "type": "string" },
+        "clause_family": { "type": "string" },
+        "when_to_use": { "type": "string" }
+      }
+    },
+    "negotiationVariable": {
+      "type": "object",
+      "required": ["id", "label", "description", "typical_range"],
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "description": { "type": "string" },
+        "typical_range": { "type": "string" },
+        "market_norm": { "type": "string" },
+        "fallback_position": { "type": "string" }
+      }
+    },
+    "riskIssue": {
+      "type": "object",
+      "required": ["id", "level", "description", "mitigation"],
+      "properties": {
+        "id": { "type": "string" },
+        "level": { "$ref": "#/properties/riskLevels" },
+        "description": { "type": "string" },
+        "mitigation": { "type": "string" },
+        "jurisdiction_specific": { "type": "array", "items": { "type": "string" } },
+        "clause_family": { "type": "string" }
+      }
+    },
+    "jurisdiction": {
+      "type": "object",
+      "required": ["code", "name", "type", "patent_authority", "trademark_authority"],
+      "properties": {
+        "code": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string", "enum": ["national", "regional", "international", "forum"] },
+        "patent_authority": { "type": "string" },
+        "trademark_authority": { "type": "string" },
+        "court_system": { "type": "string" },
+        "filing_requirements": { "type": "array", "items": { "type": "string" } },
+        "supported": { "type": "boolean", "default": false },
+        "priority": { "type": "integer", "default": 0 }
+      }
+    },
+    "partyRole": {
+      "type": "object",
+      "required": ["id", "name", "description"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "synonyms": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

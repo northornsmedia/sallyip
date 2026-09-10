@@ -1,0 +1,133 @@
+{
+  "$schema": "https://sallyip.com/schemas/catalogue-summary.json",
+  "version": "1.0.0",
+  "generated_at": "2026-09-10T15:30:00Z",
+  "taxonomy": {
+    "categories": [
+      {
+        "id": "IP_INNOVATION",
+        "name": "IP & Innovation",
+        "description": "Patents, trademarks, copyrights, design rights, trade secrets, licensing, and IP enforcement",
+        "icon": "shield",
+        "order": 1,
+        "subcategories": ["PATENT", "TRADEMARK", "COPYRIGHT", "DESIGN_RIGHT", "TRADE_SECRET", "LICENSING", "IP_ENFORCEMENT"]
+      },
+      {
+        "id": "COMMERCIAL",
+        "name": "Contracts & Commercial",
+        "description": "NDAs, MSAs, SaaS, vendor agreements, distribution, partnerships, and commercial cooperation",
+        "icon": "handshake",
+        "order": 2,
+        "subcategories": ["NDA", "MSA", "SAAS", "VENDOR", "DISTRIBUTION", "PARTNERSHIP", "SUPPORT_SLA"]
+      },
+      {
+        "id": "CORPORATE",
+        "name": "Corporate & Transactions",
+        "description": "M&A, corporate governance, financing, securities, entity formation, and restructuring",
+        "icon": "building",
+        "order": 3,
+        "subcategories": ["MERGER", "ACQUISITION", "FINANCING", "GOVERNANCE", "CAP_TABLE", "RESTRUCTURING"]
+      },
+      {
+        "id": "EMPLOYMENT",
+        "name": "Employment & HR",
+        "description": "Employment agreements, offers, equity awards, policies, terminations, benefits, and immigration",
+        "icon": "user",
+        "order": 4,
+        "subcategories": ["EMPLOYMENT_AGREEMENT", "OFFER", "EQUITY_AWARDS", "POLICIES", "TERMINATION", "BENEFITS", "IMMIGRATION", "CONTRACTOR"]
+      },
+      {
+        "id": "PRIVACY",
+        "name": "Privacy & Data",
+        "description": "Data protection, privacy policies, DPAs, breach response, cross-border transfers, AI governance",
+        "icon": "lock",
+        "order": 5,
+        "subcategories": ["PRIVACY_POLICY", "DPA", "DATA_SHARING", "BREACH_RESPONSE", "DSAR", "INTERNATIONAL_TRANSFER", "AI_GOVERNANCE", "DATA_LICENSE"]
+      },
+      {
+        "id": "TECHNOLOGY",
+        "name": "Technology & AI",
+        "description": "Software licences, EULAs, APIs, development, hosting, cloud, escrow, open source, AI procurement",
+        "icon": "code",
+        "order": 6,
+        "subcategories": ["SOFTWARE_LICENCE", "EULA", "API_TERMS", "DEVELOPMENT", "HOSTING", "CLOUD", "ESCROW", "OPEN_SOURCE", "AI_AGREEMENTS"]
+      },
+      {
+        "id": "LITIGATION",
+        "name": "Litigation & Disputes",
+        "description": "Pleadings, discovery, motions, settlements, arbitration, mediation, and enforcement",
+        "icon": "scale",
+        "order": 7,
+        "subcategories": ["PLEADINGS", "DISCOVERY", "MOTIONS", "SETTLEMENT", "ARBITRATION", "APPEAL", "ENFORCEMENT", "MEDICAL"]
+      },
+      {
+        "id": "REGULATORY",
+        "name": "Regulatory & Industry",
+        "description": "Regulatory filings, licences, compliance programs, examinations, enforcement actions, industry-specific regulations",
+        "icon": "gavel",
+        "order": 8,
+        "subcategories": ["FILINGS", "LICENSING", "COMPLIANCE", "EXAMINATIONS", "ENFORCEMENT", "HEALTHCARE", "FINANCIAL", "ENERGY", "TELECOM", "CONSUMER", "CANNABIS", "GOV_CONTRACT"]
+      },
+      {
+        "id": "FINANCE",
+        "name": "Finance",
+        "description": "Credit facilities, loans, guarantees, security, intercreditor, debt restructuring",
+        "icon": "coins",
+        "order": 9,
+        "subcategories": ["CREDIT_FACILITY", "LOAN_AGREEMENT", "GUARANTEE", "SECURITY", "INTERCREDITOR", "VENTURE_FINANCE", "PROJECT_FINANCE"]
+      },
+      {
+        "id": "LEGAL_RESEARCH",
+        "name": "Legal Research & Memos",
+        "description": "Legal opinions, memoranda, advice letters, feasibility assessments, novelty opinions",
+        "icon": "book",
+        "order": 10,
+        "subcategories": ["LEGAL_MEMO", "OPINION", "FEASIBILITY", "NOVELTY_OPINION", "ADVICE_LETTER", "POSITION_PAPER", "BRIEF"]
+      },
+      {
+        "id": "LETTERS",
+        "name": "Letters & Notices",
+        "description": "Cease and desist, demands, litigation letters, correspondence, official notifications",
+        "icon": "mail",
+        "order": 11,
+        "subcategories": ["CEASE_DESIST", "DEMAND_LETTER", "LITIGATION_LETTER", "CORRESPONDENCE", "NOTICE", "FORM_LETTER"]
+      },
+      {
+        "id": "POLICIES",
+        "name": "Policies & Governance",
+        "description": "Internal policies, governance documents, codes of conduct, compliance frameworks",
+        "icon": "clipboard",
+        "order": 12,
+        "subcategories": ["EMPLOYEE_HANDBOOK", "CODE_OF_CONDUCT", "ANTI_HARASSMENT", "DATA_POLICY", "GOVERNANCE", "COMPLIANCE_FRAMEWORK", "RISK_MANAGEMENT", "INTERNAL_CONTROLS"]
+      }
+    ],
+    "jurisdictions": [
+      {"code": "US", "name": "United States", "type": "national", "patent_authority": "USPTO", "trademark_authority": "USPTO", "supported": true, "priority": 1},
+      {"code": "UK", "name": "United Kingdom", "type": "national", "patent_authority": "UKIPO", "trademark_authority": "UKIPO", "supported": true, "priority": 2},
+      {"code": "EU", "name": "European Union", "type": "regional", "patent_authority": "EPO", "trademark_authority": "EUIPO", "supported": true, "priority": 3},
+      {"code": "EPO", "name": "European Patent Office", "type": "regional", "patent_authority": "EPO", "trademark_authority": "n/a", "supported": true, "priority": 3},
+      {"code": "PCT", "name": "WIPO/PCT", "type": "international", "patent_authority": "WIPO", "trademark_authority": "Madrid System", "supported": true, "priority": 3},
+      {"code": "CA", "name": "Canada", "type": "national", "patent_authority": "CIPO", "trademark_authority": "CIPO", "supported": true, "priority": 4},
+      {"code": "AU", "name": "Australia", "type": "national", "patent_authority": "IP Australia", "trademark_authority": "IP Australia", "supported": true, "priority": 5},
+      {"code": "IN", "name": "India", "type": "national", "patent_authority": "Indian Patent Office", "trademark_authority": "Trademark Registry India", "supported": true, "priority": 6}
+    ]
+  },
+  "catalogue": {
+    "total_categories": 12,
+    "total_subcategories": 80,
+    "total_document_families": 150,
+    "total_document_types": 400,
+    "total_aliases": 200,
+    "total_clause_families": 28,
+    "total_jurisdictions": 8
+  },
+  "stats": {
+    "AVAILABLE": 12,
+    "BETA": 45,
+    "RESEARCH_ONLY": 80,
+    "PLANNED": 263,
+    "high_risk_count": 85,
+    "jurisdiction_coverage": ["US", "UK", "EU", "EPO", "PCT", "CA", "AU", "IN"],
+    "unsupported_areas": ["Brazil", "Mexico", "Japan", "China", "South Korea", "Singapore", "UAE", "Switzerland", "Hong Kong"]
+  }
+}

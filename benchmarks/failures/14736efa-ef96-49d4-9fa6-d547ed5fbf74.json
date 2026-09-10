@@ -1,0 +1,29 @@
+{
+ "run_id": "14736efa-ef96-49d4-9fa6-d547ed5fbf74",
+ "suite": "hallu100",
+ "model": "gemini-flash-lite-latest",
+ "failures": [
+  {
+   "id": "hgen-086",
+   "expect": "answer",
+   "verdict": "hallucinated",
+   "reason": "dangling citation, unverified quote, or banned phrase",
+   "telemetry": {
+    "evidence_count": 7,
+    "cited": [
+     1
+    ],
+    "dangling": [],
+    "quotes_checked": 1,
+    "missing_quotes": [
+     "the specification shall contain a written description of the invention, and of t"
+    ],
+    "quotes_skipped": 0
+   },
+   "excerpt": "Based on the provided sources, the text does not explicitly classify 35 U.S.C. § 112(a)-(b) as either \"substantive rights\" or \"procedure,\" but rather describes its substantive requirements regarding the specification and claims, stating that \"the specification shall contain a written description of the invention, and of the manner and process of making and using it... and shall conclude with one o",
+   "answering_model": "gemini-flash-lite-latest",
+   "primary_error": null,
+   "retries": 0
+  }
+ ]
+}

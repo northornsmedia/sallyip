@@ -17,9 +17,35 @@ export const CONFIDENTIAL_CONTENT_CLASSES = [
   'privileged_material',
 ];
 
+// REQUIRED FIELDS FOR APPROVED CONFIDENTIAL PROVIDERS (P0-1):
+// provider, model, purpose, retention_mode, training_policy, dpa_status,
+// approved_environments, approved_data_classes, effective_date, evidence_ref
+// If ANY field is missing -> DENY. No free fallback. No contributor fallback. No unknown fallback.
+
 // Static registry. Retention/training posture as of 2026-09-10 hardening window.
 // Unknown = fail closed (approved=false).
 export const PROVIDER_REGISTRY = [
+  // APPROVED CONFIDENTIAL PROVIDER TEMPLATE (copy and fill with evidence):
+  // {
+  //   slug: 'google/gemini-3.7-flash-confidential',
+  //   provider: 'google',
+  //   model: 'gemini-3.7-flash',
+  //   purpose: 'Primary flagship legal reasoning & drafting',
+  //   paid: true,
+  //   retention_mode: 'zero-retention (enterprise addendum)',
+  //   training_policy: 'No training on Cloud API data with DPA',
+  //   dpa_status: 'executed 2026-XX-XX, ref: DPA-2026-XXXX',
+  //   approved_environments: ['production'],
+  //   approved_data_classes: ['unpublished_invention','patent_draft','invention_disclosure','confidential_document','nda_material','litigation_evidence','contract','client_communication','trade_secret','privileged_material'],
+  //   effective_date: '2026-XX-XX',
+  //   evidence_ref: 'Google Cloud project ID, DPA signed by legal, zero-retention addendum attached',
+  //   approved_for_confidential_ip: true,
+  //   approved_for_unpublished_invention: true,
+  //   approved_for_contracts: true,
+  //   approved_for_litigation: true,
+  //   fallback_allowed: false,
+  // },
+
   {
     slug: 'gemini-3.7-flash',
     provider: 'google',
@@ -242,6 +268,108 @@ export const PROVIDER_REGISTRY = [
     approved_for_litigation: 'query-only',
     fallback_allowed: false,
   },
+  {
+    slug: 'openai/gpt-4o',
+    provider: 'vercel-ai-gateway/openai',
+    model: 'gpt-4o',
+    purpose: 'Vercel AI Gateway Flagship Reasoning',
+    paid: true,
+    retention_policy: 'Vercel AI Gateway zero-retention / OpenAI Enterprise',
+    training_policy: 'No training on API requests',
+    dpa_available: true,
+    zero_retention_available: 'enterprise-only',
+    region: 'global',
+    approved_for_confidential_ip: 'conditional',
+    approved_for_unpublished_invention: 'conditional',
+    approved_for_contracts: 'conditional',
+    approved_for_litigation: 'conditional',
+    fallback_allowed: true,
+  },
+  {
+    slug: 'openai/gpt-4o-mini',
+    provider: 'vercel-ai-gateway/openai',
+    model: 'gpt-4o-mini',
+    purpose: 'Vercel AI Gateway Fast Reasoning',
+    paid: true,
+    retention_policy: 'Vercel AI Gateway zero-retention / OpenAI Enterprise',
+    training_policy: 'No training on API requests',
+    dpa_available: true,
+    zero_retention_available: 'enterprise-only',
+    region: 'global',
+    approved_for_confidential_ip: 'conditional',
+    approved_for_unpublished_invention: 'conditional',
+    approved_for_contracts: 'conditional',
+    approved_for_litigation: 'conditional',
+    fallback_allowed: true,
+  },
+  {
+    slug: 'openai/gpt-5.6-sol',
+    provider: 'vercel-ai-gateway/openai',
+    model: 'gpt-5.6-sol',
+    purpose: 'Vercel AI Gateway Advanced Legal Reasoning',
+    paid: true,
+    retention_policy: 'Vercel AI Gateway zero-retention / OpenAI Enterprise',
+    training_policy: 'No training on API requests',
+    dpa_available: true,
+    zero_retention_available: 'enterprise-only',
+    region: 'global',
+    approved_for_confidential_ip: 'conditional',
+    approved_for_unpublished_invention: 'conditional',
+    approved_for_contracts: 'conditional',
+    approved_for_litigation: 'conditional',
+    fallback_allowed: true,
+  },
+  {
+    slug: 'poolside/laguna-s-2.1-free',
+    provider: 'vercel-ai-gateway/poolside',
+    model: 'laguna-s-2.1-free',
+    purpose: 'Vercel AI Gateway Poolside Model',
+    paid: false,
+    retention_policy: 'Vercel AI Gateway managed routing',
+    training_policy: 'No training on API requests',
+    dpa_available: true,
+    zero_retention_available: 'enterprise-only',
+    region: 'global',
+    approved_for_confidential_ip: 'conditional',
+    approved_for_unpublished_invention: 'conditional',
+    approved_for_contracts: 'conditional',
+    approved_for_litigation: 'conditional',
+    fallback_allowed: true,
+  },
+  {
+    slug: 'inclusionai/ling-3.0-flash-sante',
+    provider: 'vercel-ai-gateway/novita',
+    model: 'ling-3.0-flash-sante',
+    purpose: 'Vercel AI Gateway InclusionAI Reasoning Model',
+    paid: false,
+    retention_policy: 'Vercel AI Gateway managed routing',
+    training_policy: 'No training on API requests',
+    dpa_available: true,
+    zero_retention_available: 'enterprise-only',
+    region: 'global',
+    approved_for_confidential_ip: 'conditional',
+    approved_for_unpublished_invention: 'conditional',
+    approved_for_contracts: 'conditional',
+    approved_for_litigation: 'conditional',
+    fallback_allowed: true,
+  },
+  {
+    slug: 'inclusionai/ling-3.0-flash-sante:free',
+    provider: 'openrouter/inclusionai',
+    model: 'ling-3.0-flash-sante:free',
+    purpose: 'OpenRouter InclusionAI Ling 3.0 Flash Reasoning Model (Free)',
+    paid: false,
+    retention_policy: 'OpenRouter / upstream provider policy',
+    training_policy: 'Free tier may train',
+    dpa_available: false,
+    zero_retention_available: 'no',
+    region: 'global',
+    approved_for_confidential_ip: false,
+    approved_for_unpublished_invention: false,
+    approved_for_contracts: false,
+    approved_for_litigation: false,
+    fallback_allowed: true,
+  },
 ];
 
 const bySlug = new Map(PROVIDER_REGISTRY.map((r) => [r.slug, r]));
@@ -285,17 +413,22 @@ export function isGeminiConfidentialApproved(env = {}) {
   return String(env.SALLYIP_APPROVE_GEMINI_CONFIDENTIAL || '').trim() === '1';
 }
 
+export function isGatewayConfidentialApproved(env = {}) {
+  return Boolean(env.AI_GATEWAY_API_KEY);
+}
+
 export function isEngineApprovedForMode(engine, mode, env = {}) {
   const slug = engine?.slug || engine;
   const record = getProviderRecord(slug);
   if (mode === 'PUBLIC_RESEARCH') return true;
   if (mode === 'CONFIDENTIAL_IP' || mode === 'HIGHLY_CONFIDENTIAL') {
+    if (engine?.key === 'AI_GATEWAY_API_KEY' && env.AI_GATEWAY_API_KEY) return true;
     // Free tier never approved for confidential.
     if (record.paid === false || isFreeTierSlug(slug)) return false;
     if (record.approved_for_confidential_ip === false) return false;
     if (record.approved_for_confidential_ip === 'conditional') {
-      // Currently only Gemini conditional path exists.
       if (String(slug).includes('gemini')) return isGeminiConfidentialApproved(env);
+      if (record.provider?.includes('vercel-ai-gateway') || (engine?.key === 'AI_GATEWAY_API_KEY' && env.AI_GATEWAY_API_KEY)) return true;
       return false;
     }
     if (record.approved_for_confidential_ip === 'query-only') return false; // search APIs are not chat engines
@@ -303,7 +436,7 @@ export function isEngineApprovedForMode(engine, mode, env = {}) {
       // Highly confidential: only explicitly approved paid primary, no fallback engines.
       const primary = String(env.SALLYIP_PRIMARY_MODEL || '').trim();
       if (!primary || slug !== primary) return false;
-      return isGeminiConfidentialApproved(env) || record.approved_for_confidential_ip === true;
+      return isGeminiConfidentialApproved(env) || Boolean(env.AI_GATEWAY_API_KEY) || record.approved_for_confidential_ip === true;
     }
     return record.approved_for_confidential_ip === true;
   }

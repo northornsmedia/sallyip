@@ -3,8 +3,8 @@
 Specialist inputs: SEO_TECHNICAL_AUDIT, SEO_CONTENT_MAP, GEO_AI_VISIBILITY_PLAN, SCHEMA_ENTITY_AUDIT, COMPETITOR_SEARCH_GAPS, BENCHMARK_CONTENT_STRATEGY. Log: IMPLEMENTATION_LOG.
 
 ## 1. Scores
-- **SEO health: 46/100 → 77/100 (wave 2, 2026-09-10).** Rubric + deltas: `seo/WAVE2_REPORT.md`. Biggest mover: crawlable surface 2→34 URLs (+13). No points for the 689→672 kB rebuild variance.
-- **GEO/AI visibility: 52/100 → 76/100 readiness (wave 2).** Observed AI citations: none yet (earned, not built). Research-assets line scored DOWN 8→6 on honest re-check (repo datasets are not web-accessible; only latest.json is).
+- **SEO health: 46/100 → 77/100 (wave 2) → 82/100 (wave 3, 2026-09-10).** Rubric + deltas: `seo/WAVE2_REPORT.md`, `seo/WAVE3_REPORT.md`. Crawlable surface 2→34→72 (+13→+2). Main JS 689→672→348 kB.
+- **GEO/AI visibility: 52/100 → 76/100 (wave 2) → 84/100 readiness (wave 3).** Observed AI citations: none yet (earned, not built). Research assets: repo datasets not web-accessible (wave 1) → headline CSV + ablation study + citation note (wave 3, +3). Practitioner legal-correctness: NOT ESTABLISHED (0/25 graded).
 
 ## 2. Critical blockers (CRITICAL)
 - C1 Hash-router: app content uncrawlable. Migrate public pages to static history routes + prerender.

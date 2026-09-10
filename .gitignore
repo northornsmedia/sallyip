@@ -9,3 +9,9 @@ dist/
 __pycache__/
 *.py[cod]
 .ai-keys*.local*
+test-results/
+playwright-report/
+tests/__snapshots__/
+*.trace.zip
+*.exe
+

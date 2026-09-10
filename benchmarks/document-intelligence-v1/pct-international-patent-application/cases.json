@@ -1,0 +1,234 @@
+{
+  "$schema": "https://sallyip.com/schemas/document-benchmark-v1.json",
+  "document_id": "pct-international-patent-application",
+  "document_number": "006",
+  "name": "PCT International Patent Application Benchmark Suite v1",
+  "version": "1.0.0",
+  "benchmark_type": "SYNTHETIC_EVALUATION",
+  "total_cases": 17,
+  "cases": [
+    {
+      "id": "CASE-01-FIRST-FILING-PCT",
+      "title": "First-Filing PCT with No Earlier Priority",
+      "inputs": {
+        "title": "Distributed Consensus Mechanism for Low-Latency Mesh Networks",
+        "priority_status_input": "This is a first-filing PCT application, no earlier priority.",
+        "technical_field": "Decentralized networking and consensus algorithms",
+        "problem_solution": "Existing Proof-of-Stake protocols incur high latency in asymmetric mesh topologies.",
+        "technical_features": "Nodes compute localized epoch assertions and verify state transitions via zero-knowledge recursive SNARK proofs.",
+        "applicants": [{ "name": "MeshTech Solutions Inc.", "nationality": "US", "residence": "US" }],
+        "inventors": [{ "name": "Elena Rostova", "nationality": "US", "residence": "US" }]
+      },
+      "expected": {
+        "priority_status": "FIRST_FILING_PCT",
+        "readiness": "READY_FOR_FIRST_DRAFT"
+      }
+    },
+    {
+      "id": "CASE-02-SINGLE-US-PROVISIONAL-PRIORITY",
+      "title": "Single US Provisional Priority Claim",
+      "inputs": {
+        "title": "Autonomous Drone Path Planning",
+        "priority_status_input": "Claiming priority to US provisional 63/123,456 filed 2025-04-15",
+        "technical_field": "Robotics and path planning algorithms",
+        "problem_solution": "Real-time obstacle avoidance fails in dynamic GPS-denied environments.",
+        "technical_features": "Onboard optical flow sensors feed a lightweight spatial occupancy grid evaluated by a receding horizon controller.",
+        "applicants": [{ "name": "AeroDynamics Corp", "nationality": "US", "residence": "US" }],
+        "inventors": [{ "name": "Marcus Vance", "nationality": "US", "residence": "US" }]
+      },
+      "expected": {
+        "priority_status": "CLAIMS_PRIORITY_TO_PROVISIONAL",
+        "readiness": "READY_FOR_FIRST_DRAFT"
+      }
+    },
+    {
+      "id": "CASE-03-MULTIPLE-PRIORITIES",
+      "title": "Dual Priority Applications",
+      "inputs": {
+        "title": "Hybrid Battery Thermal Management System",
+        "priority_status_input": "We have two earlier applications",
+        "priority_1": "US provisional 63/222,333 filed 2025-02-10",
+        "priority_2": "US provisional 63/333,444 filed 2025-06-20",
+        "technical_field": "Automotive battery cooling systems",
+        "problem_solution": "Battery cells experience uneven localized thermal gradients under fast-charging.",
+        "technical_features": "Phase-change material jackets combined with micro-channel refrigerant loops controlled by temperature-dependent bypass valves.",
+        "applicants": [{ "name": "VoltPower Inc.", "nationality": "US", "residence": "US" }]
+      },
+      "expected": {
+        "priority_status": "CLAIMS_MULTIPLE_PRIORITIES",
+        "priority_count": 2
+      }
+    },
+    {
+      "id": "CASE-04-FOREIGN-PRIORITY",
+      "title": "Priority Claim to Earlier European Application",
+      "inputs": {
+        "title": "Photovoltaic Inverter Architecture",
+        "priority_status_input": "Claiming priority to European patent application EP 24150123.4 filed in Germany on 2025-01-10",
+        "technical_field": "Solar energy conversion",
+        "problem_solution": "High harmonic distortion during partial cloud coverage transitions.",
+        "technical_features": "Adaptive multi-level switching bridge with predictive dead-time compensation.",
+        "applicants": [{ "name": "SonnenKraft GmbH", "nationality": "DE", "residence": "DE" }]
+      },
+      "expected": {
+        "priority_status": "CLAIMS_PRIORITY_TO_FOREIGN_APPLICATION"
+      }
+    },
+    {
+      "id": "CASE-05-SOFTWARE-INVENTION",
+      "title": "Cloud Computing Microservice Orchestration",
+      "inputs": {
+        "title": "Dynamic Container Rebalancing Engine",
+        "priority_status_input": "First filing PCT application",
+        "technical_field": "Distributed systems",
+        "problem_solution": "Cascading failures occur when service pods saturate node network interfaces.",
+        "technical_features": "Telemetry daemons stream interface utilization vectors to an eBPF kernel scheduler that migrates container network namespaces dynamically.",
+        "applicants": [{ "name": "CloudOps Ltd", "nationality": "GB", "residence": "GB" }]
+      },
+      "expected": {
+        "invention_type": "SOFTWARE"
+      }
+    },
+    {
+      "id": "CASE-06-AI-INVENTION",
+      "title": "Generative Diffusion Model Quantization",
+      "inputs": {
+        "title": "Low-Bit Depth Latent Diffusion Accelerator",
+        "priority_status_input": "US provisional 63/987,654 filed 2025-05-01",
+        "technical_field": "Deep learning and neural network execution",
+        "problem_solution": "Transformer-based diffusion models require excessive GPU memory bandwidth for high-resolution synthesis.",
+        "technical_features": "Asymmetric 4-bit integer quantization of self-attention key-value caches using dynamic calibration outlier thresholds.",
+        "applicants": [{ "name": "NeuralForge AI Inc.", "nationality": "US", "residence": "US" }]
+      },
+      "expected": {
+        "invention_type": "AI_ML"
+      }
+    },
+    {
+      "id": "CASE-07-MECHANICAL-INVENTION",
+      "title": "High-Pressure Hydraulic Sealing Flange",
+      "inputs": {
+        "title": "Bi-Directional Resilient Hydraulic Coupling",
+        "priority_status_input": "First filing PCT",
+        "technical_field": "Mechanical engineering and fluid seals",
+        "problem_solution": "Elastomer seals degrade prematurely under rapid pressure cycling above 500 bar.",
+        "technical_features": "Interlocking concentric metallic rings having chamfered annular lips that self-energize upon fluid pressure exposure.",
+        "applicants": [{ "name": "Apex Hydraulics LLC", "nationality": "US", "residence": "US" }]
+      },
+      "expected": {
+        "invention_type": "MECHANICAL"
+      }
+    },
+    {
+      "id": "CASE-08-BIOTECH-SPECIALIST-FLAG",
+      "title": "Engineered Enzyme with Sequence Listing",
+      "inputs": {
+        "title": "Modified Thermostable DNA Polymerase",
+        "priority_status_input": "US provisional priority",
+        "technical_field": "Biotechnology and molecular diagnostics",
+        "problem_solution": "Inhibition of PCR amplification in the presence of whole blood contaminants.",
+        "technical_features": "Engineered recombinant polymerase comprising an amino acid sequence with specific point mutations and a ST.26 nucleotide sequence listing."
+      },
+      "expected": {
+        "flag": "SPECIALIST_BIOTECH_REVIEW_REQUIRED"
+      }
+    },
+    {
+      "id": "CASE-09-MULTIPLE-APPLICANTS",
+      "title": "Joint University and Corporate Filing",
+      "inputs": {
+        "applicants_input": "Stanford University of Stanford, California, and Genentech Inc. of South San Francisco, California"
+      },
+      "expected": {
+        "multiple_applicants": true
+      }
+    },
+    {
+      "id": "CASE-10-MULTIPLE-INVENTORS",
+      "title": "Multi-Inventor Team",
+      "inputs": {
+        "inventors_input": "Dr. Sarah Chen, Michael R. Johnson, and Carlos Gomez"
+      },
+      "expected": {
+        "inventor_count": 3
+      }
+    },
+    {
+      "id": "CASE-11-UNKNOWN-BIBLIOGRAPHIC-DATA",
+      "title": "Missing Applicant Nationality Flagging",
+      "inputs": {
+        "applicants_input": "I don't know the corporate nationality yet"
+      },
+      "expected": {
+        "flag": "PCT_FILING_ELIGIBILITY_REVIEW_REQUIRED"
+      }
+    },
+    {
+      "id": "CASE-12-PUBLIC-DISCLOSURE",
+      "title": "Conference Presentation Prior to Filing",
+      "inputs": {
+        "public_disclosure_input": "We presented a conference paper on this architecture 3 months ago at IEEE Infocom in Atlanta."
+      },
+      "expected": {
+        "flag": "DISCLOSURE_REVIEW_REQUIRED"
+      }
+    },
+    {
+      "id": "CASE-13-NEW-MATTER-AFTER-PRIORITY",
+      "title": "Addition of LiDAR to Camera-Only Priority Document",
+      "inputs": {
+        "earlier_priority": "US provisional describing optical camera defect inspection",
+        "updated_features": "We are now adding LiDAR sensors and point cloud triangulation to the camera inspection pipeline."
+      },
+      "expected": {
+        "flag": "PRIORITY_SUPPORT_REVIEW_REQUIRED",
+        "priority_support_status": "PARTIALLY_SUPPORTED"
+      }
+    },
+    {
+      "id": "CASE-14-NATIONAL-PHASE-MISROUTING",
+      "title": "National Phase Entry Clarification",
+      "inputs": {
+        "user_message": "I need to enter the European phase from my PCT"
+      },
+      "expected": {
+        "action": "CLARIFICATION_REQUIRED",
+        "flag": "NATIONAL_PHASE_DISTINCTION_REQUIRED"
+      }
+    },
+    {
+      "id": "CASE-15-DEADLINE-QUESTION",
+      "title": "PCT Deadline Calculation Inquiry",
+      "inputs": {
+        "priority_date": "2025-03-15",
+        "inquiry": "When is my PCT deadline?"
+      },
+      "expected": {
+        "calculated_deadline": "2026-03-15",
+        "national_30_months": "2027-09-15"
+      }
+    },
+    {
+      "id": "CASE-16-GLOBAL-PATENT-MISCONCEPTION",
+      "title": "Worldwide Patent Query Disambiguation",
+      "inputs": {
+        "user_message": "Will this give me a worldwide patent?"
+      },
+      "expected": {
+        "action": "CLARIFICATION_REQUIRED",
+        "flag": "GLOBAL_PATENT_MISCONCEPTION_CLARIFIED"
+      }
+    },
+    {
+      "id": "CASE-17-UNSUPPORTED-CLAIM-LIMITATION",
+      "title": "Claim with Extraneous Unsupported Limitation",
+      "inputs": {
+        "specification": "The system processes optical camera sensor inputs to detect defects in manufactured components.",
+        "claim": "1. A method comprising receiving optical camera sensor inputs, detecting defects in manufactured components, and executing cryogenic superconducting quantum teleportation."
+      },
+      "expected": {
+        "status": "UNSUPPORTED"
+      }
+    }
+  ]
+}

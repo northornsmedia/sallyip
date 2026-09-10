@@ -1,0 +1,86 @@
+name: Visual Regression + INP
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  visual-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
+      - name: Install Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Start preview server
+        run: npm run preview &
+        env:
+          CI: true
+      - name: Wait for server
+        run: sleep 10
+      - name: Run visual regression tests
+        run: npx playwright test tests/visual-regression.spec.ts --project=chromium
+      - name: Upload visual report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-report
+          path: test-results/visual-report/
+          retention-days: 7
+      - name: Upload snapshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failed-snapshots
+          path: tests/__snapshots__/
+          retention-days: 7
+
+  inp-measurement:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
+      - name: Install Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Start preview server
+        run: npm run preview &
+        env:
+          CI: true
+      - name: Wait for server
+        run: sleep 10
+      - name: Measure INP
+        run: node scripts/measure-inp.mjs
+        env:
+          CI: true
+
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
+      - run: npm run seo:enterprise
+      - run: npm run seo:sitemap
+      - run: node --test tests/answer-guard.test.mjs tests/citation-service.test.mjs tests/hybrid-retrieval.test.mjs tests/adversarial-hallucination.test.mjs tests/permanent-failures-regression.test.mjs
+      - run: node --test tests/security/provider-confidentiality.test.mjs tests/security/auth-hardening.test.mjs tests/security/audit-logging.test.mjs tests/security/file-safety.test.mjs tests/security/tenant-isolation.test.mjs tests/security/verification-p1.test.mjs tests/security/contracts-and-deploy.test.mjs
+      - run: python C:\Users\User\AppData\Local\Temp\opencode\linkcheck.py
+        shell: pwsh

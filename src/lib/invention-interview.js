@@ -37,7 +37,7 @@ const SLOT_TESTS = {
 
 export const SLOT_ORDER = ['what', 'problem', 'how', 'novelty', 'components', 'alternatives', 'artifacts']
 const CORE_SLOTS = ['what', 'problem', 'how', 'novelty']
-const MAX_QUESTIONS = 3
+const MAX_QUESTIONS = 1
 const MAX_INTERVIEW_TURNS = 4
 
 const ADVANCED_SIGNALS = [/§\s*\d/i, /35\s*U\.?S\.?C/i, /antecedent/i, /prior art/i, /obviousness/i, /enablement/i, /claim \d+/i, /embodiment/i, /written description/i, /office action/i, /MPEP/i, /Alice\/Mayo/i]
@@ -76,10 +76,12 @@ export function buildInterviewContract(analysis) {
   const recap = analysis.answeredRecap.length
     ? `Already established — do NOT ask about these again: ${analysis.answeredRecap.join(', ')}.`
     : 'Nothing established yet — this is the first exchange.'
+  const nextQ = analysis.nextQuestions[0] || 'Please describe your invention in your own words.'
   return `INVENTION INTERVIEW MODE (highest priority for this answer):
 ${register}
 ${recap}
-Ask ONLY these follow-up questions, at most three, in your own words: ${analysis.nextQuestions.map((q, i) => `${i + 1}. ${q}`).join(' ')}
+CRITICAL RULE: Ask EXACTLY ONE question at a time. Never ask multiple numbered questions or dump a questionnaire.
+Ask ONLY this single follow-up question, in your own words: ${nextQ}
 Hard rules: perform the task or gather the minimum information to perform it — NEVER respond with a description of Sally's capabilities, workspaces, buttons, or features. Do not mention internal workflow names. Do not invent technical details. Keep the reply short.`
 }
 export function buildReadyBrief(analysis) {
