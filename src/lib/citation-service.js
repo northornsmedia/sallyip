@@ -1,10 +1,35 @@
 const normalize = (s) => String(s || '').toLowerCase().replace(/[\u2018\u2019]/g, "'").replace(/[\u201c\u201d]/g, '"').replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim()
 
+// Canonical pre-clean for a model-claimed verbatim quote. Recognises standard
+// legal quoting conventions WITHOUT weakening verbatimness (every remaining
+// word must still match the source):
+//  - trailing/embedded retrieval labels the extractor swept inside the span
+//    (e.g. `"...requirements of this title [S1]."` — failures_27 s101-07)
+//  - markdown emphasis inside quotes (e.g. `"process, machine, **manufacture**..."`)
+//  - bracketed single-letter alterations for grammar/case (`[W]hoever`,
+//    `[P]atentability`, `[i]ntegration` — failures_27 s101-04/s103-06/s103-10,
+//    mpep-2106-04). Shared with verification-service so the record/verify API
+//    and the answer guard grade the same span identically.
+export function cleanQuoteText(quote) {
+  let raw = String(quote || '').trim()
+  raw = raw.replace(/\s*\[S\d+\]\.?/g, '').trim()
+  raw = raw.replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1').trim()
+  return raw.replace(/\[([A-Za-z])\]/g, '$1')
+}
+
+export function flipFirstLetter(word) {
+  const s = String(word || '')
+  if (!s) return s
+  return (s.charAt(0).toUpperCase() === s.charAt(0) ? s.charAt(0).toLowerCase() : s.charAt(0).toUpperCase()) + s.slice(1)
+}
+
 export function verifyQuote(passageContent, quote) {
-  const q = String(quote || '').trim()
+  const q = cleanQuoteText(quote)
   if (q.length < 8) throw new Error('Quote must be at least 8 characters for verification')
   const content = String(passageContent || '')
   if (content.includes(q)) return 'exact'
+  const alt = flipFirstLetter(q)
+  if (alt !== q && content.includes(alt)) return 'exact'
   const nContent = normalize(content), nQuote = normalize(q)
   if (nQuote.length >= 8 && nContent.includes(nQuote)) return 'fuzzy'
   return 'missing'

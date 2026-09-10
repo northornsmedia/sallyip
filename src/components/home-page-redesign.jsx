@@ -19,6 +19,7 @@ import {
   Cpu
 } from "lucide-react";
 import SallyTopNav from "./sally-topnav";
+import ModernGradientFooter from "./modern-gradient-footer";
 import "../home-redesign.css";
 
 const LIFECYCLE_STAGES = [
@@ -649,21 +650,23 @@ export default function HomePageRedesign({
         </section>
       </main>
 
-      {/* ---------------- Footer ---------------- */}
-      <footer className="sh-footer">
-        <div className="sh-footer-inner">
-          <div className="sh-footer-copy">
-            © 2026 SallyIP Inc. All rights reserved. Patent Intelligence Platform.
-          </div>
-          <div className="sh-footer-links">
-            <button onClick={() => handleScrollTo("modules")}>Modules</button>
-            <button onClick={() => handleScrollTo("lifecycle")}>Lifecycle</button>
-            <button onClick={() => handleScrollTo("security")}>Security</button>
-            <button onClick={onOpenTransparency}>Transparency</button>
-            <button onClick={onOpenPricing}>Pricing</button>
-          </div>
-        </div>
-      </footer>
+      {/* ---------------- Modern Gradient Footer ---------------- */}
+      <ModernGradientFooter
+        onDemoClick={onOpenChat}
+        onNavigate={(target) => {
+          if (target === "modules" || target === "lifecycle" || target === "security") {
+            handleScrollTo(target);
+          } else if (target === "benchmarks") {
+            window.location.hash = "benchmarks";
+          } else if (target === "performance") {
+            window.location.hash = "performance";
+          } else if (target === "home") {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          } else {
+            handleScrollTo(target);
+          }
+        }}
+      />
     </div>
   );
 }

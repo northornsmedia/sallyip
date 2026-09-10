@@ -5,8 +5,7 @@
 // requires practitioner grading. Single-engine calls (deployed primary) to
 // conserve quota; full-fleet race behavior is strictly harder to ground.
 import { neon } from '@neondatabase/serverless';
-import { retrieveHybridEvidence, guardAnswerCitations } from '../src/lib/verification-service.js';
-import { verifyQuote } from '../src/lib/citation-service.js';
+import { retrieveHybridEvidence, guardAnswerCitations, auditAnswerQuotes } from '../src/lib/verification-service.js';
 
 const MODEL = process.env.SALLYIP_PRIMARY_MODEL || 'gemini-flash-lite-latest';
 const API = (process.env.SALLYIP_PRIMARY_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta/openai').replace(/\/+$/, '');
@@ -56,20 +55,14 @@ for (const q of QUESTIONS) {
   const { answer = '', error = null } = await ask(q.prompt, evidence);
   if (error || !answer) { rows.push({ key: q.key, status: 'model_error', error }); console.log(q.key + ': MODEL_ERROR ' + error); continue; }
   const guard = guardAnswerCitations(answer, evidence, {}).guard;
-  const quotes = [...answer.matchAll(/"([^"]{20,400})"/g)].map(m => m[1]).slice(0, 4);
-  const norm = (s) => String(s || '').toLowerCase();
-  const promptBare = norm(q.prompt).replace(/[^a-z0-9 ]/g, ' ');
+  // Convention-aware quote audit (shared lib helper): skips prompt echoes,
+  // grounded denials and cross-span extraction garbage; recognises [X]
+  // bracket alterations, trailing [S#] inside spans, and `...` ellipsis.
+  const audit = auditAnswerQuotes(answer, evidence, { prompt: q.prompt, minLength: 20, maxLength: 400 });
+  const quotes = audit.checked.slice(0, 4);
   let exact = 0, fuzzy = 0, missing = 0;
-  for (const quote of quotes) {
-    const quoteBare = norm(quote).replace(/[^a-z0-9 ]/g, ' ');
-    if (quoteBare.length <= promptBare.length && promptBare.includes(quoteBare)) continue;
-    let best = 'missing';
-    for (const e of evidence) {
-      const verdict = (() => { try { return verifyQuote(e.content, quote); } catch { return 'missing'; } })();
-      if (verdict === 'exact') { best = 'exact'; break; }
-      if (verdict === 'fuzzy') best = 'fuzzy';
-    }
-    if (best === 'exact') exact++; else if (best === 'fuzzy') fuzzy++; else missing++;
+  for (const s of quotes) {
+    if (s.status === 'exact') exact++; else if (s.status === 'fuzzy') fuzzy++; else missing++;
   }
   rows.push({ key: q.key, status: 'scored', recalled, cited: guard.valid.length, dangling: guard.dangling.length, quotes: { total: quotes.length, exact, fuzzy, missing } });
   console.log(`${q.key}: recalled=${recalled} cited=${guard.valid.length} dangling=${guard.dangling.length} quotes=${exact}E/${fuzzy}F/${missing}M`);

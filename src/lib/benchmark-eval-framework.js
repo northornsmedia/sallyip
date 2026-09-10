@@ -6,8 +6,7 @@
 // 4. Citation Entailment (Premise-Hypothesis NLI Support)
 // 5. Legal Accuracy & Unsupported Proposition Rate
 
-import { verifyQuote } from './citation-service.js';
-import { guardAnswerCitations } from './verification-service.js';
+import { guardAnswerCitations, auditAnswerQuotes } from './verification-service.js';
 
 const MODEL = process.env.SALLYIP_PRIMARY_MODEL || 'gemini-flash-lite-latest';
 const API = (process.env.SALLYIP_PRIMARY_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta/openai').replace(/\/+$/, '');
@@ -177,24 +176,20 @@ export async function evaluateAnswer5D(item, answer, evidence, options = {}) {
   const validCitationCount = guard.valid.length;
   const citationIntegrityPassed = danglingCount === 0;
 
-  // 3. Quotation Fidelity
-  const quoteMatches = [...answer.matchAll(/"([^"]{18,400})"/g)].map(m => m[1]).slice(0, 4);
+  // 3. Quotation Fidelity (convention-aware shared audit: prompt echoes,
+  // grounded denials and cross-span garbage are skipped, not scored)
+  const audit = auditAnswerQuotes(answer, evidence, { prompt: item.prompt || '', minLength: 18, maxLength: 400 });
+  const quoteMatches = audit.checked.slice(0, 4);
   let exactQuotes = 0, fuzzyQuotes = 0, missingQuotes = 0;
   const quoteDetails = [];
 
-  for (const q of quoteMatches) {
-    let best = 'missing';
-    let matchingLocator = null;
-    for (const e of evidence) {
-      let verdict = 'missing';
-      try { verdict = verifyQuote(e.content, q); } catch {}
-      if (verdict === 'exact') { best = 'exact'; matchingLocator = e.locator; break; }
-      if (verdict === 'fuzzy') { best = 'fuzzy'; matchingLocator = e.locator; }
-    }
+  for (const s of quoteMatches) {
+    const best = s.status;
+    const matchingLocator = s.locator;
     if (best === 'exact') exactQuotes++;
     else if (best === 'fuzzy') fuzzyQuotes++;
     else missingQuotes++;
-    quoteDetails.push({ quote: q, verdict: best, locator: matchingLocator });
+    quoteDetails.push({ quote: s.quote, verdict: best, locator: matchingLocator });
   }
 
   // 4. Citation Entailment

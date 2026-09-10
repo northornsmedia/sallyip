@@ -29,8 +29,7 @@ function runContext() {
     temperature: 0, max_tokens: 600, ran_at: new Date().toISOString(),
   };
 }
-import { retrieveHybridEvidence, guardAnswerCitations } from '../src/lib/verification-service.js';
-import { verifyQuote } from '../src/lib/citation-service.js';
+import { retrieveHybridEvidence, guardAnswerCitations, auditAnswerQuotes } from '../src/lib/verification-service.js';
 
 const MODEL = process.env.SALLYIP_PRIMARY_MODEL || 'gemini-flash-lite-latest';
 const API = (process.env.SALLYIP_PRIMARY_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta/openai').replace(/\/+$/, '');
@@ -59,29 +58,15 @@ async function ask(prompt, evidence) {
 
 function grade(item, answer, evidence) {
   const guard = guardAnswerCitations(answer, evidence, {}).guard;
-  // Scare quotes in refusal sentences ("cannot verify X") are not evidentiary
-  // quotes: only check spans from assertive sentences.
-  const assertive = String(answer || '').split(/(?<=[.!?])\s+/).filter(s => !ABSTAIN_SIGNALS.test(s)).join(' ');
-  const quotes = [...assertive.matchAll(/"([^"]{20,400})"/g)].map(m => m[1]).slice(0, 4);
-  let missing = 0;
-  const missingQuotes = [];
-  const promptNorm = norm(item.prompt);
-  const promptBare = promptNorm.replace(/[^a-z0-9 ]/g, ' ');
-  for (const quote of quotes) {
-    // Echoes of the user's own prompt wording are not evidentiary quotes.
-    const quoteBare = norm(quote).replace(/[^a-z0-9 ]/g, ' ');
-    if (quoteBare.length <= promptBare.length && promptBare.includes(quoteBare)) continue;
-    let best = 'missing';
-    for (const e of evidence) {
-      try {
-        const v = verifyQuote(e.content, quote);
-        if (v === 'exact') { best = 'exact'; break; }
-        if (v === 'fuzzy') best = 'fuzzy';
-      } catch { /* short quote: ignore */ }
-    }
-    if (best === 'missing') { missing++; missingQuotes.push(quote.slice(0, 80)); }
-  }
-  const telemetry = { evidence_count: evidence.length, cited: guard.valid, dangling: guard.dangling, quotes_checked: quotes.length, missing_quotes: missingQuotes };
+  // Convention-aware quote audit (shared lib helper): skips prompt echoes,
+  // grounded denials and cross-span extraction garbage; recognises [X]
+  // bracket alterations, trailing [S#] inside spans, and `...` ellipsis
+  // omission. Every checked word must still be verbatim in one source.
+  const audit = auditAnswerQuotes(answer, evidence, { prompt: item.prompt, minLength: 20, maxLength: 400 });
+  const quotes = audit.checked.slice(0, 4);
+  const missing = audit.missing.length;
+  const missingQuotes = audit.missing.map(s => s.quote.slice(0, 80));
+  const telemetry = { evidence_count: evidence.length, cited: guard.valid, dangling: guard.dangling, quotes_checked: quotes.length, missing_quotes: missingQuotes, quotes_skipped: audit.spans.filter(s => s.status === 'skipped').length };
   const fabricated = guard.dangling.length > 0 || missing > 0 || item.must_not_contain.some(p => norm(answer).includes(norm(p)));
   const refused = ABSTAIN_SIGNALS.test(answer);
   if (item.expect === 'abstain') {

@@ -1,0 +1,295 @@
+{
+  "probe": "legalbench-probe v1",
+  "ran_at": "2026-09-10T07:08:58.350Z",
+  "benchmark": {
+    "name": "Stanford LegalBench",
+    "repo": "https://github.com/HazyResearch/legalbench",
+    "repo_status": "verified live 2026-09-10: canonical HazyResearch/legalbench, 162 tasks, not moved/renamed",
+    "dataset": "https://huggingface.co/datasets/nguha/legalbench (per-task train/test splits; train small few-shot demos, test larger)",
+    "paper": "https://arxiv.org/abs/2308.11462 (Guha et al. 2023)",
+    "task_format": "per-task directory: README (reasoning type, task type, size, license) + prompt txt files + train.tsv/test splits; columns vary by task (e.g. index/answer/text; answer/text/document_name)",
+    "formats_overall": "35 multiple-choice, 7 open-generation (manual gradebook), 112 binary classification, 8 multi-class/multi-label; reasoning types: rule-recall, issue-spotting, rule-application, rule-conclusion, interpretation (119), rhetorical-understanding"
+  },
+  "tasks_sampled": [
+    {
+      "legalbench_task": "abercrombie",
+      "probe_items": 5,
+      "reasoning": "rule-application/rule-conclusion",
+      "type": "5-way classification",
+      "size_full": 99,
+      "license": "CC BY 4.0",
+      "sally_capability": "deterministic distinctiveness heuristic (dictionary + genus/material + adjective/cue lists)",
+      "relevance": "direct IP: trademark distinctiveness, adjacent to Sally trademark services"
+    },
+    {
+      "legalbench_task": "cuad_ip_ownership_assignment",
+      "probe_items": 4,
+      "reasoning": "interpretation",
+      "type": "binary classification",
+      "size_full": 582,
+      "license": "CC BY 4.0 (CUAD: Hendrycks et al. 2021)",
+      "sally_capability": "checkEntailment + flagClause + assignment/retention patterns",
+      "relevance": "direct IP: IP-ownership assignment clauses in contracts"
+    },
+    {
+      "legalbench_task": "citation_prediction_classification (style proxy)",
+      "probe_items": 3,
+      "reasoning": "interpretation",
+      "type": "binary-style support verification",
+      "size_full": "not sampled verbatim; proxy items written for probe",
+      "license": "probe items: ours; passages: public-domain 35 U.S.C.",
+      "sally_capability": "verifyQuote + guardAnswerCitations",
+      "relevance": "core Sally verification-first loop (citation prediction is Sally home turf)"
+    }
+  ],
+  "summary": {
+    "items_total": 12,
+    "correct": 12,
+    "accuracy_pct": 100,
+    "by_task": {
+      "abercrombie": {
+        "n": 5,
+        "correct": 5,
+        "accuracy": 100
+      },
+      "cuad_ip_ownership_assignment": {
+        "n": 4,
+        "correct": 4,
+        "accuracy": 100
+      },
+      "citation_prediction_style": {
+        "n": 3,
+        "correct": 3,
+        "accuracy": 100
+      }
+    },
+    "live_model_calls_used": 0,
+    "live_model_calls_allowed": 10,
+    "diagnostic_entailment_only_cuad": {
+      "n": 4,
+      "correct": 2,
+      "note": "checkEntailment alone (ENTAILS/PARTIALLY=Yes): misses synonym item (Work Product/vest) and false-positives on retention item (shared vocab, antonym meaning)"
+    },
+    "citation_guard_demo": {
+      "valid": [
+        1
+      ],
+      "dangling": [],
+      "answer_mode": "QUALIFIED"
+    },
+    "contract_flag_note": "flagClause returned green on all 4 CUAD items: Sally contract risk radar (RED/AMBER lists) has no IP-assignment rule — entailment + assignment patterns carried the task"
+  },
+  "limits": [
+    "Tiny probe (12 items) on train exemplars + synthetic representatives: NOT comparable to published LegalBench numbers and NOT a test-set score.",
+    "Abercrombie 5/5 is on the 5 public train exemplars (one clear case per class); the 95-item test set has harder boundary cases (descriptive vs suggestive) where keyword rules degrade.",
+    "CUAD items are synthetic, not verbatim CUAD clauses; combined patterns were written against the CUAD question text and carry overfit risk on real CUAD phrasing.",
+    "Lexical entailment misses synonyms (work product/IP, vest/assign) and antonym retention (retains vs assigns with shared vocabulary); needs synonym expansion or embeddings for a full run.",
+    "Open-generation LegalBench tasks (citation_prediction_open, contract_qa, rule_qa, ~7 tasks needing manual gradebook) were excluded: they genuinely need live models + human grading.",
+    "Sally home-turf mismatch: LegalBench is contract/corporate-heavy (58 contract + 58 corporate tasks, only 3 statutory-text tasks) with almost no patent-prosecution content; Sally patent strengths (claim QA, 112 analysis, Alice/Mayo) are barely exercised here."
+  ],
+  "full_run_estimate": {
+    "scale": "162 tasks x ~563 avg samples ~= ~91k samples (train splits small; test bulk)",
+    "calls": "~85-91k model calls at 1 call/sample for classification-style tasks; open-generation tasks need longer generations + manual gradebook effort",
+    "time_single_thread_2s_delay": "~50+ hours (internal runner pace)",
+    "time_parallel_paid": "~7-9 hours with ~8 workers on a paid tier, plus rate-limit headroom",
+    "tokens_rough_order": "~110M input / ~5M output tokens assuming ~1200 in + ~50 out per classification sample",
+    "cost": "free tiers cannot absorb this (daily caps); needs paid primary-model key (SALLYIP_PRIMARY_* / OpenRouter) + budget approval against the rate card at run time",
+    "needs": [
+      "HF dataset download (nguha/legalbench) + per-task prompt templates from the repo",
+      "per-task metric harness (balanced accuracy / F1 / exact match per paper; repo eval code for non-open tasks)",
+      "two configurations: (a) bare primary model baseline, (b) Sally full pipeline (retrieval + guards) — the delta is Sally value-add",
+      "manual grading capacity for the ~7 open-generation tasks",
+      "IP-task subset focus first (abercrombie, CUAD IP trio, citation_prediction pair, contract_nli licensing trio) before attempting all 162"
+    ]
+  },
+  "rows": [
+    {
+      "task": "abercrombie",
+      "id": "abercrombie-train-0",
+      "input": "The mark \"Ivory\" for a product made of elephant tusks.",
+      "gold": "generic",
+      "pred": "generic",
+      "pass": true,
+      "signals": {
+        "rule": "mark names the product genus/material",
+        "mark": "Ivory"
+      },
+      "provenance": "verbatim train.tsv (CC BY 4.0, Neel Guha)",
+      "sally_capability": "deterministic distinctiveness heuristic (probe-scale; entailment-service class pattern)"
+    },
+    {
+      "task": "abercrombie",
+      "id": "abercrombie-train-1",
+      "input": "The mark \"Tasty\" for bread.",
+      "gold": "descriptive",
+      "pred": "descriptive",
+      "pass": true,
+      "signals": {
+        "rule": "mark is a quality-describing adjective",
+        "mark": "Tasty"
+      },
+      "provenance": "verbatim train.tsv (CC BY 4.0, Neel Guha)",
+      "sally_capability": "deterministic distinctiveness heuristic (probe-scale; entailment-service class pattern)"
+    },
+    {
+      "task": "abercrombie",
+      "id": "abercrombie-train-2",
+      "input": "The mark \"Caress\" for body soap.",
+      "gold": "suggestive",
+      "pred": "suggestive",
+      "pass": true,
+      "signals": {
+        "rule": "mark requires imagination to link to product",
+        "mark": "Caress"
+      },
+      "provenance": "verbatim train.tsv (CC BY 4.0, Neel Guha)",
+      "sally_capability": "deterministic distinctiveness heuristic (probe-scale; entailment-service class pattern)"
+    },
+    {
+      "task": "abercrombie",
+      "id": "abercrombie-train-3",
+      "input": "The mark \"Virgin\" for wireless communications.",
+      "gold": "arbitrary",
+      "pred": "arbitrary",
+      "pass": true,
+      "signals": {
+        "rule": "real word with no descriptive link to product",
+        "mark": "Virgin"
+      },
+      "provenance": "verbatim train.tsv (CC BY 4.0, Neel Guha)",
+      "sally_capability": "deterministic distinctiveness heuristic (probe-scale; entailment-service class pattern)"
+    },
+    {
+      "task": "abercrombie",
+      "id": "abercrombie-train-4",
+      "input": "The mark \"Aswelly\" for a taxi service.",
+      "gold": "fanciful",
+      "pred": "fanciful",
+      "pass": true,
+      "signals": {
+        "rule": "mark not in dictionary (invented term)",
+        "mark": "Aswelly"
+      },
+      "provenance": "verbatim train.tsv (CC BY 4.0, Neel Guha)",
+      "sally_capability": "deterministic distinctiveness heuristic (probe-scale; entailment-service class pattern)"
+    },
+    {
+      "task": "cuad_ip_ownership_assignment",
+      "id": "cuad-synth-1",
+      "input": "All Intellectual Property created by Contractor in connection with the Services is hereby assigned to Company, including all right, title and interest therein.",
+      "gold": "Yes",
+      "pred": "Yes",
+      "pass": true,
+      "signals": {
+        "entailment": "PARTIALLY_SUPPORTS",
+        "entailScore": 0.5,
+        "entailOnlyPred": "Yes",
+        "hasAssignPattern": true,
+        "retentionSignal": false,
+        "negatedAssign": false,
+        "contractRiskFlag": "green"
+      },
+      "provenance": "synthetic representative (CUAD question text; Hendrycks et al. 2021, CC BY 4.0)",
+      "sally_capability": "entailment-service.checkEntailment + contract-service.flagClause + assignment patterns"
+    },
+    {
+      "task": "cuad_ip_ownership_assignment",
+      "id": "cuad-synth-2",
+      "input": "Upon completion of the Services, all right, title and interest in and to any Work Product shall vest exclusively in Client.",
+      "gold": "Yes",
+      "pred": "Yes",
+      "pass": true,
+      "signals": {
+        "entailment": "DOES_NOT_SUPPORT",
+        "entailScore": 0,
+        "entailOnlyPred": "No",
+        "hasAssignPattern": true,
+        "retentionSignal": false,
+        "negatedAssign": false,
+        "contractRiskFlag": "amber"
+      },
+      "provenance": "synthetic representative (CUAD question text; Hendrycks et al. 2021, CC BY 4.0)",
+      "sally_capability": "entailment-service.checkEntailment + contract-service.flagClause + assignment patterns"
+    },
+    {
+      "task": "cuad_ip_ownership_assignment",
+      "id": "cuad-synth-3",
+      "input": "Each party retains ownership of its pre-existing intellectual property, and nothing in this Agreement assigns such rights to the other party.",
+      "gold": "No",
+      "pred": "No",
+      "pass": true,
+      "signals": {
+        "entailment": "PARTIALLY_SUPPORTS",
+        "entailScore": 0.5,
+        "entailOnlyPred": "Yes",
+        "hasAssignPattern": false,
+        "retentionSignal": true,
+        "negatedAssign": true,
+        "contractRiskFlag": "green"
+      },
+      "provenance": "synthetic representative (CUAD question text; Hendrycks et al. 2021, CC BY 4.0)",
+      "sally_capability": "entailment-service.checkEntailment + contract-service.flagClause + assignment patterns"
+    },
+    {
+      "task": "cuad_ip_ownership_assignment",
+      "id": "cuad-synth-4",
+      "input": "The parties agree to negotiate the ownership of future intellectual property in good faith within ninety days of execution.",
+      "gold": "No",
+      "pred": "No",
+      "pass": true,
+      "signals": {
+        "entailment": "CONTEXT_ONLY",
+        "entailScore": 0.33,
+        "entailOnlyPred": "No",
+        "hasAssignPattern": false,
+        "retentionSignal": true,
+        "negatedAssign": false,
+        "contractRiskFlag": "green"
+      },
+      "provenance": "synthetic representative (CUAD question text; Hendrycks et al. 2021, CC BY 4.0)",
+      "sally_capability": "entailment-service.checkEntailment + contract-service.flagClause + assignment patterns"
+    },
+    {
+      "task": "citation_prediction_style",
+      "id": "cite-101-exact",
+      "input": "quote=\"new and useful process, machine, manufacture\"",
+      "gold": "supported",
+      "pred": "supported",
+      "pass": true,
+      "signals": {
+        "verifyQuote": "exact",
+        "note": "verbatim statutory phrase"
+      },
+      "provenance": "public-domain statute passage (35 U.S.C.) + probe-written quotes",
+      "sally_capability": "citation-service.verifyQuote + verification-service.guardAnswerCitations"
+    },
+    {
+      "task": "citation_prediction_style",
+      "id": "cite-102a-fuzzy",
+      "input": "quote=\"Available to the public before the effective filing date\"",
+      "gold": "supported",
+      "pred": "supported",
+      "pass": true,
+      "signals": {
+        "verifyQuote": "fuzzy",
+        "note": "case/punctuation-normalized match"
+      },
+      "provenance": "public-domain statute passage (35 U.S.C.) + probe-written quotes",
+      "sally_capability": "citation-service.verifyQuote + verification-service.guardAnswerCitations"
+    },
+    {
+      "task": "citation_prediction_style",
+      "id": "cite-101-fabricated",
+      "input": "quote=\"Section 101 expressly covers artificial intelligence models and neural networks\"",
+      "gold": "unsupported",
+      "pred": "unsupported",
+      "pass": true,
+      "signals": {
+        "verifyQuote": "missing",
+        "note": "fabricated quote; must be rejected"
+      },
+      "provenance": "public-domain statute passage (35 U.S.C.) + probe-written quotes",
+      "sally_capability": "citation-service.verifyQuote + verification-service.guardAnswerCitations"
+    }
+  ]
+}

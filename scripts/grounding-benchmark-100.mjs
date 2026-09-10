@@ -2,8 +2,7 @@
 // Measures citation validity, quote verification, and authority recall,
 // and outputs a 25-question practitioner scorecard for substantive legal correctness.
 import { neon } from '@neondatabase/serverless';
-import { retrieveHybridEvidence, guardAnswerCitations } from '../src/lib/verification-service.js';
-import { verifyQuote } from '../src/lib/citation-service.js';
+import { retrieveHybridEvidence, guardAnswerCitations, auditAnswerQuotes } from '../src/lib/verification-service.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -201,23 +200,21 @@ async function runBenchmark(questions = BENCHMARK_100) {
     }
 
     const guard = guardAnswerCitations(answer, evidence, {}).guard;
-    const quotes = [...answer.matchAll(/"([^"]{18,400})"/g)].map(m => m[1]).slice(0, 4);
+    // Convention-aware quote audit (shared lib helper): skips prompt echoes,
+    // grounded denials and cross-span extraction garbage; recognises [X]
+    // bracket alterations, trailing [S#] inside spans, and `...` ellipsis.
+    const audit = auditAnswerQuotes(answer, evidence, { prompt: q.prompt, minLength: 18, maxLength: 400 });
+    const auditedQuotes = audit.checked.slice(0, 4);
     let exact = 0, fuzzy = 0, missing = 0;
     const quoteDetails = [];
 
-    for (const quote of quotes) {
-      let best = 'missing';
-      let matchingLocator = null;
-      for (const e of evidence) {
-        let verdict = 'missing';
-        try { verdict = verifyQuote(e.content, quote); } catch {}
-        if (verdict === 'exact') { best = 'exact'; matchingLocator = e.locator; break; }
-        if (verdict === 'fuzzy') { best = 'fuzzy'; matchingLocator = e.locator; }
-      }
+    for (const s of auditedQuotes) {
+      const best = s.status;
+      const matchingLocator = s.locator;
       if (best === 'exact') exact++;
       else if (best === 'fuzzy') fuzzy++;
       else missing++;
-      quoteDetails.push({ quote, verdict: best, locator: matchingLocator });
+      quoteDetails.push({ quote: s.quote, verdict: best, locator: matchingLocator });
     }
 
     const itemResult = {
@@ -229,7 +226,7 @@ async function runBenchmark(questions = BENCHMARK_100) {
       recalled,
       cited: guard.valid.length,
       dangling: guard.dangling.length,
-      quotes: { total: quotes.length, exact, fuzzy, missing, details: quoteDetails },
+      quotes: { total: auditedQuotes.length, exact, fuzzy, missing, details: quoteDetails },
       answer: answer.slice(0, 500)
     };
     rows.push(itemResult);

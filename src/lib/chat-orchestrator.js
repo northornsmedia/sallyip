@@ -54,7 +54,7 @@ export async function orchestrateChat(sql,user,body,env){
       const contextMessage={role:'system',content:`SALLY TASK ROUTE\nTask: ${plan.task_class}\nSpecialists: ${route.specialists.join(', ')}\n\nAutomated workflow failed: ${error.message}\n\n${matterContextPrompt(matter)}\n\n${evidencePrompt(evidence)}\n\nProvide a helpful next-step answer. Explain what is missing, what Sally can still do in chat, and do not fabricate legal conclusions.`}
       const result=await orchestrateSally([contextMessage,...messages],env,`https://${body.host||'sallyip.com'}`)
       await recordSallyTelemetry(env.DATABASE_URL,result.meta).catch(()=>{})
-      const guarded=finalizeVerifiedAnswer(`${result.answer}\n\n---\n**Automation note:** ${error.message}\n\n**Try next:**\n${fallbackSuggestions(plan,route).map(item=>`- ${item}`).join('\n')}`,evidence,verification,{highRisk:isHighRiskLegalRequest(route,latest)})
+      const guarded=finalizeVerifiedAnswer(`${result.answer}\n\n---\n**Automation note:** ${error.message}\n\n**Try next:**\n${fallbackSuggestions(plan,route).map(item=>`- ${item}`).join('\n')}`,evidence,verification,{highRisk:isHighRiskLegalRequest(route,latest),prompt:latest})
       return{
         mode:'chat',
         content:guarded.answer,
@@ -92,7 +92,7 @@ export async function orchestrateChat(sql,user,body,env){
   const result=await orchestrateSally([contextMessage,...requestMessages],env,`https://${body.host||'sallyip.com'}`)
   const [run]=await sql`INSERT INTO specialist_agent_runs(user_id,matter_id,conversation_id,task_class,specialists,jurisdictions,research_mode,source_basis,verification_status) VALUES(${user.id},${body.matter_id||null},${conversationId},${plan.task_class},${route.specialists},${route.jurisdictions},${body.deep_research?'deep':'quick'},${verification.source_basis},${verification.status}) RETURNING id`
   await recordSallyTelemetry(env.DATABASE_URL,result.meta).catch(()=>{})
-  const guarded=finalizeVerifiedAnswer(result.answer,evidence,verification,{highRisk:isHighRiskLegalRequest(route,latest)})
+  const guarded=finalizeVerifiedAnswer(result.answer,evidence,verification,{highRisk:isHighRiskLegalRequest(route,latest),prompt:latest})
   let answer=guarded.answer
   if(route.task_class==='GENERAL_IP_RESEARCH'&&!documentRequest)answer=`${answer}\n\n---\n**Sally can also automate:**\n${suggestions}`
   return{
