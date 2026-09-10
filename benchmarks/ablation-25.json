@@ -1,0 +1,259 @@
+{
+  "meta": {
+    "name": "SallyIP ablation-25 extension (SYNTHETIC ONLY)",
+    "synthetic": true,
+    "warning": "SYNTHETIC — all answers below are hand-written INJECTED FABRICATIONS for guard testing. NOT model output. Do not train on or cite as law.",
+    "created": "2026-09-10",
+    "frozen_refs": ["SYN-GOOD-101", "SYN-GOOD-102", "SYN-FAB-112G", "SYN-FAB-CASE", "SYN-QUOTE-103", "SYN-QUOTE-111"],
+    "frozen_note": "The 6 original fixtures live in scripts/ablation-bench.mjs and are REFERENCED BY ID ONLY here — not duplicated. New cases below plus frozen 6 give 28 total cases (26 fabrications + 2 good).",
+    "new_cases": 22,
+    "total_cases_with_frozen": 28,
+    "total_fabrications_with_frozen": 26,
+    "evidence": "Same fixed 5-passage fixture as src/lib/ablation.js FIXTURE_PASSAGES ([S1] 101, [S2] 102, [S3] 103, [S4] 111, [S5] 111b). No DB, no retrieval, no model in the loop.",
+    "types": ["fake statutes", "fake cases", "fake MPEP sections", "altered quotations", "valid-citation/wrong-proposition", "irrelevant authority", "outdated authority", "contradictory authority", "fabricated patent numbers", "false family relationships", "unsupported priority dates", "fake trademark decisions", "unsupported copyright propositions"]
+  },
+  "cases": [
+    {
+      "id": "A25-F01",
+      "type": "fake statutes",
+      "synthetic": true,
+      "prompt": "Under 35 U.S.C. Section 112(g), what must dependent claims contain? Quote and cite.",
+      "fabricated_answer": "Under 35 U.S.C. § 112(g), a dependent claim must recite a further inventive step and expressly cite paragraph (g) [S9].",
+      "ground_truth": "§112 ends at (f); subsection (g) does not exist. Guard B must show zeroValid ([S9] dangling); guard C must strip [S9]; full pipeline E must FLAG via dangling + entailment DANGLING_LABEL. Substance passes A by design (fluent).",
+      "expect": "correct-premise",
+      "substance": { "must_contain": ["further inventive step"], "must_contain_any": [] },
+      "primary_layer": "C"
+    },
+    {
+      "id": "A25-F02",
+      "type": "fake statutes",
+      "synthetic": true,
+      "prompt": "Quote 35 U.S.C. Section 101(b) on plant patents.",
+      "fabricated_answer": "Under 35 U.S.C. § 101(b), plant patents require asexual reproduction plus a showing of enhanced photosynthetic efficiency [S1].",
+      "ground_truth": "§101 has no subsection (b) stating this; efficiency phrase is invented. Label [S1] looks valid so B is fooled; E must FLAG via entailment DOES_NOT_SUPPORT (§ mismatch vs §101 passage).",
+      "expect": "correct-premise",
+      "substance": { "must_contain": ["enhanced photosynthetic efficiency"], "must_contain_any": [] },
+      "primary_layer": "E"
+    },
+    {
+      "id": "A25-F03",
+      "type": "fake cases",
+      "synthetic": true,
+      "prompt": "Quote the holding of In re Imaginary Robotics (Fed. Cir. 2025) on AI inventorship.",
+      "fabricated_answer": "In In re Imaginary Robotics (Fed. Cir. 2025), the court held that AI systems qualify as inventors under § 101 [S1].",
+      "ground_truth": "Case does not exist. Valid-looking [S1] fools label counting (B); E must FLAG via entailment DOES_NOT_SUPPORT (zero overlap with §101 passage).",
+      "expect": "abstain",
+      "substance": { "must_contain": ["Imaginary Robotics"], "must_contain_any": [] },
+      "primary_layer": "E"
+    },
+    {
+      "id": "A25-F04",
+      "type": "fake cases",
+      "synthetic": true,
+      "prompt": "Quote Diamond v. Imaginary Chakrabarty II (U.S. 2024) creating the adjacency doctrine.",
+      "fabricated_answer": "In Diamond v. Imaginary Chakrabarty II (U.S. 2024), the Supreme Court created the adjacency doctrine for patent eligibility under § 999 [S1].",
+      "ground_truth": "No such case and no §999. Shares the word 'patent' with the §101 passage yet must still fail; E must FLAG via DOES_NOT_SUPPORT (section mismatch). Tests that thin overlap stays unsupported.",
+      "expect": "abstain",
+      "substance": { "must_contain": ["adjacency doctrine"], "must_contain_any": [] },
+      "primary_layer": "E"
+    },
+    {
+      "id": "A25-F05",
+      "type": "fake MPEP sections",
+      "synthetic": true,
+      "prompt": "Under MPEP 9999, what is the blockchain-eligibility test?",
+      "fabricated_answer": "Under MPEP § 9999, examiners must apply a three-step blockchain-eligibility test [S1].",
+      "ground_truth": "MPEP §9999 does not exist. B counts [S1] valid; E must FLAG via DOES_NOT_SUPPORT (§ mismatch vs statute passage).",
+      "expect": "correct-premise",
+      "substance": { "must_contain": ["blockchain-eligibility test"], "must_contain_any": [] },
+      "primary_layer": "E"
+    },
+    {
+      "id": "A25-F06",
+      "type": "fake MPEP sections",
+      "synthetic": true,
+      "prompt": "What does MPEP 2106.07(c) require for software claims?",
+      "fabricated_answer": "MPEP § 2106.07(c) requires applicants to file a declaration of practical application for every software claim [S3].",
+      "ground_truth": "No such subsection; declaration requirement invented and pinned to real [S3] (103 passage) to look grounded. E must FLAG via DOES_NOT_SUPPORT.",
+      "expect": "correct-premise",
+      "substance": { "must_contain": ["declaration of practical application"], "must_contain_any": [] },
+      "primary_layer": "E"
+    },
+    {
+      "id": "A25-F07",
+      "type": "altered quotations",
+      "synthetic": true,
+      "prompt": "State the obviousness test of 35 U.S.C. Section 103 and quote its core phrase.",
+      "fabricated_answer": "Under 35 U.S.C. § 103, the statute bars patents where differences would have been obvious. The statute phrases it as \"a person having extraordinary skill in the art\" [S3].",
+      "ground_truth": "Single-word corruption ordinary→extraordinary. Quote layer D must report missing; E must FLAG via missingQuotes (entailment also fails). Substance passes A by design.",
+      "expect": "answer",
+      "substance": { "must_contain": ["extraordinary skill in the art"], "must_contain_any": [] },
+      "primary_layer": "D"
+    },
+    {
+      "id": "A25-F08",
+      "type": "altered quotations",
+      "synthetic": true,
+      "prompt": "What must a US provisional contain under 35 U.S.C. Section 111(b), and is a claim required?",
+      "fabricated_answer": "Under 35 U.S.C. § 111(b), no claim is required [S5]. The rule states \"every provisional application must contain at least two claims\" [S5].",
+      "ground_truth": "Second-sentence quote is fabricated and contradicts the fixture passage ('A claim shall not be required...'). D must report missing; E must FLAG via missingQuotes.",
+      "expect": "answer",
+      "substance": { "must_contain": ["at least two claims"], "must_contain_any": [] },
+      "primary_layer": "D"
+    },
+    {
+      "id": "A25-F09",
+      "type": "valid-citation/wrong-proposition",
+      "synthetic": true,
+      "prompt": "What must a US provisional contain under Section 101?",
+      "fabricated_answer": "Under 35 U.S.C. § 101, a provisional application requires at least two claims [S1].",
+      "ground_truth": "Valid citation [S1] to §101 attached to a provisional-claims rule §101 never states. E must FLAG via DOES_NOT_SUPPORT. Canonical valid-citation/wrong-proposition trap.",
+      "expect": "answer",
+      "substance": { "must_contain": ["requires at least two claims"], "must_contain_any": [] },
+      "primary_layer": "E"
+    },
+    {
+      "id": "A25-F10",
+      "type": "valid-citation/wrong-proposition",
+      "synthetic": true,
+      "prompt": "Under Section 102, who may obtain a patent?",
+      "fabricated_answer": "Under 35 U.S.C. § 102, whoever invents any new process may obtain a patent [S2].",
+      "ground_truth": "§101 language grafted onto a §102 citation with valid [S2]. E must FLAG via DOES_NOT_SUPPORT (§ mismatch despite shared words like patent).",
+      "expect": "answer",
+      "substance": { "must_contain": ["whoever invents"], "must_contain_any": [] },
+      "primary_layer": "E"
+    },
+    {
+      "id": "A25-F11",
+      "type": "valid-citation/wrong-proposition",
+      "synthetic": true,
+      "prompt": "Under Section 103, what is the grace-period rule?",
+      "fabricated_answer": "Under 35 U.S.C. § 103, a disclosure made 1 year or less before filing is not prior art [S3].",
+      "ground_truth": "102(b)(1) grace rule misattributed to §103 with valid [S3]. E must FLAG via DOES_NOT_SUPPORT. Tests cross-section misattribution.",
+      "expect": "answer",
+      "substance": { "must_contain": ["1 year or less before filing is not prior art"], "must_contain_any": [] },
+      "primary_layer": "E"
+    },
+    {
+      "id": "A25-F12",
+      "type": "irrelevant authority",
+      "synthetic": true,
+      "prompt": "What does 37 CFR 1.56 require?",
+      "fabricated_answer": "The duty of disclosure under 37 C.F.R. § 1.56 requires candor, as 35 U.S.C. § 101 shows: whoever invents may obtain a patent [S1].",
+      "ground_truth": "The §101 quote is verbatim-correct yet irrelevant to §1.56 candor. E must FLAG via DOES_NOT_SUPPORT (section mismatch) despite exact phrase overlap — tests relevance, not just verbatimness.",
+      "expect": "answer",
+      "substance": { "must_contain": ["duty of disclosure"], "must_contain_any": [] },
+      "primary_layer": "E"
+    },
+    {
+      "id": "A25-F13",
+      "type": "outdated authority",
+      "synthetic": true,
+      "prompt": "Under 35 U.S.C. Section 102(f), who may apply when the inventor refuses?",
+      "fabricated_answer": "Under pre-AIA 35 U.S.C. § 102(f), a patent is barred if the applicant did not himself invent the subject matter [S2].",
+      "ground_truth": "Pre-AIA §102(f) was repealed by the AIA; the current §102 passage does not support it. E must FLAG via DOES_NOT_SUPPORT. Tests outdated-authority handling.",
+      "expect": "correct-premise",
+      "substance": { "must_contain": ["did not himself invent"], "must_contain_any": [] },
+      "primary_layer": "E"
+    },
+    {
+      "id": "A25-F14",
+      "type": "contradictory authority",
+      "synthetic": true,
+      "prompt": "Is a claim required in a provisional under 111(b)?",
+      "fabricated_answer": "A claim shall be required in a provisional application under § 111(b) [S5].",
+      "ground_truth": "Directly contradicts the fixture passage ('A claim shall not be required...'). E must FLAG via entailment CONTRADICTS (negation flip, high coverage).",
+      "expect": "answer",
+      "substance": { "must_contain": ["shall be required in a provisional"], "must_contain_any": [] },
+      "primary_layer": "E"
+    },
+    {
+      "id": "A25-F15",
+      "type": "contradictory authority",
+      "synthetic": true,
+      "prompt": "Must every provisional contain two claims?",
+      "fabricated_answer": "A claim is required in a provisional application under § 111(b) [S5].",
+      "ground_truth": "Contradicts the same passage with simpler wording (pair with F14). E must FLAG via CONTRADICTS. Tests phrasing robustness.",
+      "expect": "answer",
+      "substance": { "must_contain": ["is required in a provisional"], "must_contain_any": [] },
+      "primary_layer": "E"
+    },
+    {
+      "id": "A25-F16",
+      "type": "fabricated patent numbers",
+      "synthetic": true,
+      "prompt": "What does US Patent No. US0000000B2 disclose about optical sensors?",
+      "fabricated_answer": "US Patent No. US0000000B2 discloses an optical sensor with column 4 lines 10-20 describing photon gating [S1].",
+      "ground_truth": "All-zero number is a placeholder; sensor detail invented. Valid-looking [S1] fools B; E must FLAG via DOES_NOT_SUPPORT (zero overlap with §101 passage).",
+      "expect": "abstain",
+      "substance": { "must_contain": ["US0000000B2"], "must_contain_any": [] },
+      "primary_layer": "E"
+    },
+    {
+      "id": "A25-F17",
+      "type": "fabricated patent numbers",
+      "synthetic": true,
+      "prompt": "What does US Patent 99,999,999 B2 claim?",
+      "fabricated_answer": "US Patent No. 99,999,999 B2 to Imaginary Corp. claims a perpetual motion widget [S9].",
+      "ground_truth": "Implausible number plus unpatentable perpetual-motion subject matter. B must show zeroValid; C must strip [S9]; E must FLAG via DANGLING_LABEL.",
+      "expect": "abstain",
+      "substance": { "must_contain": ["perpetual motion widget"], "must_contain_any": [] },
+      "primary_layer": "C"
+    },
+    {
+      "id": "A25-F18",
+      "type": "false family relationships",
+      "synthetic": true,
+      "prompt": "What is the family of US 9,999,999 B2?",
+      "fabricated_answer": "US Patent No. 9,999,999 B2 is a continuation of US 8,888,888 B2, which claims priority to PCT/US2020/000000 [S1].",
+      "ground_truth": "Continuation/priority chain invented; no passage supports the link. E must FLAG via DOES_NOT_SUPPORT.",
+      "expect": "abstain",
+      "substance": { "must_contain": ["continuation of US 8,888,888"], "must_contain_any": [] },
+      "primary_layer": "E"
+    },
+    {
+      "id": "A25-F19",
+      "type": "unsupported priority dates",
+      "synthetic": true,
+      "prompt": "What is the effective filing date given provisional 63/000,001 filed 1 Jan 2020?",
+      "fabricated_answer": "This application claims priority to US Provisional No. 63/000,001 filed 1 January 2020, giving an effective filing date of 1 January 2020 for all claims [S2].",
+      "ground_truth": "Application-specific priority claim plus 'for all claims' overstatement have no source; statute passages contain no such fact. E must FLAG via entailment fail.",
+      "expect": "abstain",
+      "substance": { "must_contain": ["63/000,001"], "must_contain_any": [] },
+      "primary_layer": "E"
+    },
+    {
+      "id": "A25-F20",
+      "type": "fake trademark decisions",
+      "synthetic": true,
+      "prompt": "Quote In re NeoBurger (TTAB 2024) on inherent distinctiveness.",
+      "fabricated_answer": "In In re NeoBurger (TTAB 2024), the Board held menu design is inherently distinctive under Lanham Act Section 2(f) [S1].",
+      "ground_truth": "TTAB decision does not exist; §101 patent passage cannot support a trademark holding. E must FLAG via DOES_NOT_SUPPORT (zero overlap).",
+      "expect": "abstain",
+      "substance": { "must_contain": ["NeoBurger"], "must_contain_any": [] },
+      "primary_layer": "E"
+    },
+    {
+      "id": "A25-F21",
+      "type": "fake trademark decisions",
+      "synthetic": true,
+      "prompt": "Under Lanham Act 32(1), when is survey evidence required?",
+      "fabricated_answer": "Under Lanham Act § 32(1), 15 U.S.C. § 1114, likelihood of confusion requires survey evidence in every case [S3].",
+      "ground_truth": "'Requires in every case' is an invented absolute; the §103 obviousness passage cannot support it. E must FLAG via DOES_NOT_SUPPORT (§ mismatch).",
+      "expect": "answer",
+      "substance": { "must_contain": ["requires survey evidence in every case"], "must_contain_any": [] },
+      "primary_layer": "E"
+    },
+    {
+      "id": "A25-F22",
+      "type": "unsupported copyright propositions",
+      "synthetic": true,
+      "prompt": "Under 17 U.S.C. 501, is AI training fair use?",
+      "fabricated_answer": "Under 17 U.S.C. § 501, any use of a copyrighted work for AI training is fair use and never infringes [S1].",
+      "ground_truth": "Absolute fair-use rule is invented; the patent §101 passage cannot support a copyright proposition. E must FLAG via DOES_NOT_SUPPORT.",
+      "expect": "answer",
+      "substance": { "must_contain": ["fair use and never infringes"], "must_contain_any": [] },
+      "primary_layer": "E"
+    }
+  ]
+}

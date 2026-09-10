@@ -1,0 +1,411 @@
+{
+  "probe": "ipbench-subset v1",
+  "ran_at": "2026-09-10T00:00:00.000Z",
+  "repo_baseline": "d4c2870",
+  "repo_state_note": "git status --short checked first; worked around dirty files (index.html, package.json, public/compare/*, public/robots.txt, public/sitemap.xml, src/components/chat-page.jsx, src/lib/sally-orchestrator.js, src/main.jsx, vercel.json + untracked .opencode/, scripts/*, src/lib/provider-policy.js). This probe creates ONLY benchmarks/external/ipbench-subset.json; no other repo file touched; no commit.",
+  "benchmark": {
+    "name": "IPBench (ACL 2026 Findings)",
+    "repo": "https://github.com/IPBench/IPBench",
+    "dataset": "https://huggingface.co/datasets/IPBench/IPBench",
+    "paper": "https://arxiv.org/abs/2504.15524 (Wang et al. 2025, accepted ACL 2026)",
+    "scale": "~10,374 instances, 20 tasks, 8 IP mechanisms, US/CN bilingual, 4-level DOK taxonomy (Information Processing / Logical Reasoning / Discriminant Evaluation / Creative Generation)",
+    "repo_layout_observed": "eval/ (mcqa, classification, generation evaluators), scripts/ (inference.sh, inference-api.sh, inference-fewshot.sh, inference-cot.sh, eval-mcqa.sh, eval-3-5.sh, eval-classification.sh, eval-generation.sh), src/ (vLLM + OpenAI-API inference), requirements.txt; dataset fields: instruction/input/output/task (~21 task codes incl. 3-4 patent-ownership family)/language(EN/ZH)",
+    "reference_numbers": "top DeepSeek-V3 75.8% (per task brief; NOT reproduced here)",
+    "repo_status": "verified live 2026-09-10 via webfetch: canonical IPBench/IPBench (23 stars, 3 forks), HF IPBench/IPBench 10.4k rows / 53.3 MB, viewer shows EN task 3-4 patent-ownership MCQA items"
+  },
+  "subset_rule_preregistered": {
+    "note": "Rule frozen BEFORE execution; single run; no resampling or predictor edits after seeing outputs (cr-01 failure kept as observed).",
+    "rule": "Fixed 16 items, 4 per stratum (PATENT / TRADEMARK / COPYRIGHT / OTHER IP), ENGLISH ONLY (SallyIP is EN-focused patent IP; CN split excluded by design).",
+    "per_stratum_plan": {
+      "PATENT": "2x task-3-4-style ownership MCQA (hired-to-invent B + advice-only-no-assignment A) + 1x claim antecedent-basis QA (defective) + 1x quote-rejection (fabricated vs 35 U.S.C. 101). Sally: keyword heuristics + claim-qa-service.auditClaims + citation-service.verifyQuote.",
+      "TRADEMARK": "1x distinctiveness (Fresh/apples -> descriptive) + 2x similarity screening via compareTrademarks (POLAR/POLARIS similar, APPLE/ORANGE dissimilar) + 1x quote support (15 U.S.C. 1127). Sally: distinctiveness heuristic + trademark-similarity-service + verifyQuote.",
+      "COPYRIGHT": "1x work-made-for-hire (employer) + 1x Sec-204 writing requirement (not enforceable) + 1x Sec-107 fair use (verbatim commercial copy -> not fair use) + 1x quote support (17 U.S.C. 102(a)). Sally: scope/writing/verbatim heuristics + verifyQuote; entailment diagnostic on fair-use item.",
+      "OTHER": "2x assignment-clause classification (hereby-assign Yes + retention/negation No, CUAD-style combined entailment+patterns) + 1x trade-secret measures rule + 1x quote-rejection (fabricated vs 35 U.S.C. 112). Sally: entailment-service.checkEntailment + contract-service.flagClause + keyword rules + verifyQuote."
+    },
+    "provenance": "Ownership items are REPRESENTATIVE PARAPHRASES styled on public HF viewer task 3-4 examples (not verbatim bulk copy). All statute passages are public-domain US code excerpts (35 U.S.C. 101/112, 15 U.S.C. 1127, 17 U.S.C. 102(a)). All other items are probe-written. Nothing is claimed as verbatim IPBench test content.",
+    "scoring": "Deterministic local services in src/lib/* only; mechanical exact-match vs gold; completion = pred in label space and not error:-prefixed; 0 live model calls.",
+    "live_model_budget": "0 used / 15 allowed; no HTTP 429 encountered (no live calls attempted); node run WITHOUT --env-file (no keys touched, no secrets printed)."
+  },
+  "summary": {
+    "items_total": 16,
+    "correct": 15,
+    "accuracy_pct": 93.8,
+    "completed": 16,
+    "completion_pct": 100,
+    "live_model_calls_used": 0,
+    "live_model_calls_allowed": 15,
+    "by_stratum": {
+      "PATENT": {
+        "n": 4,
+        "correct": 4,
+        "accuracy_pct": 100,
+        "completion": "4/4",
+        "unsupported_assertions_observed": 0,
+        "citation_behaviour": "1/1 fabricated correctly rejected (pat-04 verifyQuote=missing -> unsupported, PASS)",
+        "execution_failures": 0
+      },
+      "TRADEMARK": {
+        "n": 4,
+        "correct": 4,
+        "accuracy_pct": 100,
+        "completion": "4/4",
+        "unsupported_assertions_observed": 0,
+        "citation_behaviour": "1/1 verbatim supported (tm-04 verifyQuote=exact -> supported, PASS); similarity bands as expected (tm-02 67.5 moderate->similar, tm-03 5.83 limited->dissimilar)",
+        "execution_failures": 0
+      },
+      "COPYRIGHT": {
+        "n": 4,
+        "correct": 3,
+        "accuracy_pct": 75,
+        "completion": "4/4",
+        "unsupported_assertions_observed": 1,
+        "unsupported_detail": "cr-01 predicted B-employee vs gold A-employer: regex required contiguous 'within scope' but item says 'within the scope of employment' -> no match, fell through to employee. A wrong, unsupported assertion by the heuristic (kept, not patched post-hoc).",
+        "citation_behaviour": "1/1 verbatim supported (cr-04 verifyQuote=exact -> supported, PASS)",
+        "execution_failures": 0
+      },
+      "OTHER": {
+        "n": 4,
+        "correct": 4,
+        "accuracy_pct": 100,
+        "completion": "4/4",
+        "unsupported_assertions_observed": 0,
+        "citation_behaviour": "1/1 fabricated correctly rejected (ot-04 verifyQuote=missing -> unsupported, PASS)",
+        "execution_failures": 0
+      }
+    },
+    "citation_overall": {
+      "quote_items": 4,
+      "supported_correct": 2,
+      "rejected_correct": 2,
+      "statuses": [
+        {
+          "id": "ipbench-pat-04",
+          "status": "missing",
+          "pred": "unsupported",
+          "pass": true
+        },
+        {
+          "id": "ipbench-tm-04",
+          "status": "exact",
+          "pred": "supported",
+          "pass": true
+        },
+        {
+          "id": "ipbench-cr-04",
+          "status": "exact",
+          "pred": "supported",
+          "pass": true
+        },
+        {
+          "id": "ipbench-ot-04",
+          "status": "missing",
+          "pred": "unsupported",
+          "pass": true
+        }
+      ],
+      "guard_demo": {
+        "answer": "The statute covers \"new and useful process, machine, manufacture\" [S1]. An unrelated assertion cites [S9].",
+        "valid": [
+          1
+        ],
+        "dangling": [
+          9
+        ],
+        "answer_mode": "QUALIFIED",
+        "evidence_count": 1,
+        "note": "guardAnswerCitations keeps [S1], flags [S9] dangling; measurable citation hygiene PASS"
+      }
+    },
+    "entailment_diagnostics": {
+      "note": "Lexical entailment alone is brittle; combined patterns carry the assignment stratum (same finding as legalbench-probe).",
+      "items": [
+        {
+          "id": "ipbench-cr-03",
+          "entailment": "CONTRADICTS",
+          "score": 0.5,
+          "final_pred": "B-no-fair-use",
+          "gold": "B-no-fair-use",
+          "note": "keyword rule correct despite CONTRADICTS (negation flip on shared vocab)"
+        },
+        {
+          "id": "ipbench-ot-01",
+          "entailment": "PARTIALLY_SUPPORTS",
+          "score": 0.5,
+          "entailOnlyPred": "Yes",
+          "finalPred": "Yes",
+          "gold": "Yes"
+        },
+        {
+          "id": "ipbench-ot-02",
+          "entailment": "PARTIALLY_SUPPORTS",
+          "score": 0.5,
+          "entailOnlyPred": "Yes",
+          "finalPred": "No",
+          "gold": "No",
+          "note": "entailment-only would FALSE-POSITIVE Yes on retention/negation; retention override fixes it (2/4 entail-only on OT pair vs 4/4 combined)"
+        },
+        {
+          "id": "ipbench-ot-03",
+          "entailment": "CONTRADICTS",
+          "score": 0.44,
+          "finalPred": "A-yes",
+          "gold": "A-yes",
+          "note": "keyword rule correct despite CONTRADICTS"
+        }
+      ]
+    },
+    "claim_qa_note": "pat-03 auditClaims found 2 antecedent errors for duplicated 'the housing' phrase (counted twice; predictor threshold >0 so verdict unaffected). Newline-separated claim input required: single-line '1. ... 2. ...' misparses (start-of-line regex) into one claim — probe uses correct newline format."
+  },
+  "execution_errors": [],
+  "execution_notes": [
+    "0 throws across 16 items; all verifyQuote inputs >=8 chars; claim inputs newline-separated after smoke-test parse check.",
+    "contract-service.flagClause returned green on both OT assignment items (no IP-assignment rule in RED/AMBER lists) — same gap noted in legalbench-probe; entailment+patterns carried the task.",
+    "No DB, no network, no model keys used in scoring run."
+  ],
+  "limits": [
+    "Tiny 16-item EN-only probe with representative/paraphrased items: NOT comparable to published IPBench numbers (DeepSeek-V3 75.8% on full 10,374) and NOT a test-set score.",
+    "CN split (half of IPBench bilingual scope) excluded: SallyIP EN-focused; no claim about CN performance.",
+    "Keyword/regex predictors are overfit to probe phrasing by construction (cr-01 'within the scope' miss proves brittleness); full 10k phrasing variance would degrade MCQA accuracy substantially.",
+    "Lexical entailment misses synonyms and mishandles negation (ot-02 false-positive, cr-03/ot-03 CONTRADICTS on correct items); needs synonym expansion or embeddings for a full run.",
+    "Generation tasks (IPBench Creative Generation level: drafting, claim writing) excluded: they genuinely need live models + expert grading and exceed the 15-call quota.",
+    "No pairwise-comparison or classification-threshold tuning performed; trademark 50/30 cutoffs are probe-scale screening-only (service itself flags requires_jurisdiction_specific_legal_analysis).",
+    "Full-run estimate: ~10.4k samples; at 1 call/sample ~10.4k model calls, far beyond thin quota (15); needs paid primary-model key + HF dataset download (53.3 MB parquet) + per-task metric harness (eval-mcqa/classification/generation scripts) + bilingual grading capacity."
+  ],
+  "files_created": [
+    "benchmarks/external/ipbench-subset.json"
+  ],
+  "rows": [
+    {
+      "stratum": "PATENT",
+      "id": "ipbench-pat-01",
+      "ipbench_family": "task 3-4 patent-ownership MCQA (EN, representative paraphrase of public HF viewer items)",
+      "input": "Engineer employed as a research scientist, hired to invent battery technology, develops an invention within the scope of employment using the company lab and resources. No written assignment agreement. Who owns the right to apply for a patent? A. The inventor-engineer B. The employer-company C. Joint ownership D. Public domain",
+      "gold": "B",
+      "pred": "B",
+      "pass": true,
+      "signals": {
+        "hire_match": true
+      },
+      "provenance": "representative paraphrase (HF viewer task 3-4 style); not verbatim IPBench content",
+      "sally_capability": "employment-invention keyword heuristic (local deterministic; NO live model)"
+    },
+    {
+      "stratum": "PATENT",
+      "id": "ipbench-pat-02",
+      "ipbench_family": "task 3-4 patent-ownership MCQA (EN, advice-only no-assignment representative)",
+      "input": "Consultant hired to provide technical advice only; agreement covers scope of work and payment terms, without any IP ownership or assignment clause. Consultant independently conceives an improvement outside the advice deliverables. Who owns the application right? A. The consultant-inventor retains title B. The hiring company owns it C. Joint D. No one",
+      "gold": "A",
+      "pred": "A",
+      "pass": true,
+      "signals": {},
+      "provenance": "probe-written representative",
+      "sally_capability": "transfer-language check (no assign/vest language -> inventor retains)"
+    },
+    {
+      "stratum": "PATENT",
+      "id": "ipbench-pat-03",
+      "ipbench_family": "IPBench claim/validity-adjacent understanding (EN claim-defect detection; Sally home turf)",
+      "input": "1. A widget comprising a sensor.\n2. The widget of claim 1 further comprising the housing, wherein the housing encloses the sensor.",
+      "gold": "defective-antecedent",
+      "pred": "defective-antecedent",
+      "pass": true,
+      "signals": {
+        "antecedent_error_count": 2
+      },
+      "provenance": "probe-written claim pair (newline-separated; single-line format misparses per claimStart start-of-line regex)",
+      "sally_capability": "claim-qa-service.auditClaims antecedent-basis check (local, deterministic)"
+    },
+    {
+      "stratum": "PATENT",
+      "id": "ipbench-pat-04",
+      "ipbench_family": "IPBench support-verification / citation-prediction style (EN, 35 U.S.C. Sec 101 public-domain passage)",
+      "input": "quote=\"Section 101 expressly covers artificial intelligence models and neural networks\"",
+      "gold": "unsupported",
+      "pred": "unsupported",
+      "pass": true,
+      "signals": {
+        "verifyQuote": "missing"
+      },
+      "provenance": "public-domain statute passage (35 U.S.C. Sec 101) + probe-written fabricated quote (must be rejected)",
+      "sally_capability": "citation-service.verifyQuote"
+    },
+    {
+      "stratum": "TRADEMARK",
+      "id": "ipbench-tm-01",
+      "ipbench_family": "IPBench trademark-distinctiveness classification (EN representative; Abercrombie-adjacent)",
+      "input": "The mark \"Fresh\" for apples.",
+      "gold": "descriptive",
+      "pred": "descriptive",
+      "pass": true,
+      "signals": {
+        "mark": "Fresh"
+      },
+      "provenance": "probe-written representative",
+      "sally_capability": "deterministic distinctiveness heuristic (dictionary + descriptive-adjective list)"
+    },
+    {
+      "stratum": "TRADEMARK",
+      "id": "ipbench-tm-02",
+      "ipbench_family": "IPBench trademark-confusion / similarity screening (EN representative)",
+      "input": "POLAR vs POLARIS, both class 9 batteries",
+      "gold": "similar",
+      "pred": "similar",
+      "pass": true,
+      "signals": {
+        "overall_score": 67.5,
+        "risk_band": "moderate"
+      },
+      "provenance": "probe-written representative",
+      "sally_capability": "trademark-similarity-service.compareTrademarks (visual+phonetic+conceptual+goods)"
+    },
+    {
+      "stratum": "TRADEMARK",
+      "id": "ipbench-tm-03",
+      "ipbench_family": "IPBench trademark-confusion / similarity screening (EN representative, different classes/goods)",
+      "input": "APPLE (cl.9 computers) vs ORANGE (cl.31 fruit juice)",
+      "gold": "dissimilar",
+      "pred": "dissimilar",
+      "pass": true,
+      "signals": {
+        "overall_score": 5.83,
+        "risk_band": "limited"
+      },
+      "provenance": "probe-written representative",
+      "sally_capability": "trademark-similarity-service.compareTrademarks"
+    },
+    {
+      "stratum": "TRADEMARK",
+      "id": "ipbench-tm-04",
+      "ipbench_family": "IPBench support-verification (EN, 15 U.S.C. Sec 1127 public-domain passage)",
+      "input": "quote=\"any word, name, symbol, or device\"",
+      "gold": "supported",
+      "pred": "supported",
+      "pass": true,
+      "signals": {
+        "verifyQuote": "exact"
+      },
+      "provenance": "public-domain statute passage (15 U.S.C. Sec 1127) + probe-written quote",
+      "sally_capability": "citation-service.verifyQuote"
+    },
+    {
+      "stratum": "COPYRIGHT",
+      "id": "ipbench-cr-01",
+      "ipbench_family": "IPBench copyright-ownership / authorship MCQA (EN representative, 17 U.S.C. Sec 101/201)",
+      "input": "Employee software developer creates code within the scope of employment, using employer equipment. No written IP agreement. Under 17 U.S.C. work-made-for-hire principles, who owns the copyright? A. The employer B. The employee",
+      "gold": "A-employer",
+      "pred": "B-employee",
+      "pass": false,
+      "signals": {
+        "failure": "regex required contiguous 'within scope'; item says 'within the scope of employment'"
+      },
+      "provenance": "probe-written representative",
+      "sally_capability": "work-made-for-hire scope heuristic (FAILED as observed; kept, not patched)"
+    },
+    {
+      "stratum": "COPYRIGHT",
+      "id": "ipbench-cr-02",
+      "ipbench_family": "IPBench copyright-transfer MCQA (EN representative, Sec 204 writing rule)",
+      "input": "Oral agreement to transfer copyright ownership of a song, with no writing signed. Under 17 U.S.C. Sec 204 (transfer in writing requirement), is the transfer enforceable? A. Yes B. No, a signed writing is required",
+      "gold": "B-not-enforceable",
+      "pred": "B-not-enforceable",
+      "pass": true,
+      "signals": {},
+      "provenance": "probe-written representative",
+      "sally_capability": "writing-requirement keyword rule"
+    },
+    {
+      "stratum": "COPYRIGHT",
+      "id": "ipbench-cr-03",
+      "ipbench_family": "IPBench copyright fair-use evaluation (EN representative, Sec 107 factors)",
+      "input": "Defendant copies the entire novel verbatim and sells copies commercially, with no transformation, commentary, or criticism. Fair use under 17 U.S.C. Sec 107 four factors? A. Yes, fair use B. No, not fair use",
+      "gold": "B-no-fair-use",
+      "pred": "B-no-fair-use",
+      "pass": true,
+      "signals": {
+        "entailment": "CONTRADICTS",
+        "entailScore": 0.5
+      },
+      "provenance": "probe-written representative",
+      "sally_capability": "verbatim-commercial-scope heuristic (entailment recorded as diagnostic)"
+    },
+    {
+      "stratum": "COPYRIGHT",
+      "id": "ipbench-cr-04",
+      "ipbench_family": "IPBench support-verification (EN, 17 U.S.C. Sec 102(a) public-domain passage)",
+      "input": "quote=\"original works of authorship fixed in any tangible medium of expression\"",
+      "gold": "supported",
+      "pred": "supported",
+      "pass": true,
+      "signals": {
+        "verifyQuote": "exact"
+      },
+      "provenance": "public-domain statute passage (17 U.S.C. Sec 102(a)) + probe-written quote",
+      "sally_capability": "citation-service.verifyQuote"
+    },
+    {
+      "stratum": "OTHER",
+      "id": "ipbench-ot-01",
+      "ipbench_family": "IPBench licensing/assignment clause classification (EN representative, CUAD-style)",
+      "input": "Consultant hereby assigns to Company all right, title and interest in and to all Intellectual Property created during the engagement.",
+      "gold": "Yes",
+      "pred": "Yes",
+      "pass": true,
+      "signals": {
+        "entailment": "PARTIALLY_SUPPORTS",
+        "entailScore": 0.5,
+        "entailOnlyPred": "Yes",
+        "hasAssignPattern": true,
+        "contractRiskFlag": "green"
+      },
+      "provenance": "probe-written representative",
+      "sally_capability": "entailment-service.checkEntailment + contract-service.flagClause + assignment patterns"
+    },
+    {
+      "stratum": "OTHER",
+      "id": "ipbench-ot-02",
+      "ipbench_family": "IPBench licensing/assignment clause classification (EN retention/negation representative)",
+      "input": "Each party retains ownership of its pre-existing intellectual property, and nothing in this Agreement assigns such rights to the other party.",
+      "gold": "No",
+      "pred": "No",
+      "pass": true,
+      "signals": {
+        "entailment": "PARTIALLY_SUPPORTS",
+        "entailScore": 0.5,
+        "entailOnlyPred": "Yes",
+        "hasAssignPattern": false,
+        "contractRiskFlag": "green"
+      },
+      "provenance": "probe-written representative",
+      "sally_capability": "entailment-service.checkEntailment + contract-service.flagClause + retention/negation patterns"
+    },
+    {
+      "stratum": "OTHER",
+      "id": "ipbench-ot-03",
+      "ipbench_family": "IPBench trade-secret identification (EN representative)",
+      "input": "Company protects a customer list with NDAs, role-based access controls, and exit interviews; the list derives independent economic value from not being generally known. Trade secret under Defend Trade Secrets concepts? A. Yes B. No",
+      "gold": "A-yes",
+      "pred": "A-yes",
+      "pass": true,
+      "signals": {
+        "entailment": "CONTRADICTS",
+        "entailScore": 0.44
+      },
+      "provenance": "probe-written representative",
+      "sally_capability": "reasonable-measures + economic-value keyword rule (entailment diagnostic)"
+    },
+    {
+      "stratum": "OTHER",
+      "id": "ipbench-ot-04",
+      "ipbench_family": "IPBench support-verification / hallucination-rejection (EN, 35 U.S.C. Sec 112 public-domain passage)",
+      "input": "quote=\"Section 112 requires disclosure of artificial intelligence training data and model weights\"",
+      "gold": "unsupported",
+      "pred": "unsupported",
+      "pass": true,
+      "signals": {
+        "verifyQuote": "missing"
+      },
+      "provenance": "public-domain statute passage (35 U.S.C. Sec 112(a)) + probe-written fabricated quote (must be rejected)",
+      "sally_capability": "citation-service.verifyQuote (must return missing)"
+    }
+  ]
+}

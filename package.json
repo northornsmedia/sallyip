@@ -7,8 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "seo:sitemap": "node scripts/generate-sitemap.mjs",
+    "seo:indexnow": "node scripts/submit-indexnow.mjs",
     "test:files": "python -m unittest tests/test_file_generation.py",
     "test:verification": "node --test tests/answer-guard.test.mjs tests/citation-service.test.mjs tests/hybrid-retrieval.test.mjs tests/adversarial-hallucination.test.mjs tests/permanent-failures-regression.test.mjs",
+    "test:security": "node --test tests/security/provider-confidentiality.test.mjs tests/security/auth-hardening.test.mjs tests/security/audit-logging.test.mjs tests/security/file-safety.test.mjs tests/security/tenant-isolation.test.mjs tests/security/verification-p1.test.mjs tests/security/contracts-and-deploy.test.mjs",
     "release:gate": "node scripts/release-gate.mjs",
     "test:foundation": "node --test tests/document-tool-service.test.mjs tests/specialist-router.test.mjs tests/ip-specialists.test.mjs tests/official-search.test.mjs tests/claim-chart.test.mjs tests/hybrid-retrieval.test.mjs tests/trademark-clearance.test.mjs tests/patent-family.test.mjs tests/proposition-verification.test.mjs tests/prosecution-history.test.mjs tests/prior-art.test.mjs tests/litigation-evidence.test.mjs tests/inventive-step.test.mjs tests/fto.test.mjs tests/trademark-intelligence.test.mjs tests/novelty.test.mjs tests/legal-task-planner.test.mjs && python -m unittest tests/test_file_generation.py tests/test_document_ingestion.py",
     "test:foundation:integration": "node --env-file=.env.local tests/matter-foundation.integration.mjs && node --env-file=.env.local tests/document-artifact.integration.mjs && node --env-file=.env.local tests/litigation-evidence.integration.mjs && node --env-file=.env.local tests/inventive-step.integration.mjs && node --env-file=.env.local tests/fto.integration.mjs && node --env-file=.env.local tests/trademark-intelligence.integration.mjs && node --env-file=.env.local tests/novelty.integration.mjs && node --env-file=.env.local tests/workflow-automation.integration.mjs && node --env-file=.env.local tests/patentability-automation.integration.mjs && node --env-file=.env.local tests/invention-intake.integration.mjs"

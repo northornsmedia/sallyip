@@ -139,7 +139,7 @@ const go = (p) => {
 function BrandMark({ className = "" }) {
   return (
     <span className={"brandMark " + className}>
-      <img src="/sallyip-logo.png" alt="" />
+      <img src="/sallyip-logo.png" alt="SallyIP" />
     </span>
   );
 }

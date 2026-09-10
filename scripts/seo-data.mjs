@@ -1,0 +1,128 @@
+// SINGLE SOURCE OF TRUTH for public benchmark figures.
+// Every number below is taken from a repo artifact cited in `source`.
+// Pages and latest.json are GENERATED from this module — never hand-copy percentages.
+// Statuses: VERIFIED_INTERNAL | EXTERNAL_PUBLIC | THIRD_PARTY_GRADED | PENDING | BLOCKED
+export const ENTITY_DESCRIPTION = 'SallyIP is a verification-first AI workspace for intellectual property work.';
+export const SITE_URL = 'https://sallyip.com';
+export const PAGES_DATE_PUBLISHED = '2026-09-10';
+export const PAGES_DATE_MODIFIED = '2026-09-10';
+
+export const BENCHMARKS = [
+  {
+    id: 'grounding-100',
+    name: 'Grounding benchmark 100',
+    dataset: 'grounding-100 (100 questions, 95 scored)',
+    dataset_version: 'grounding-100 / 2026-09-09',
+    sample_size: 95,
+    model: 'gemini-flash-lite-latest',
+    run_date: '2026-09-09',
+    run_ref: 'eval_runs table, 2026-09-09 (see benchmarks/cross-bench-report.md §2)',
+    methodology: 'Mechanical retrieval + exact-quote verification grading; substantive legal correctness is practitioner-graded separately and is NOT inferred.',
+    metrics: [
+      { label: 'Authority recall', numerator: 95, denominator: 95, display: '100%' },
+      { label: 'Zero dangling citations', numerator: 95, denominator: 95, display: '100%' },
+      { label: 'Exact-quote verification', numerator: 87, denominator: 120, display: '72.5%' },
+      { label: 'Unverified quotes (flagged, never silently passed)', numerator: 27, denominator: 120, display: '22.5%' },
+    ],
+    status: 'VERIFIED_INTERNAL',
+    source: 'benchmarks/cross-bench-report.md §2; eval_scorecard_sample_25.md',
+  },
+  {
+    id: 'frozen-p0-full',
+    name: 'Frozen v1.0 P0 full regression (100 questions)',
+    dataset: 'benchmarks/v1.0/dataset.json (100 unchanged questions)',
+    dataset_version: 'v1.0 frozen',
+    sample_size: 100,
+    model: 'gemini-flash-lite-latest',
+    run_date: '2026-09-09',
+    run_ref: 'benchmarks/regression_report_p0_full.md',
+    methodology: 'Immutable 100-question set; mechanical citation/quote/entailment grading; 2 questions failed after all retries and were kept as failures.',
+    metrics: [
+      { label: 'Authority recall', numerator: 98, denominator: 100, display: '98.0% (PASS at boundary, target ≥98%; 2 execution failures: s102b-08, s112d-02)' },
+      { label: 'Citation integrity of scored answers', numerator: 98, denominator: 98, display: '100%' },
+      { label: 'Exact-quote verification', numerator: 92, denominator: 96, display: '95.8% (target ≥95%: PASS)' },
+      { label: 'Missing-quote rate', numerator: 4, denominator: 96, display: '4.2% (target <2%: FAIL)' },
+      { label: 'Citation entailment', numerator: null, denominator: null, display: '66.7% (target ≥95%: FAIL)' },
+      { label: 'Unsupported-proposition rate', numerator: null, denominator: null, display: '81.0% (target <2%: FAIL)' },
+    ],
+    status: 'BLOCKED',
+    source: 'benchmarks/regression_report_p0_full.md',
+    note: 'RELEASE BLOCKED. Substantive legal correctness NOT ESTABLISHED — requires practitioner grading.',
+  },
+  {
+    id: 'adversarial-v1-live',
+    name: 'Adversarial v1 (live)',
+    dataset: 'benchmarks/adversarial-v1.mjs (12 items: fake statutes, cases, patents, misleading quotes)',
+    dataset_version: 'adversarial-v1',
+    sample_size: 12,
+    model: 'gemini-flash-lite-latest',
+    run_date: '2026-09-10',
+    run_ref: 'patentbench_runs 3368daf1-6321-4c64-a3e8-20b28eb23d26',
+    methodology: 'Live model calls (12); verdicts accurate / incomplete (conservative abstention) / hallucinated / model_error.',
+    metrics: [
+      { label: 'Accurate', numerator: 6, denominator: 12, display: '50.0%' },
+      { label: 'Hallucinated', numerator: 0, denominator: 12, display: '0%' },
+      { label: 'Incomplete (declined despite answerable evidence)', numerator: 6, denominator: 12, display: '50.0%' },
+    ],
+    status: 'VERIFIED_INTERNAL',
+    source: 'benchmarks/cross-bench-report.md §1–§4',
+  },
+  {
+    id: 'stanford-24',
+    name: 'Stanford-style bench v1 (automated)',
+    dataset: 'scripts/stanford-bench-dataset.mjs (24 items)',
+    dataset_version: 'stanford-bench v1',
+    sample_size: 24,
+    model: 'gemini-flash-lite-latest',
+    run_date: '2026-09-09',
+    run_ref: 'patentbench_runs fe26da44…',
+    methodology: 'Automated run; mechanical phrase-containment grading.',
+    metrics: [
+      { label: 'Accurate', numerator: 14, denominator: 24, display: '58.3%' },
+      { label: 'Hallucinated', numerator: 0, denominator: 24, display: '0%' },
+      { label: 'Incomplete', numerator: 10, denominator: 24, display: '41.7%' },
+    ],
+    status: 'VERIFIED_INTERNAL',
+    source: 'benchmarks/cross-bench-report.md §2',
+  },
+  {
+    id: 'ablation-8',
+    name: 'Ablation: guards vs base answer (simulation)',
+    dataset: '8 fixed items (stat-101, stat-102a, stat-103, stat-111, app-grace, adv-112g, adv-fake-case, adv-fake-patent); 6 synthetic fixtures + fixed 5-passage fixture',
+    dataset_version: 'ablation 2026-09-10',
+    sample_size: 8,
+    model: 'none in loop (pure-local simulation, 0 live model calls)',
+    run_date: '2026-09-10',
+    run_ref: 'benchmarks/ablation-report.md; reproduce: node scripts/ablation-bench.mjs',
+    methodology: 'Fixed-passage fixture stands in for retrieval; isolates guard behavior. Demonstrates guard mechanics only — NOT a model-quality claim.',
+    metrics: [
+      { label: 'Injected fabrications flagged by full pipeline', numerator: 4, denominator: 4, display: '100%' },
+      { label: 'Injected fabrications caught by substance scoring alone', numerator: 1, denominator: 4, display: '25%' },
+    ],
+    status: 'VERIFIED_INTERNAL',
+    source: 'benchmarks/ablation-report.md',
+  },
+  {
+    id: 'retrieval-v1-offline',
+    name: 'Retrieval bench v1 (offline)',
+    dataset: 'benchmarks/patent_retrieval_v1 (19 cases, 120 checks)',
+    dataset_version: 'v1-frozen',
+    sample_size: 120,
+    model: 'n/a (offline engine test)',
+    run_date: '2026-09-10',
+    run_ref: 'benchmarks/cross-bench-report.md §1, §5',
+    methodology: 'Offline family-resolution and corpus metrics. KNOWN METRIC ISSUE: the bench wipes priority_numbers then expects INPADOC-grade family reunion; family-resolution fails 19/19 by design of the metric, not engine recall.',
+    metrics: [
+      { label: 'Checks passed', numerator: 99, denominator: 120, display: '82.5%' },
+      { label: 'Family-resolution (metric under revision)', numerator: 0, denominator: 19, display: '0% — bench expectation contradicts its own withheld data' },
+    ],
+    status: 'PENDING',
+    source: 'benchmarks/cross-bench-report.md §5',
+  },
+];
+
+export const EXTERNAL_CONTEXT = [
+  { claim: 'General LLMs hallucinate on 58–88% of legal queries', source: 'Dahl et al., Stanford HAI 2024 (peer-reviewed)', status: 'EXTERNAL_PUBLIC' },
+  { claim: 'Purpose-built legal RAG tools: 17–33% (Lexis+ AI ~17%, Westlaw AI-Assisted Research ~33%, CoCounsel-lineage ~17% with 60%+ refusals)', source: 'Magesh et al., Stanford/JELS 2024–2025 (peer-reviewed); tested product versions may differ', status: 'EXTERNAL_PUBLIC' },
+  { claim: 'Harvey, Genie AI, Solve Intelligence, DeepIP publish no public hallucination measurements', source: 'Absence observed September 2026; corrections welcome', status: 'PENDING' },
+];

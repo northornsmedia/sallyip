@@ -15,6 +15,7 @@ node --env-file=.env.local scripts/apply-migration.mjs database/049_draft_matter
 node --env-file=.env.local scripts/apply-migration.mjs database/050_jurisdiction_packs.sql
 node --env-file=.env.local scripts/apply-migration.mjs database/051_office_actions.sql
 node --env-file=.env.local scripts/apply-migration.mjs database/052_patentbench.sql
+node --env-file=.env.local scripts/apply-migration.mjs database/055_tenant_isolation.sql
 ```
 
 What each adds:
@@ -34,6 +35,7 @@ What each adds:
 | 052_patentbench | `patentbench_runs` |
 | 053_workflow_type_open | drops closed workflow_type enum (was killing NDA-with-matter requests) |
 | 054_provider_records | canonical patent records (provider/versioned, family_key + method) |
+| 055_tenant_isolation | RLS + FORCE RLS on ~70 tables, `sally_app`/`sally_readonly` roles, own-row policies (owner bypasses; see `database/security_model.md`). NOT yet applied to live DB — apply + switch user path to app role + verify. |
 
 New env keys for prod (search works without them; USPTO + CourtListener report "not configured" until added):
 

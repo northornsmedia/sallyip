@@ -1,4 +1,5 @@
 import { sanitizeModelResponse } from './document-tool-service.js'
+import { assertChatAllowed, assertEmbeddingAllowed, resolveExecutionMode } from './provider-policy.js'
 
 const CHAT_ENGINES=[
   {slug:'gemini-3.7-flash',name:'Gemini 3.7 Flash',key:'GEMINI_API_KEY',baseUrl:'https://generativelanguage.googleapis.com/v1beta/openai',weight:100,role:'Primary flagship legal reasoning & drafting'},
@@ -293,7 +294,20 @@ export async function orchestrateSallyStreaming(messages,env,siteUrl='https://sa
   const latest=[...messages].reverse().find(message=>message.role==='user')?.content||''
   const trace=options.trace||createWireTrace()
   trace.add('request','prompt received ('+latest.length+' chars)','ok')
-  const embeddingPromise=(async()=>{const started=Date.now();if(!env.OPENROUTER_EMBEDDING_API_KEY)return{data:null,status:'error',latency_ms:0};try{return{data:await fetchJson('https://openrouter.ai/api/v1/embeddings',{method:'POST',headers:headers(env.OPENROUTER_EMBEDDING_API_KEY),body:JSON.stringify({model:env.SALLYIP_EMBEDDING_MODEL||'liquid/lfm-2.5-embedding-350m:free',input:latest.slice(0,8000),encoding_format:'float'})},2500),status:'success',latency_ms:Date.now()-started}}catch{return{data:null,status:'error',latency_ms:Date.now()-started}}})()
+  // Phase 1 confidentiality gate: fail closed for CONFIDENTIAL_IP / HIGHLY_CONFIDENTIAL.
+  // No automatic fallback to free/contributor models.
+  const executionMode = resolveExecutionMode({ mode: options.mode || options.execution_mode || env.SALLYIP_EXECUTION_MODE });
+  const embeddingModelForGate = env.SALLYIP_EMBEDDING_MODEL || 'liquid/lfm-2.5-embedding-350m:free';
+  let embeddingGate = { mode: executionMode, allowed: true };
+  try {
+    embeddingGate = assertEmbeddingAllowed({ model: embeddingModelForGate, mode: executionMode, env });
+  } catch (gateError) {
+    gateError.execution_mode = executionMode;
+    trace.add('policy', 'embedding blocked: ' + gateError.message, 'error');
+    // Do not send embeddings for confidential content to unapproved providers.
+    embeddingGate = { mode: executionMode, allowed: false, error: gateError.message };
+  }
+  const embeddingPromise=(async()=>{const started=Date.now();if(!env.OPENROUTER_EMBEDDING_API_KEY)return{data:null,status:'error',latency_ms:0};if(!embeddingGate.allowed)return{data:null,status:'blocked_confidential',latency_ms:0};try{return{data:await fetchJson('https://openrouter.ai/api/v1/embeddings',{method:'POST',headers:headers(env.OPENROUTER_EMBEDDING_API_KEY),body:JSON.stringify({model:embeddingModelForGate,input:latest.slice(0,8000),encoding_format:'float'})},2500),status:'success',latency_ms:Date.now()-started}}catch{return{data:null,status:'error',latency_ms:Date.now()-started}}})()
 
   const ENGINES=resolveEngines(env)
   const maxTokens=Number(env.SALLYIP_MAX_TOKENS)||4096
@@ -326,17 +340,26 @@ export async function orchestrateSallyStreaming(messages,env,siteUrl='https://sa
 
   const pipeline = [geminiEngine, ...nemotronEngines]
 
-  // Allow explicit engine choice if specified
+  // Allow explicit engine choice if specified (before policy gate so unapproved preference fails closed)
   const preferredSlug = String(options.preferredEngine || '').trim()
   if (preferredSlug && preferredSlug !== 'auto') {
     const hitIdx = pipeline.findIndex(e => e.slug === preferredSlug)
     if (hitIdx > 0) {
       const [hit] = pipeline.splice(hitIdx, 1)
       pipeline.unshift(hit)
+    } else if (!pipeline.some(e => e.slug === preferredSlug)) {
+      // Unknown preferred engine: treat as explicit request, still subject to policy (fail closed via registry)
+      pipeline.unshift({ slug: preferredSlug, name: preferredSlug, key: 'OPENROUTER_API_KEY', weight: 10, role: 'Explicitly requested' });
     }
   }
 
-  for (const engine of pipeline) {
+  // Phase 1 confidentiality enforcement: filter to approved providers only.
+  // CONFIDENTIAL_IP / HIGHLY_CONFIDENTIAL fail closed — no fallback to free models.
+  const policyCheck = assertChatAllowed({ engines: pipeline, mode: executionMode, env });
+  trace.add('policy', `execution_mode=${policyCheck.mode} allowed=${policyCheck.allowed.length}/${pipeline.length}`, 'ok');
+  const enforcedPipeline = policyCheck.allowed;
+
+  for (const engine of enforcedPipeline) {
     const cred = engineCredential(engine, env)
     if (!cred) {
       console.warn(`[Sally Orchestrator] Skipping ${engine.name} (${engine.slug}) - No API key found for '${engine.key}'`);
@@ -385,14 +408,15 @@ export async function orchestrateSallyStreaming(messages,env,siteUrl='https://sa
   }
 
   if (!finalAnswer) {
-    trace.add('error', 'Both Gemini and Nemotron engines exhausted', 'error')
+    trace.add('error', 'Approved engines exhausted for mode ' + executionMode, 'error')
     throw new Error('Sally reasoning engines are temporarily unavailable')
   }
 
   finalAnswer = sanitizeModelResponse(finalAnswer)
   const embedding = await embeddingPromise
   const meta = {
-    engines_requested: pipeline.length,
+    engines_requested: enforcedPipeline.length,
+    execution_mode: executionMode,
     engines_completed: attempts.filter(a => a.status === 'success').length,
     preferred_engine: preferredSlug || primarySlug,
     fast_fail_retries: 0,

@@ -1,0 +1,344 @@
+{
+  "corpus": "contract-failure-corpus v1",
+  "synthetic_disclaimer": "ALL fixtures below are SYNTHETIC, written for failure-mode testing. They are NOT benchmark answers, NOT verbatim CUAD/LegalBench clauses, and MUST NOT be treated as ground truth for any external benchmark.",
+  "version": "1",
+  "created": "2026-09-10",
+  "purpose": "Failure-mode probes for contract analysis: IP ownership, assignment, licensing, confidentiality, indemnification, limitation of liability, warranties, termination, data rights, AI training/data-use. Intended to exercise deterministic signals (entailment + contract-ownership.js) with zero live model calls.",
+  "provenance": "synthetic fixtures authored for SallyIP; no CUAD/LegalBench verbatim text; CC-BY sources are NOT reproduced here",
+  "coverage": [
+    "ip_ownership",
+    "assignment",
+    "licensing",
+    "confidentiality",
+    "indemnification",
+    "limitation_of_liability",
+    "warranties",
+    "termination",
+    "data_rights",
+    "ai_training_data_use"
+  ],
+  "counts": {
+    "total": 30,
+    "ip_ownership": 3,
+    "assignment": 3,
+    "licensing": 3,
+    "confidentiality": 3,
+    "indemnification": 3,
+    "limitation_of_liability": 3,
+    "warranties": 3,
+    "termination": 3,
+    "data_rights": 3,
+    "ai_training_data_use": 3
+  },
+  "field_guide": {
+    "id": "stable fixture id (cf-<category>-NN)",
+    "category": "one of the 10 coverage categories",
+    "clause_text": "synthetic clause under test",
+    "expected_finding": "human-readable expected outcome for the category question",
+    "expected_signals": "structured hints for a future harness (assigns_ip for IP categories; risk_level otherwise)",
+    "failure_mode": "which analyzer weakness this fixture probes",
+    "synthetic": "always true"
+  },
+  "items": [
+    {
+      "id": "cf-own-01",
+      "category": "ip_ownership",
+      "clause_text": "Consultant hereby assigns to Client all right, title and interest in all Inventions conceived during the engagement, including all patent rights therein.",
+      "expected_finding": "Yes — present assignment of created IP to counterparty",
+      "expected_signals": { "assigns_ip": true, "license_only": false, "risk_level": "amber" },
+      "failure_mode": "baseline affirmative assignment (hereby assign + right title interest)",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-own-02",
+      "category": "ip_ownership",
+      "clause_text": "All Deliverables and associated Intellectual Property Rights shall vest solely in the Customer upon creation, as works made for hire to the fullest extent permitted by law.",
+      "expected_finding": "Yes — vesting language transfers ownership on creation (work-made-for-hire synonym)",
+      "expected_signals": { "assigns_ip": true, "license_only": false, "risk_level": "amber" },
+      "failure_mode": "synonym trap: vest / deliverables / work-made-for-hire vs plain assign/IP (lexical entailment miss)",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-own-03",
+      "category": "ip_ownership",
+      "clause_text": "Developer retains all right, title and interest in its Background Technology developed prior to this Agreement; no ownership in such Background Technology is transferred.",
+      "expected_finding": "No — retention of pre-existing IP, no transfer to counterparty",
+      "expected_signals": { "assigns_ip": false, "license_only": false, "risk_level": "green" },
+      "failure_mode": "retention antonym: retains + pre-existing + no transfer with shared IP vocabulary",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-asg-01",
+      "category": "assignment",
+      "clause_text": "Employee agrees to assign and hereby assigns to Employer all future Inventions relating to the business, and waives any moral rights therein to the extent assignable by law.",
+      "expected_finding": "Yes — present + future assignment of inventions to counterparty",
+      "expected_signals": { "assigns_ip": true, "license_only": false, "risk_level": "red" },
+      "failure_mode": "future-inventions + moral-rights waiver breadth (flagClause RED-adjacent, ownership Yes)",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-asg-02",
+      "category": "assignment",
+      "clause_text": "Neither party may assign this Agreement or any rights hereunder without the prior written consent of the other party, which consent shall not be unreasonably withheld.",
+      "expected_finding": "No — anti-assignment consent gate; no IP ownership transfer",
+      "expected_signals": { "assigns_ip": false, "license_only": false, "risk_level": "green" },
+      "failure_mode": "assignment-word ambiguity: agreement-assignment vs IP-ownership assignment",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-asg-03",
+      "category": "assignment",
+      "clause_text": "The parties shall in good faith discuss and agree upon allocation of jointly developed intellectual property within 60 days after disclosure; no allocation is made by this clause alone.",
+      "expected_finding": "No — agree-to-agree; ownership deferred to future negotiation, no present transfer",
+      "expected_signals": { "assigns_ip": false, "license_only": false, "risk_level": "amber" },
+      "failure_mode": "agree-to-agree trap: negotiate/discuss with IP vocabulary but no vesting or assignment",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-lic-01",
+      "category": "licensing",
+      "clause_text": "Provider grants Customer a non-exclusive, non-transferable license to use the Software solely for internal business purposes.",
+      "expected_finding": "No assignment — license only (non-exclusive); must not be classified as IP assignment",
+      "expected_signals": { "assigns_ip": false, "license_only": true, "risk_level": "green" },
+      "failure_mode": "assign-vs-license distinction: grant of license with no assign/vest/transfer verb",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-lic-02",
+      "category": "licensing",
+      "clause_text": "Owner grants Distributor an exclusive license to exploit the Licensed Patents in the Territory, with Owner expressly retaining title to the Patents.",
+      "expected_finding": "No assignment — exclusive license is still a license; title retained by owner",
+      "expected_signals": { "assigns_ip": false, "license_only": true, "risk_level": "amber" },
+      "failure_mode": "exclusive-license trap: exclusive != assignment when title is retained",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-lic-03",
+      "category": "licensing",
+      "clause_text": "Contributor grants a perpetual, irrevocable, worldwide, royalty-free license to use, reproduce and distribute the Contributions, without transferring ownership.",
+      "expected_finding": "No assignment — broad perpetual license still transfers no ownership",
+      "expected_signals": { "assigns_ip": false, "license_only": true, "risk_level": "amber" },
+      "failure_mode": "breadth trap: perpetual/irrevocable license language mimics assignment scope but ownership stays",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-conf-01",
+      "category": "confidentiality",
+      "clause_text": "Each party shall keep the other party's Confidential Information confidential for three years following disclosure and use it only to perform this Agreement.",
+      "expected_finding": "green — balanced mutual confidentiality with bounded term and purpose limit",
+      "expected_signals": { "risk_level": "green" },
+      "failure_mode": "clean baseline: bounded term should not false-positive as high-risk",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-conf-02",
+      "category": "confidentiality",
+      "clause_text": "Recipient shall hold all of Disclosing Party's information in strict confidence in perpetuity and shall not use any residual knowledge retained in memory for any purpose.",
+      "expected_finding": "amber — negotiable: perpetual duration with no residual-knowledge carve-out",
+      "expected_signals": { "risk_level": "amber" },
+      "failure_mode": "duration trap: perpetuity without standard exclusions (flagClause RED-adjacent perpetual+irrevocable pattern)",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-conf-03",
+      "category": "confidentiality",
+      "clause_text": "All information disclosed in any form, whether marked confidential or not, is deemed Confidential, with no exclusions for public, known, or independently developed information.",
+      "expected_finding": "red — overbroad definition with no standard carve-outs",
+      "expected_signals": { "risk_level": "red" },
+      "failure_mode": "overbreadth: missing public-domain/independent-development exclusions",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-ind-01",
+      "category": "indemnification",
+      "clause_text": "Each party shall indemnify the other against third-party claims arising from its gross negligence or willful misconduct, subject to the liability cap in Section 9.",
+      "expected_finding": "amber — mutual fault-based indemnity with cap; negotiable but standard shape",
+      "expected_signals": { "risk_level": "amber" },
+      "failure_mode": "baseline indemnity: mutual + capped should not read as uncapped red",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-ind-02",
+      "category": "indemnification",
+      "clause_text": "Vendor shall indemnify Customer without limitation against all intellectual property infringement claims, including all attorneys' fees and costs, at Vendor's sole expense.",
+      "expected_finding": "red — uncapped one-way IP indemnity with fees",
+      "expected_signals": { "risk_level": "red" },
+      "failure_mode": "uncapped indemnity: without limitation + fees (flagClause RED-adjacent unlimited-indemnity pattern)",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-ind-03",
+      "category": "indemnification",
+      "clause_text": "Customer shall indemnify Provider against any claim that Provider's own technology infringes third-party intellectual property rights.",
+      "expected_finding": "red — reverse indemnity: customer underwrites vendor's IP risk",
+      "expected_signals": { "risk_level": "red" },
+      "failure_mode": "direction trap: indemnity running the wrong way for IP risk",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-lol-01",
+      "category": "limitation_of_liability",
+      "clause_text": "Neither party's aggregate liability under this Agreement shall exceed the amounts paid by Customer in the 12 months preceding the claim.",
+      "expected_finding": "green — standard mutual cap tied to fees paid",
+      "expected_signals": { "risk_level": "green" },
+      "failure_mode": "clean cap baseline: bounded aggregate cap should read green",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-lol-02",
+      "category": "limitation_of_liability",
+      "clause_text": "Service Provider's liability under this Agreement shall be unlimited in all respects.",
+      "expected_finding": "red — uncapped liability",
+      "expected_signals": { "risk_level": "red" },
+      "failure_mode": "unlimited-liability keyword (flagClause RED pattern) must fire",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-lol-03",
+      "category": "limitation_of_liability",
+      "clause_text": "The liability cap shall not apply to indemnification, confidentiality, intellectual property infringement, data breach, or non-payment obligations.",
+      "expected_finding": "amber — illusory cap: carve-outs swallow most realistic loss scenarios",
+      "expected_signals": { "risk_level": "amber" },
+      "failure_mode": "carve-out trap: nominal cap defeated by broad exclusions",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-war-01",
+      "category": "warranties",
+      "clause_text": "Provider warrants the Services will conform to the Documentation for 90 days after delivery; Customer's exclusive remedy for breach is re-performance of the affected Services.",
+      "expected_finding": "green — bounded conformance warranty with exclusive remedy",
+      "expected_signals": { "risk_level": "green" },
+      "failure_mode": "clean warranty baseline: time-bounded + exclusive remedy",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-war-02",
+      "category": "warranties",
+      "clause_text": "EXCEPT AS EXPRESSLY STATED IN THIS AGREEMENT, ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE, ARE DISCLAIMED.",
+      "expected_finding": "amber — blanket disclaimer of implied warranties; negotiable allocation",
+      "expected_signals": { "risk_level": "amber" },
+      "failure_mode": "disclaimer detection: implied-warranty disclaimer should surface, not read green",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-war-03",
+      "category": "warranties",
+      "clause_text": "Vendor warrants the Deliverables will be error-free and fit for any purpose Customer may contemplate, in perpetuity.",
+      "expected_finding": "red — unachievable warranty: error-free plus unbounded fitness and duration",
+      "expected_signals": { "risk_level": "red" },
+      "failure_mode": "absolute-warranty trap: error-free + any-purpose + perpetuity",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-term-01",
+      "category": "termination",
+      "clause_text": "Either party may terminate this Agreement for convenience on 30 days' prior written notice to the other party.",
+      "expected_finding": "amber — termination for convenience; negotiable exit right",
+      "expected_signals": { "risk_level": "amber" },
+      "failure_mode": "convenience termination (flagClause AMBER pattern) must surface",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-term-02",
+      "category": "termination",
+      "clause_text": "Provider may terminate this Agreement at any time without notice, and the Agreement auto-renews for successive 12-month terms unless Customer gives 90 days' advance notice of non-renewal.",
+      "expected_finding": "amber — one-sided termination plus auto-renewal trap",
+      "expected_signals": { "risk_level": "amber" },
+      "failure_mode": "one-sided exit + auto-renew: unilateral/without-notice/auto-renew cluster",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-term-03",
+      "category": "termination",
+      "clause_text": "Either party may terminate for material breach if the breach remains uncured 30 days after written notice specifying the breach in reasonable detail.",
+      "expected_finding": "green — balanced termination for cause with notice and cure",
+      "expected_signals": { "risk_level": "green" },
+      "failure_mode": "clean termination baseline: cause + cure should read green",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-data-01",
+      "category": "data_rights",
+      "clause_text": "Customer retains ownership of all Customer Data; Processor shall process Customer Data only on documented instructions and shall return or delete it upon termination.",
+      "expected_finding": "green — clean data allocation: ownership retained, processing bounded, return-or-delete",
+      "expected_signals": { "risk_level": "green" },
+      "failure_mode": "clean data baseline: instruction-bound processing should not flag",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-data-02",
+      "category": "data_rights",
+      "clause_text": "Vendor may use, aggregate and commercialize all Customer Data, including personal data, for any business purpose without restriction or compensation.",
+      "expected_finding": "red — overbroad data grab: unrestricted commercialization of customer data",
+      "expected_signals": { "risk_level": "red" },
+      "failure_mode": "data-grab trap: any-purpose commercialization without limits",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-data-03",
+      "category": "data_rights",
+      "clause_text": "Vendor will take reasonable steps to protect Customer Data and will notify Customer of data breaches as appropriate, without a fixed timeline.",
+      "expected_finding": "amber — vague security and breach-notice commitment with no timeline",
+      "expected_signals": { "risk_level": "amber" },
+      "failure_mode": "vagueness trap: reasonable-steps / as-appropriate with no measurable duty",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-ai-01",
+      "category": "ai_training_data_use",
+      "clause_text": "Provider shall not use Customer Inputs or Outputs to train, retrain or improve any models and shall not retain such data beyond what is necessary to provide the Services.",
+      "expected_finding": "green — protective no-training commitment with retention limit",
+      "expected_signals": { "risk_level": "green" },
+      "failure_mode": "clean AI baseline: explicit no-train + no-retain should read green",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-ai-02",
+      "category": "ai_training_data_use",
+      "clause_text": "Customer grants Provider a perpetual right to use all Inputs and Outputs to develop, train and improve machine-learning models, without compensation, notice, or opt-out.",
+      "expected_finding": "red — broad training grab: perpetual model-training rights with no opt-out",
+      "expected_signals": { "risk_level": "red" },
+      "failure_mode": "training-grab trap: perpetual train/improve rights buried in data-use grant",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    },
+    {
+      "id": "cf-ai-03",
+      "category": "ai_training_data_use",
+      "clause_text": "Provider may use de-identified service data to improve its services, without defining de-identification, improvement scope, or whether model training is included.",
+      "expected_finding": "amber — ambiguous improvement language: undefined de-identification and training scope",
+      "expected_signals": { "risk_level": "amber" },
+      "failure_mode": "ambiguity trap: de-identified/improve without scope; possible training by another name",
+      "synthetic": true,
+      "provenance": "synthetic fixture; not a benchmark answer"
+    }
+  ]
+}

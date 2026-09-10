@@ -1,0 +1,1456 @@
+{
+ "probe": "abigail-subset v1",
+ "ran_at": "2026-09-10T07:26:43.023508+00:00",
+ "benchmark": {
+  "name": "ABIGAIL PatentBench",
+  "repo": "https://github.com/rhahn28/patentbench",
+  "repo_commit": "2e185f4",
+  "repo_commit_date": "2026-04-16",
+  "license": "Apache-2.0",
+  "dataset": "data/mini (PatentBench-Mini, 300 cases) + sample_oa_parsing.jsonl + sample_103_argument.jsonl",
+  "scale_full": "7200 cases (Mini 300, OA 1800, Draft 1200 per task brief)",
+  "scoring": "PatentBench's own DeterministicEvaluator + AntiHallucinationChecker.check_with_context (evaluator.py, anti_hallucination.py at repo_commit, unmodified)"
+ },
+ "subset_rule": {
+  "rule": "S1: first 2 cases per task_type in data/mini/tier_1_2_cases.jsonl file order (9 types -> 18 cases). S2: ALL cases in data/mini/sample_oa_parsing.jsonl (3) and data/mini/sample_103_argument.jsonl (2). Total 23.",
+  "frozen_before_run": true,
+  "no_cherry_picking": "IDs fixed by rule before outputs were generated; runner asserts exact ID list.",
+  "s1_ids": [
+   "ext_fee_micro_1mo_18100101_0",
+   "ext_fee_small_3mo_18100126_1",
+   "examiner_17700033",
+   "examiner_18100121",
+   "tc_17200035",
+   "tc_17800039",
+   "deadline_ext2_18500066_0",
+   "deadline_ext3_18100064_2",
+   "classify_18100063_2024-01-27_2",
+   "classify_17800027_2024-11-06_1",
+   "filing_17200039",
+   "filing_17800049",
+   "history_17800035",
+   "history_18100080",
+   "timeline_18100027",
+   "timeline_17800032",
+   "strategy_17700045",
+   "strategy_17700024"
+  ],
+  "s2_ids": [
+   "mini-oa-001",
+   "mini-oa-002",
+   "mini-oa-003",
+   "mini-103-001",
+   "mini-103-002"
+  ]
+ },
+ "sally_policy": {
+  "note": "No Sally code tuned to these questions. Generic handlers only; reference answers consulted solely by the scorer.",
+  "deadline_calculation": "calendar arithmetic from prompt dates (SSP default 3mo per MPEP 710.02(a); 1.136(a) cap 6mo)",
+  "prosecution_strategy": "generic counts rule (final>=1 -> rce_or_appeal else respond)",
+  "oa_parsing": "regex extraction of rejection/claim spans from the OA text inside the prompt",
+  "record_lookup_types": "honest RESEARCH_REQUIRED refusal (fee/examiner/TC/filing/history/timeline/action-class need official record or fee schedule not supplied)",
+  "103_argument": "live model draft with verification-first prompt (no MPEP numbers, cases by name only, no invented details)"
+ },
+ "summary": {
+  "items_total": 23,
+  "deterministic_mean_all23": 0.2578,
+  "deterministic_passed": 7,
+  "per_task_type": {
+   "103_argument": {
+    "n": 2,
+    "mean_deterministic": 0.0,
+    "passed": 0,
+    "refusals": 0
+   },
+   "action_classification": {
+    "n": 2,
+    "mean_deterministic": 0.0,
+    "passed": 0,
+    "refusals": 2
+   },
+   "deadline_calculation": {
+    "n": 3,
+    "mean_deterministic": 1.0,
+    "passed": 3,
+    "refusals": 0
+   },
+   "examiner_extraction": {
+    "n": 2,
+    "mean_deterministic": 0.0,
+    "passed": 0,
+    "refusals": 2
+   },
+   "fee_computation": {
+    "n": 2,
+    "mean_deterministic": 0.0,
+    "passed": 0,
+    "refusals": 2
+   },
+   "filing_date_extraction": {
+    "n": 2,
+    "mean_deterministic": 0.0,
+    "passed": 0,
+    "refusals": 2
+   },
+   "oa_parsing": {
+    "n": 2,
+    "mean_deterministic": 0.9643,
+    "passed": 2,
+    "refusals": 0
+   },
+   "prosecution_history_parsing": {
+    "n": 2,
+    "mean_deterministic": 0.0,
+    "passed": 0,
+    "refusals": 2
+   },
+   "prosecution_strategy": {
+    "n": 2,
+    "mean_deterministic": 0.5,
+    "passed": 2,
+    "refusals": 0
+   },
+   "technology_center_classification": {
+    "n": 2,
+    "mean_deterministic": 0.0,
+    "passed": 0,
+    "refusals": 2
+   },
+   "timeline_analysis": {
+    "n": 2,
+    "mean_deterministic": 0.0,
+    "passed": 0,
+    "refusals": 2
+   }
+  },
+  "refusals": 14,
+  "live_model_calls_attempts_total": 6,
+  "live_model_calls_successful": 2,
+  "live_model_calls_allowed": 15,
+  "http_429_seen": false,
+  "execution_errors": [
+   {
+    "id": "mini-103-001",
+    "attempt": 1,
+    "error": "HTTP 400 (request shape: max_tokens + system role)"
+   },
+   {
+    "id": "mini-103-002",
+    "attempt": 1,
+    "error": "HTTP 400 (request shape: max_tokens + system role)"
+   },
+   {
+    "id": "mini-103-001",
+    "attempt": 2,
+    "error": "HTTP 400: Please pass a valid API key (wrong env key)"
+   },
+   {
+    "id": "mini-103-002",
+    "attempt": 2,
+    "error": "HTTP 400: Please pass a valid API key (wrong env key)"
+   }
+  ],
+  "incompletes": {
+   "llm_judge_layer": "not run (4 cases carry llm_judge/comparative layers: mini-oa-001, mini-oa-002, mini-103-001, mini-103-002; needs judge model + human calibration)",
+   "note": "deterministic layer scored for all 23; rubric/comparative/human layers recorded as incomplete, not as failures"
+  }
+ },
+ "poison_pill_results": {
+  "cases_with_poisons": 4,
+  "ids": [
+   "mini-oa-001",
+   "mini-oa-002",
+   "mini-103-001",
+   "mini-103-002"
+  ],
+  "total_poison_hits_in_sally_outputs": 0,
+  "verdict": "PASS",
+  "per_case": [
+   {
+    "id": "mini-oa-001",
+    "expected_poisons": {
+     "mpep_sections": [
+      "2199"
+     ],
+     "case_law": [
+      "Smith v. USPTO, 999 F.3d 1 (Fed. Cir. 2025)"
+     ]
+    },
+    "checker_poison_hits": [],
+    "substring_hits": [],
+    "checker_score": 0.5
+   },
+   {
+    "id": "mini-oa-002",
+    "expected_poisons": {
+     "mpep_sections": [
+      "2156"
+     ],
+     "case_law": [
+      "TechCorp v. InnovateCo, 888 F.3d 222 (Fed. Cir. 2024)"
+     ]
+    },
+    "checker_poison_hits": [],
+    "substring_hits": [],
+    "checker_score": 0.5
+   },
+   {
+    "id": "mini-103-001",
+    "expected_poisons": {
+     "mpep_sections": [
+      "2143.07"
+     ],
+     "case_law": [
+      "Digital Innovations LLC v. Patent Office, 777 F.3d 333 (Fed. Cir. 2023)"
+     ]
+    },
+    "checker_poison_hits": [],
+    "substring_hits": [],
+    "checker_score": 0.1667
+   },
+   {
+    "id": "mini-103-002",
+    "expected_poisons": {
+     "mpep_sections": [
+      "2143.07",
+      "2181.05"
+     ],
+     "case_law": [
+      "Smith v. USPTO, 999 F.3d 1 (Fed. Cir. 2025)"
+     ]
+    },
+    "checker_poison_hits": [],
+    "substring_hits": [],
+    "checker_score": 0.5
+   }
+  ],
+  "non_poison_cases_with_fabricated_or_invalid_cites": 0,
+  "all_fabricated_invalid_counts": 2
+ },
+ "limits": [
+  "Tiny subset (23/7200): NOT comparable to published PatentBench numbers and NOT a full score.",
+  "Record-lookup refusals score 0 under deterministic substring scorers by design: Sally offline has no USPTO record access or fee schedule, and must not fabricate examiner names, dates, or fees.",
+  "fee_computation / examiner / filing / history / timeline / TC / action-class tasks would need official-search-service + PEDS/ODP wiring (a full run), not model calls.",
+  "103_argument deterministic-generic scores are near-zero because the generic scorer looks for reference-answer substrings; generation quality needs the llm_judge + human layers (recorded incomplete).",
+  "Poison verdict covers only MPEP/case/statute citation fabrication per AntiHallucinationChecker; factual hallucinations inside prose need judge/human review."
+ ],
+ "rows": [
+  {
+   "id": "ext_fee_micro_1mo_18100101_0",
+   "task_type": "fee_computation",
+   "domain": "administration",
+   "tier": 1,
+   "evaluation_layers": [
+    "deterministic"
+   ],
+   "source_file": "data/mini/tier_1_2_cases.jsonl",
+   "sally_method": "refusal (needs official record / fee schedule)",
+   "live_model_call": false,
+   "exec_error": null,
+   "is_refusal": true,
+   "output": "I could not verify this proposition from the available authorities. Answering requires the official prosecution record or fee schedule, which was not supplied alongside this prompt, so no verified answer is given.",
+   "signals": {
+    "normalizeDate_mailed": "2025-04-17",
+    "parsePublicationNumber_app": null,
+    "normalizedNumber_app": null,
+    "entailment_output_vs_prompt": "CONTEXT_ONLY",
+    "guardAnswerCitations": "RESEARCH REQUIRED",
+    "quote_spans_ge8": [],
+    "claim_qa": "not_applicable (no claim text in prompt)",
+    "claim_qa_probe": {
+     "findings": 1,
+     "errors": 1
+    }
+   },
+   "deterministic": {
+    "metric": "fee_accuracy",
+    "value": 0.0,
+    "passed": false,
+    "details": {}
+   },
+   "anti_hallucination": {
+    "score": 1.0,
+    "passed": true,
+    "cited_mpep_sections": [],
+    "valid_mpep_sections": [],
+    "invalid_mpep_sections": [],
+    "poison_pill_hits": [],
+    "cited_cases": [],
+    "verified_cases": [],
+    "fabricated_cases": [],
+    "poison_case_hits": [],
+    "cited_statutes": [],
+    "invalid_statutes": []
+   },
+   "poison_pills_expected": {
+    "mpep_sections": [],
+    "case_law": []
+   },
+   "poison_substring_hits": []
+  },
+  {
+   "id": "ext_fee_small_3mo_18100126_1",
+   "task_type": "fee_computation",
+   "domain": "administration",
+   "tier": 1,
+   "evaluation_layers": [
+    "deterministic"
+   ],
+   "source_file": "data/mini/tier_1_2_cases.jsonl",
+   "sally_method": "refusal (needs official record / fee schedule)",
+   "live_model_call": false,
+   "exec_error": null,
+   "is_refusal": true,
+   "output": "I could not verify this proposition from the available authorities. Answering requires the official prosecution record or fee schedule, which was not supplied alongside this prompt, so no verified answer is given.",
+   "signals": {
+    "normalizeDate_mailed": "2024-02-29",
+    "parsePublicationNumber_app": null,
+    "normalizedNumber_app": null,
+    "entailment_output_vs_prompt": "CONTEXT_ONLY",
+    "guardAnswerCitations": "RESEARCH REQUIRED",
+    "quote_spans_ge8": [],
+    "claim_qa": "not_applicable (no claim text in prompt)"
+   },
+   "deterministic": {
+    "metric": "fee_accuracy",
+    "value": 0.0,
+    "passed": false,
+    "details": {}
+   },
+   "anti_hallucination": {
+    "score": 1.0,
+    "passed": true,
+    "cited_mpep_sections": [],
+    "valid_mpep_sections": [],
+    "invalid_mpep_sections": [],
+    "poison_pill_hits": [],
+    "cited_cases": [],
+    "verified_cases": [],
+    "fabricated_cases": [],
+    "poison_case_hits": [],
+    "cited_statutes": [],
+    "invalid_statutes": []
+   },
+   "poison_pills_expected": {
+    "mpep_sections": [],
+    "case_law": []
+   },
+   "poison_substring_hits": []
+  },
+  {
+   "id": "examiner_17700033",
+   "task_type": "examiner_extraction",
+   "domain": "prosecution",
+   "tier": 1,
+   "evaluation_layers": [
+    "deterministic"
+   ],
+   "source_file": "data/mini/tier_1_2_cases.jsonl",
+   "sally_method": "refusal (needs official record / fee schedule)",
+   "live_model_call": false,
+   "exec_error": null,
+   "is_refusal": true,
+   "output": "I could not verify this proposition from the available authorities. Answering requires the official prosecution record or fee schedule, which was not supplied alongside this prompt, so no verified answer is given.",
+   "signals": {
+    "normalizeDate_mailed": null,
+    "parsePublicationNumber_app": null,
+    "normalizedNumber_app": null,
+    "entailment_output_vs_prompt": "DOES_NOT_SUPPORT",
+    "guardAnswerCitations": "RESEARCH REQUIRED",
+    "quote_spans_ge8": [],
+    "claim_qa": "not_applicable (no claim text in prompt)"
+   },
+   "deterministic": {
+    "metric": "generic_accuracy",
+    "value": 0.0,
+    "passed": false,
+    "details": {}
+   },
+   "anti_hallucination": {
+    "score": 1.0,
+    "passed": true,
+    "cited_mpep_sections": [],
+    "valid_mpep_sections": [],
+    "invalid_mpep_sections": [],
+    "poison_pill_hits": [],
+    "cited_cases": [],
+    "verified_cases": [],
+    "fabricated_cases": [],
+    "poison_case_hits": [],
+    "cited_statutes": [],
+    "invalid_statutes": []
+   },
+   "poison_pills_expected": {
+    "mpep_sections": [],
+    "case_law": []
+   },
+   "poison_substring_hits": []
+  },
+  {
+   "id": "examiner_18100121",
+   "task_type": "examiner_extraction",
+   "domain": "prosecution",
+   "tier": 1,
+   "evaluation_layers": [
+    "deterministic"
+   ],
+   "source_file": "data/mini/tier_1_2_cases.jsonl",
+   "sally_method": "refusal (needs official record / fee schedule)",
+   "live_model_call": false,
+   "exec_error": null,
+   "is_refusal": true,
+   "output": "I could not verify this proposition from the available authorities. Answering requires the official prosecution record or fee schedule, which was not supplied alongside this prompt, so no verified answer is given.",
+   "signals": {
+    "normalizeDate_mailed": null,
+    "parsePublicationNumber_app": null,
+    "normalizedNumber_app": null,
+    "entailment_output_vs_prompt": "DOES_NOT_SUPPORT",
+    "guardAnswerCitations": "RESEARCH REQUIRED",
+    "quote_spans_ge8": [],
+    "claim_qa": "not_applicable (no claim text in prompt)"
+   },
+   "deterministic": {
+    "metric": "generic_accuracy",
+    "value": 0.0,
+    "passed": false,
+    "details": {}
+   },
+   "anti_hallucination": {
+    "score": 1.0,
+    "passed": true,
+    "cited_mpep_sections": [],
+    "valid_mpep_sections": [],
+    "invalid_mpep_sections": [],
+    "poison_pill_hits": [],
+    "cited_cases": [],
+    "verified_cases": [],
+    "fabricated_cases": [],
+    "poison_case_hits": [],
+    "cited_statutes": [],
+    "invalid_statutes": []
+   },
+   "poison_pills_expected": {
+    "mpep_sections": [],
+    "case_law": []
+   },
+   "poison_substring_hits": []
+  },
+  {
+   "id": "tc_17200035",
+   "task_type": "technology_center_classification",
+   "domain": "prosecution",
+   "tier": 1,
+   "evaluation_layers": [
+    "deterministic"
+   ],
+   "source_file": "data/mini/tier_1_2_cases.jsonl",
+   "sally_method": "refusal (needs official record / fee schedule)",
+   "live_model_call": false,
+   "exec_error": null,
+   "is_refusal": true,
+   "output": "I could not verify this proposition from the available authorities. Answering requires the official prosecution record or fee schedule, which was not supplied alongside this prompt, so no verified answer is given.",
+   "signals": {
+    "normalizeDate_mailed": null,
+    "parsePublicationNumber_app": null,
+    "normalizedNumber_app": null,
+    "entailment_output_vs_prompt": "DOES_NOT_SUPPORT",
+    "guardAnswerCitations": "RESEARCH REQUIRED",
+    "quote_spans_ge8": [],
+    "claim_qa": "not_applicable (no claim text in prompt)"
+   },
+   "deterministic": {
+    "metric": "generic_accuracy",
+    "value": 0.0,
+    "passed": false,
+    "details": {}
+   },
+   "anti_hallucination": {
+    "score": 1.0,
+    "passed": true,
+    "cited_mpep_sections": [],
+    "valid_mpep_sections": [],
+    "invalid_mpep_sections": [],
+    "poison_pill_hits": [],
+    "cited_cases": [],
+    "verified_cases": [],
+    "fabricated_cases": [],
+    "poison_case_hits": [],
+    "cited_statutes": [],
+    "invalid_statutes": []
+   },
+   "poison_pills_expected": {
+    "mpep_sections": [],
+    "case_law": []
+   },
+   "poison_substring_hits": []
+  },
+  {
+   "id": "tc_17800039",
+   "task_type": "technology_center_classification",
+   "domain": "prosecution",
+   "tier": 1,
+   "evaluation_layers": [
+    "deterministic"
+   ],
+   "source_file": "data/mini/tier_1_2_cases.jsonl",
+   "sally_method": "refusal (needs official record / fee schedule)",
+   "live_model_call": false,
+   "exec_error": null,
+   "is_refusal": true,
+   "output": "I could not verify this proposition from the available authorities. Answering requires the official prosecution record or fee schedule, which was not supplied alongside this prompt, so no verified answer is given.",
+   "signals": {
+    "normalizeDate_mailed": null,
+    "parsePublicationNumber_app": null,
+    "normalizedNumber_app": null,
+    "entailment_output_vs_prompt": "DOES_NOT_SUPPORT",
+    "guardAnswerCitations": "RESEARCH REQUIRED",
+    "quote_spans_ge8": [],
+    "claim_qa": "not_applicable (no claim text in prompt)"
+   },
+   "deterministic": {
+    "metric": "generic_accuracy",
+    "value": 0.0,
+    "passed": false,
+    "details": {}
+   },
+   "anti_hallucination": {
+    "score": 1.0,
+    "passed": true,
+    "cited_mpep_sections": [],
+    "valid_mpep_sections": [],
+    "invalid_mpep_sections": [],
+    "poison_pill_hits": [],
+    "cited_cases": [],
+    "verified_cases": [],
+    "fabricated_cases": [],
+    "poison_case_hits": [],
+    "cited_statutes": [],
+    "invalid_statutes": []
+   },
+   "poison_pills_expected": {
+    "mpep_sections": [],
+    "case_law": []
+   },
+   "poison_substring_hits": []
+  },
+  {
+   "id": "deadline_ext2_18500066_0",
+   "task_type": "deadline_calculation",
+   "domain": "administration",
+   "tier": 1,
+   "evaluation_layers": [
+    "deterministic"
+   ],
+   "source_file": "data/mini/tier_1_2_cases.jsonl",
+   "sally_method": "deterministic calendar arithmetic",
+   "live_model_call": false,
+   "exec_error": null,
+   "is_refusal": false,
+   "output": "The shortened statutory deadline is 2024-11-07. With a 2-month extension of time under section one-thirty-six(a), the extended deadline is 2025-01-07.",
+   "signals": {
+    "normalizeDate_mailed": "2024-08-07",
+    "parsePublicationNumber_app": null,
+    "normalizedNumber_app": null,
+    "entailment_output_vs_prompt": "PARTIALLY_SUPPORTS",
+    "guardAnswerCitations": "RESEARCH REQUIRED",
+    "quote_spans_ge8": [],
+    "claim_qa": "not_applicable (no claim text in prompt)"
+   },
+   "deterministic": {
+    "metric": "deadline_accuracy",
+    "value": 1.0,
+    "passed": true,
+    "details": {
+     "found": [
+      "2024-11-07",
+      "2025-01-07"
+     ],
+     "shortened_deadline": {
+      "expected": "2024-11-07",
+      "matched": true
+     },
+     "extended_deadline": {
+      "expected": "2025-01-07",
+      "matched": true
+     }
+    }
+   },
+   "anti_hallucination": {
+    "score": 1.0,
+    "passed": true,
+    "cited_mpep_sections": [],
+    "valid_mpep_sections": [],
+    "invalid_mpep_sections": [],
+    "poison_pill_hits": [],
+    "cited_cases": [],
+    "verified_cases": [],
+    "fabricated_cases": [],
+    "poison_case_hits": [],
+    "cited_statutes": [],
+    "invalid_statutes": []
+   },
+   "poison_pills_expected": {
+    "mpep_sections": [],
+    "case_law": []
+   },
+   "poison_substring_hits": []
+  },
+  {
+   "id": "deadline_ext3_18100064_2",
+   "task_type": "deadline_calculation",
+   "domain": "administration",
+   "tier": 1,
+   "evaluation_layers": [
+    "deterministic"
+   ],
+   "source_file": "data/mini/tier_1_2_cases.jsonl",
+   "sally_method": "deterministic calendar arithmetic",
+   "live_model_call": false,
+   "exec_error": null,
+   "is_refusal": false,
+   "output": "The shortened statutory deadline is 2023-10-26. With a 3-month extension of time under section one-thirty-six(a), the extended deadline is 2024-01-26.",
+   "signals": {
+    "normalizeDate_mailed": "2023-07-26",
+    "parsePublicationNumber_app": null,
+    "normalizedNumber_app": null,
+    "entailment_output_vs_prompt": "PARTIALLY_SUPPORTS",
+    "guardAnswerCitations": "RESEARCH REQUIRED",
+    "quote_spans_ge8": [],
+    "claim_qa": "not_applicable (no claim text in prompt)"
+   },
+   "deterministic": {
+    "metric": "deadline_accuracy",
+    "value": 1.0,
+    "passed": true,
+    "details": {
+     "found": [
+      "2023-10-26",
+      "2024-01-26"
+     ],
+     "shortened_deadline": {
+      "expected": "2023-10-26",
+      "matched": true
+     },
+     "extended_deadline": {
+      "expected": "2024-01-26",
+      "matched": true
+     }
+    }
+   },
+   "anti_hallucination": {
+    "score": 1.0,
+    "passed": true,
+    "cited_mpep_sections": [],
+    "valid_mpep_sections": [],
+    "invalid_mpep_sections": [],
+    "poison_pill_hits": [],
+    "cited_cases": [],
+    "verified_cases": [],
+    "fabricated_cases": [],
+    "poison_case_hits": [],
+    "cited_statutes": [],
+    "invalid_statutes": []
+   },
+   "poison_pills_expected": {
+    "mpep_sections": [],
+    "case_law": []
+   },
+   "poison_substring_hits": []
+  },
+  {
+   "id": "classify_18100063_2024-01-27_2",
+   "task_type": "action_classification",
+   "domain": "administration",
+   "tier": 1,
+   "evaluation_layers": [
+    "deterministic"
+   ],
+   "source_file": "data/mini/tier_1_2_cases.jsonl",
+   "sally_method": "refusal (needs official record / fee schedule)",
+   "live_model_call": false,
+   "exec_error": null,
+   "is_refusal": true,
+   "output": "I could not verify this proposition from the available authorities. Answering requires the official prosecution record or fee schedule, which was not supplied alongside this prompt, so no verified answer is given.",
+   "signals": {
+    "normalizeDate_mailed": "2024-01-27",
+    "parsePublicationNumber_app": null,
+    "normalizedNumber_app": null,
+    "entailment_output_vs_prompt": "DOES_NOT_SUPPORT",
+    "guardAnswerCitations": "RESEARCH REQUIRED",
+    "quote_spans_ge8": [],
+    "claim_qa": "not_applicable (no claim text in prompt)"
+   },
+   "deterministic": {
+    "metric": "classification_accuracy",
+    "value": 0.0,
+    "passed": false,
+    "details": {}
+   },
+   "anti_hallucination": {
+    "score": 1.0,
+    "passed": true,
+    "cited_mpep_sections": [],
+    "valid_mpep_sections": [],
+    "invalid_mpep_sections": [],
+    "poison_pill_hits": [],
+    "cited_cases": [],
+    "verified_cases": [],
+    "fabricated_cases": [],
+    "poison_case_hits": [],
+    "cited_statutes": [],
+    "invalid_statutes": []
+   },
+   "poison_pills_expected": {
+    "mpep_sections": [],
+    "case_law": []
+   },
+   "poison_substring_hits": []
+  },
+  {
+   "id": "classify_17800027_2024-11-06_1",
+   "task_type": "action_classification",
+   "domain": "administration",
+   "tier": 1,
+   "evaluation_layers": [
+    "deterministic"
+   ],
+   "source_file": "data/mini/tier_1_2_cases.jsonl",
+   "sally_method": "refusal (needs official record / fee schedule)",
+   "live_model_call": false,
+   "exec_error": null,
+   "is_refusal": true,
+   "output": "I could not verify this proposition from the available authorities. Answering requires the official prosecution record or fee schedule, which was not supplied alongside this prompt, so no verified answer is given.",
+   "signals": {
+    "normalizeDate_mailed": "2024-11-06",
+    "parsePublicationNumber_app": null,
+    "normalizedNumber_app": null,
+    "entailment_output_vs_prompt": "DOES_NOT_SUPPORT",
+    "guardAnswerCitations": "RESEARCH REQUIRED",
+    "quote_spans_ge8": [],
+    "claim_qa": "not_applicable (no claim text in prompt)"
+   },
+   "deterministic": {
+    "metric": "classification_accuracy",
+    "value": 0.0,
+    "passed": false,
+    "details": {}
+   },
+   "anti_hallucination": {
+    "score": 1.0,
+    "passed": true,
+    "cited_mpep_sections": [],
+    "valid_mpep_sections": [],
+    "invalid_mpep_sections": [],
+    "poison_pill_hits": [],
+    "cited_cases": [],
+    "verified_cases": [],
+    "fabricated_cases": [],
+    "poison_case_hits": [],
+    "cited_statutes": [],
+    "invalid_statutes": []
+   },
+   "poison_pills_expected": {
+    "mpep_sections": [],
+    "case_law": []
+   },
+   "poison_substring_hits": []
+  },
+  {
+   "id": "filing_17200039",
+   "task_type": "filing_date_extraction",
+   "domain": "administration",
+   "tier": 1,
+   "evaluation_layers": [
+    "deterministic"
+   ],
+   "source_file": "data/mini/tier_1_2_cases.jsonl",
+   "sally_method": "refusal (needs official record / fee schedule)",
+   "live_model_call": false,
+   "exec_error": null,
+   "is_refusal": true,
+   "output": "I could not verify this proposition from the available authorities. Answering requires the official prosecution record or fee schedule, which was not supplied alongside this prompt, so no verified answer is given.",
+   "signals": {
+    "normalizeDate_mailed": null,
+    "parsePublicationNumber_app": null,
+    "normalizedNumber_app": null,
+    "entailment_output_vs_prompt": "DOES_NOT_SUPPORT",
+    "guardAnswerCitations": "RESEARCH REQUIRED",
+    "quote_spans_ge8": [],
+    "claim_qa": "not_applicable (no claim text in prompt)"
+   },
+   "deterministic": {
+    "metric": "generic_accuracy",
+    "value": 0.0,
+    "passed": false,
+    "details": {}
+   },
+   "anti_hallucination": {
+    "score": 1.0,
+    "passed": true,
+    "cited_mpep_sections": [],
+    "valid_mpep_sections": [],
+    "invalid_mpep_sections": [],
+    "poison_pill_hits": [],
+    "cited_cases": [],
+    "verified_cases": [],
+    "fabricated_cases": [],
+    "poison_case_hits": [],
+    "cited_statutes": [],
+    "invalid_statutes": []
+   },
+   "poison_pills_expected": {
+    "mpep_sections": [],
+    "case_law": []
+   },
+   "poison_substring_hits": []
+  },
+  {
+   "id": "filing_17800049",
+   "task_type": "filing_date_extraction",
+   "domain": "administration",
+   "tier": 1,
+   "evaluation_layers": [
+    "deterministic"
+   ],
+   "source_file": "data/mini/tier_1_2_cases.jsonl",
+   "sally_method": "refusal (needs official record / fee schedule)",
+   "live_model_call": false,
+   "exec_error": null,
+   "is_refusal": true,
+   "output": "I could not verify this proposition from the available authorities. Answering requires the official prosecution record or fee schedule, which was not supplied alongside this prompt, so no verified answer is given.",
+   "signals": {
+    "normalizeDate_mailed": null,
+    "parsePublicationNumber_app": null,
+    "normalizedNumber_app": null,
+    "entailment_output_vs_prompt": "DOES_NOT_SUPPORT",
+    "guardAnswerCitations": "RESEARCH REQUIRED",
+    "quote_spans_ge8": [],
+    "claim_qa": "not_applicable (no claim text in prompt)"
+   },
+   "deterministic": {
+    "metric": "generic_accuracy",
+    "value": 0.0,
+    "passed": false,
+    "details": {}
+   },
+   "anti_hallucination": {
+    "score": 1.0,
+    "passed": true,
+    "cited_mpep_sections": [],
+    "valid_mpep_sections": [],
+    "invalid_mpep_sections": [],
+    "poison_pill_hits": [],
+    "cited_cases": [],
+    "verified_cases": [],
+    "fabricated_cases": [],
+    "poison_case_hits": [],
+    "cited_statutes": [],
+    "invalid_statutes": []
+   },
+   "poison_pills_expected": {
+    "mpep_sections": [],
+    "case_law": []
+   },
+   "poison_substring_hits": []
+  },
+  {
+   "id": "history_17800035",
+   "task_type": "prosecution_history_parsing",
+   "domain": "prosecution",
+   "tier": 2,
+   "evaluation_layers": [
+    "deterministic"
+   ],
+   "source_file": "data/mini/tier_1_2_cases.jsonl",
+   "sally_method": "refusal (needs official record / fee schedule)",
+   "live_model_call": false,
+   "exec_error": null,
+   "is_refusal": true,
+   "output": "I could not verify this proposition from the available authorities. Answering requires the official prosecution record or fee schedule, which was not supplied alongside this prompt, so no verified answer is given.",
+   "signals": {
+    "normalizeDate_mailed": null,
+    "parsePublicationNumber_app": null,
+    "normalizedNumber_app": null,
+    "entailment_output_vs_prompt": "CONTEXT_ONLY",
+    "guardAnswerCitations": "RESEARCH REQUIRED",
+    "quote_spans_ge8": [],
+    "claim_qa": "not_applicable (no claim text in prompt)"
+   },
+   "deterministic": {
+    "metric": "generic_accuracy",
+    "value": 0.0,
+    "passed": false,
+    "details": {}
+   },
+   "anti_hallucination": {
+    "score": 1.0,
+    "passed": true,
+    "cited_mpep_sections": [],
+    "valid_mpep_sections": [],
+    "invalid_mpep_sections": [],
+    "poison_pill_hits": [],
+    "cited_cases": [],
+    "verified_cases": [],
+    "fabricated_cases": [],
+    "poison_case_hits": [],
+    "cited_statutes": [],
+    "invalid_statutes": []
+   },
+   "poison_pills_expected": {
+    "mpep_sections": [],
+    "case_law": []
+   },
+   "poison_substring_hits": []
+  },
+  {
+   "id": "history_18100080",
+   "task_type": "prosecution_history_parsing",
+   "domain": "prosecution",
+   "tier": 2,
+   "evaluation_layers": [
+    "deterministic"
+   ],
+   "source_file": "data/mini/tier_1_2_cases.jsonl",
+   "sally_method": "refusal (needs official record / fee schedule)",
+   "live_model_call": false,
+   "exec_error": null,
+   "is_refusal": true,
+   "output": "I could not verify this proposition from the available authorities. Answering requires the official prosecution record or fee schedule, which was not supplied alongside this prompt, so no verified answer is given.",
+   "signals": {
+    "normalizeDate_mailed": null,
+    "parsePublicationNumber_app": null,
+    "normalizedNumber_app": null,
+    "entailment_output_vs_prompt": "CONTEXT_ONLY",
+    "guardAnswerCitations": "RESEARCH REQUIRED",
+    "quote_spans_ge8": [],
+    "claim_qa": "not_applicable (no claim text in prompt)"
+   },
+   "deterministic": {
+    "metric": "generic_accuracy",
+    "value": 0.0,
+    "passed": false,
+    "details": {}
+   },
+   "anti_hallucination": {
+    "score": 1.0,
+    "passed": true,
+    "cited_mpep_sections": [],
+    "valid_mpep_sections": [],
+    "invalid_mpep_sections": [],
+    "poison_pill_hits": [],
+    "cited_cases": [],
+    "verified_cases": [],
+    "fabricated_cases": [],
+    "poison_case_hits": [],
+    "cited_statutes": [],
+    "invalid_statutes": []
+   },
+   "poison_pills_expected": {
+    "mpep_sections": [],
+    "case_law": []
+   },
+   "poison_substring_hits": []
+  },
+  {
+   "id": "timeline_18100027",
+   "task_type": "timeline_analysis",
+   "domain": "administration",
+   "tier": 2,
+   "evaluation_layers": [
+    "deterministic"
+   ],
+   "source_file": "data/mini/tier_1_2_cases.jsonl",
+   "sally_method": "refusal (needs official record / fee schedule)",
+   "live_model_call": false,
+   "exec_error": null,
+   "is_refusal": true,
+   "output": "I could not verify this proposition from the available authorities. Answering requires the official prosecution record or fee schedule, which was not supplied alongside this prompt, so no verified answer is given.",
+   "signals": {
+    "normalizeDate_mailed": null,
+    "parsePublicationNumber_app": null,
+    "normalizedNumber_app": null,
+    "entailment_output_vs_prompt": "CONTEXT_ONLY",
+    "guardAnswerCitations": "RESEARCH REQUIRED",
+    "quote_spans_ge8": [],
+    "claim_qa": "not_applicable (no claim text in prompt)"
+   },
+   "deterministic": {
+    "metric": "timeline_accuracy",
+    "value": 0.0,
+    "passed": false,
+    "details": {}
+   },
+   "anti_hallucination": {
+    "score": 1.0,
+    "passed": true,
+    "cited_mpep_sections": [],
+    "valid_mpep_sections": [],
+    "invalid_mpep_sections": [],
+    "poison_pill_hits": [],
+    "cited_cases": [],
+    "verified_cases": [],
+    "fabricated_cases": [],
+    "poison_case_hits": [],
+    "cited_statutes": [],
+    "invalid_statutes": []
+   },
+   "poison_pills_expected": {
+    "mpep_sections": [],
+    "case_law": []
+   },
+   "poison_substring_hits": []
+  },
+  {
+   "id": "timeline_17800032",
+   "task_type": "timeline_analysis",
+   "domain": "administration",
+   "tier": 2,
+   "evaluation_layers": [
+    "deterministic"
+   ],
+   "source_file": "data/mini/tier_1_2_cases.jsonl",
+   "sally_method": "refusal (needs official record / fee schedule)",
+   "live_model_call": false,
+   "exec_error": null,
+   "is_refusal": true,
+   "output": "I could not verify this proposition from the available authorities. Answering requires the official prosecution record or fee schedule, which was not supplied alongside this prompt, so no verified answer is given.",
+   "signals": {
+    "normalizeDate_mailed": null,
+    "parsePublicationNumber_app": null,
+    "normalizedNumber_app": null,
+    "entailment_output_vs_prompt": "CONTEXT_ONLY",
+    "guardAnswerCitations": "RESEARCH REQUIRED",
+    "quote_spans_ge8": [],
+    "claim_qa": "not_applicable (no claim text in prompt)"
+   },
+   "deterministic": {
+    "metric": "timeline_accuracy",
+    "value": 0.0,
+    "passed": false,
+    "details": {}
+   },
+   "anti_hallucination": {
+    "score": 1.0,
+    "passed": true,
+    "cited_mpep_sections": [],
+    "valid_mpep_sections": [],
+    "invalid_mpep_sections": [],
+    "poison_pill_hits": [],
+    "cited_cases": [],
+    "verified_cases": [],
+    "fabricated_cases": [],
+    "poison_case_hits": [],
+    "cited_statutes": [],
+    "invalid_statutes": []
+   },
+   "poison_pills_expected": {
+    "mpep_sections": [],
+    "case_law": []
+   },
+   "poison_substring_hits": []
+  },
+  {
+   "id": "strategy_17700045",
+   "task_type": "prosecution_strategy",
+   "domain": "prosecution",
+   "tier": 2,
+   "evaluation_layers": [
+    "deterministic"
+   ],
+   "source_file": "data/mini/tier_1_2_cases.jsonl",
+   "sally_method": "generic counts rule",
+   "live_model_call": false,
+   "exec_error": null,
+   "is_refusal": false,
+   "output": "Recommended next step: rce_or_appeal (Office Actions: 2, finals: 1). After a final rejection the applicant may seek continued examination with amendments or take an appeal.",
+   "signals": {
+    "normalizeDate_mailed": null,
+    "parsePublicationNumber_app": null,
+    "normalizedNumber_app": null,
+    "entailment_output_vs_prompt": "CONTEXT_ONLY",
+    "guardAnswerCitations": "RESEARCH REQUIRED",
+    "quote_spans_ge8": [],
+    "claim_qa": "not_applicable (no claim text in prompt)"
+   },
+   "deterministic": {
+    "metric": "generic_accuracy",
+    "value": 0.5,
+    "passed": true,
+    "details": {}
+   },
+   "anti_hallucination": {
+    "score": 1.0,
+    "passed": true,
+    "cited_mpep_sections": [],
+    "valid_mpep_sections": [],
+    "invalid_mpep_sections": [],
+    "poison_pill_hits": [],
+    "cited_cases": [],
+    "verified_cases": [],
+    "fabricated_cases": [],
+    "poison_case_hits": [],
+    "cited_statutes": [],
+    "invalid_statutes": []
+   },
+   "poison_pills_expected": {
+    "mpep_sections": [],
+    "case_law": []
+   },
+   "poison_substring_hits": []
+  },
+  {
+   "id": "strategy_17700024",
+   "task_type": "prosecution_strategy",
+   "domain": "prosecution",
+   "tier": 2,
+   "evaluation_layers": [
+    "deterministic"
+   ],
+   "source_file": "data/mini/tier_1_2_cases.jsonl",
+   "sally_method": "generic counts rule",
+   "live_model_call": false,
+   "exec_error": null,
+   "is_refusal": false,
+   "output": "Recommended next step: respond (Office Actions: 1, finals: 0). With no final rejection outstanding, the next step is a timely substantive response.",
+   "signals": {
+    "normalizeDate_mailed": null,
+    "parsePublicationNumber_app": null,
+    "normalizedNumber_app": null,
+    "entailment_output_vs_prompt": "CONTRADICTS",
+    "guardAnswerCitations": "RESEARCH REQUIRED",
+    "quote_spans_ge8": [],
+    "claim_qa": "not_applicable (no claim text in prompt)"
+   },
+   "deterministic": {
+    "metric": "generic_accuracy",
+    "value": 0.5,
+    "passed": true,
+    "details": {}
+   },
+   "anti_hallucination": {
+    "score": 1.0,
+    "passed": true,
+    "cited_mpep_sections": [],
+    "valid_mpep_sections": [],
+    "invalid_mpep_sections": [],
+    "poison_pill_hits": [],
+    "cited_cases": [],
+    "verified_cases": [],
+    "fabricated_cases": [],
+    "poison_case_hits": [],
+    "cited_statutes": [],
+    "invalid_statutes": []
+   },
+   "poison_pills_expected": {
+    "mpep_sections": [],
+    "case_law": []
+   },
+   "poison_substring_hits": []
+  },
+  {
+   "id": "mini-oa-001",
+   "task_type": "oa_parsing",
+   "domain": "prosecution",
+   "tier": 2,
+   "evaluation_layers": [
+    "deterministic",
+    "llm_judge"
+   ],
+   "source_file": "data/mini/sample_oa_parsing.jsonl",
+   "sally_method": "regex extraction from prompt OA text",
+   "live_model_call": false,
+   "exec_error": null,
+   "is_refusal": false,
+   "output": "Rejection types: 103, 112(b), 101. Claims: claim 1, claim 2, claim 3, claim 4, claim 5, claim 6, claim 7, claim 8, claim 9, claim 10, claim 11, claim 12.",
+   "signals": {
+    "normalizeDate_mailed": "2024-03-15",
+    "parsePublicationNumber_app": null,
+    "normalizedNumber_app": null,
+    "entailment_output_vs_prompt": "CONTRADICTS",
+    "guardAnswerCitations": "RESEARCH REQUIRED",
+    "quote_spans_ge8": [],
+    "claim_qa": "not_applicable (no claim text in prompt)"
+   },
+   "deterministic": {
+    "metric": "oa_parsing_accuracy",
+    "value": 1.0,
+    "passed": true,
+    "details": {
+     "sub_scores": [
+      1.0,
+      1.0
+     ]
+    }
+   },
+   "anti_hallucination": {
+    "score": 0.5,
+    "passed": true,
+    "cited_mpep_sections": [],
+    "valid_mpep_sections": [],
+    "invalid_mpep_sections": [],
+    "poison_pill_hits": [],
+    "cited_cases": [],
+    "verified_cases": [],
+    "fabricated_cases": [],
+    "poison_case_hits": [],
+    "cited_statutes": [],
+    "invalid_statutes": []
+   },
+   "poison_pills_expected": {
+    "mpep_sections": [
+     "2199"
+    ],
+    "case_law": [
+     "Smith v. USPTO, 999 F.3d 1 (Fed. Cir. 2025)"
+    ]
+   },
+   "poison_substring_hits": []
+  },
+  {
+   "id": "mini-oa-002",
+   "task_type": "oa_parsing",
+   "domain": "prosecution",
+   "tier": 2,
+   "evaluation_layers": [
+    "deterministic",
+    "llm_judge"
+   ],
+   "source_file": "data/mini/sample_oa_parsing.jsonl",
+   "sally_method": "regex extraction from prompt OA text",
+   "live_model_call": false,
+   "exec_error": null,
+   "is_refusal": false,
+   "output": "Rejection types: 102(a), 103, 112(a). Claims: claim 1, claim 2, claim 3, claim 4, claim 5, claim 6, claim 7, claim 8, claim 9, claim 10.",
+   "signals": {
+    "normalizeDate_mailed": "2024-06-20",
+    "parsePublicationNumber_app": null,
+    "normalizedNumber_app": null,
+    "entailment_output_vs_prompt": "CONTRADICTS",
+    "guardAnswerCitations": "RESEARCH REQUIRED",
+    "quote_spans_ge8": [],
+    "claim_qa": "not_applicable (no claim text in prompt)"
+   },
+   "deterministic": {
+    "metric": "oa_parsing_accuracy",
+    "value": 0.9286,
+    "passed": true,
+    "details": {
+     "sub_scores": [
+      0.8571428571428571,
+      1.0
+     ]
+    }
+   },
+   "anti_hallucination": {
+    "score": 0.5,
+    "passed": true,
+    "cited_mpep_sections": [],
+    "valid_mpep_sections": [],
+    "invalid_mpep_sections": [],
+    "poison_pill_hits": [],
+    "cited_cases": [],
+    "verified_cases": [],
+    "fabricated_cases": [],
+    "poison_case_hits": [],
+    "cited_statutes": [],
+    "invalid_statutes": []
+   },
+   "poison_pills_expected": {
+    "mpep_sections": [
+     "2156"
+    ],
+    "case_law": [
+     "TechCorp v. InnovateCo, 888 F.3d 222 (Fed. Cir. 2024)"
+    ]
+   },
+   "poison_substring_hits": []
+  },
+  {
+   "id": "mini-oa-003",
+   "task_type": "deadline_calculation",
+   "domain": "administration",
+   "tier": 1,
+   "evaluation_layers": [
+    "deterministic"
+   ],
+   "source_file": "data/mini/sample_oa_parsing.jsonl",
+   "sally_method": "deterministic calendar arithmetic",
+   "live_model_call": false,
+   "exec_error": null,
+   "is_refusal": false,
+   "output": "The shortened statutory deadline is 2024-06-15. The maximum extended deadline is 2024-09-15. Extension-fee amounts cannot be stated from the authorities at hand.",
+   "signals": {
+    "normalizeDate_mailed": null,
+    "parsePublicationNumber_app": null,
+    "normalizedNumber_app": null,
+    "entailment_output_vs_prompt": "PARTIALLY_SUPPORTS",
+    "guardAnswerCitations": "RESEARCH REQUIRED",
+    "quote_spans_ge8": [],
+    "claim_qa": "not_applicable (no claim text in prompt)"
+   },
+   "deterministic": {
+    "metric": "deadline_accuracy",
+    "value": 1.0,
+    "passed": true,
+    "details": {}
+   },
+   "anti_hallucination": {
+    "score": 0.5,
+    "passed": true,
+    "cited_mpep_sections": [],
+    "valid_mpep_sections": [],
+    "invalid_mpep_sections": [],
+    "poison_pill_hits": [],
+    "cited_cases": [],
+    "verified_cases": [],
+    "fabricated_cases": [],
+    "poison_case_hits": [],
+    "cited_statutes": [],
+    "invalid_statutes": []
+   },
+   "poison_pills_expected": {
+    "mpep_sections": [],
+    "case_law": []
+   },
+   "poison_substring_hits": []
+  },
+  {
+   "id": "mini-103-001",
+   "task_type": "103_argument",
+   "domain": "prosecution",
+   "tier": 3,
+   "evaluation_layers": [
+    "deterministic",
+    "llm_judge",
+    "comparative"
+   ],
+   "source_file": "data/mini/sample_103_argument.jsonl",
+   "sally_method": "live model draft (verification-first prompt)",
+   "live_model_call": true,
+   "exec_error": null,
+   "is_refusal": false,
+   "output": "In accordance with *Graham v. John Deere* and *KSR v. Teleflex*, Applicant respectfully traverses the 35 U.S.C. 103 rejection of claim 1 over Lee in view of Garcia. \n\nFirst, the cited combination fails to disclose or suggest all limitations of claim 1. Specifically, while Lee teaches fine-tuning with standard loss functions, neither Lee nor Garcia teaches or suggests \"fine-tuning the neural network using cluster-specific loss functions,\" as expressly recited in claim 1. \n\nSecond, the Examiner asserts a motivation to combine Lee and Garcia based on improving training efficiency because both references relate to organizing data representations. However, this rationale is impermissibly speculative and amounts to hindsight reconstruction. The Office Action excerpt fails to explain why one of ordinary skill in the art would have looked to Garcia's recommendation system context to modify Lee\u00e2\u20ac\u2122s neural network training method. Garcia\u00e2\u20ac\u2122s application to recommendation systems is distinct from Lee\u00e2\u20ac\u2122s contrastive learning framework, and the cited excerpt provides no factual foundation establishing how combining hierarchical clustering of feature vectors with Lee's architecture would successfully achieve the claimed cluster-specific loss function fine-tuning. \n\nTherefore, the Examiner has failed to establish a prima facie case of obviousness. Reconsideration and withdrawal of the rejection of claim 1 are requested.",
+   "signals": {
+    "normalizeDate_mailed": null,
+    "parsePublicationNumber_app": null,
+    "normalizedNumber_app": null,
+    "entailment_output_vs_prompt": "CONTRADICTS",
+    "guardAnswerCitations": "RESEARCH REQUIRED",
+    "quote_spans_ge8": [
+     {
+      "span": "\"fine-tuning the neural network using cluster-specific loss functions,\"",
+      "verifyQuote_vs_prompt": "fuzzy",
+      "clean_verify_vs_prompt": "fuzzy"
+     }
+    ],
+    "claim_qa": "not_applicable (no claim text in prompt)"
+   },
+   "deterministic": {
+    "metric": "generic_accuracy",
+    "value": 0.0,
+    "passed": false,
+    "details": {}
+   },
+   "anti_hallucination": {
+    "score": 0.1667,
+    "passed": false,
+    "cited_mpep_sections": [],
+    "valid_mpep_sections": [],
+    "invalid_mpep_sections": [],
+    "poison_pill_hits": [],
+    "cited_cases": [
+     "Graham v. Jo",
+     "KSR v. Te"
+    ],
+    "verified_cases": [],
+    "fabricated_cases": [
+     "Graham v. Jo",
+     "KSR v. Te"
+    ],
+    "poison_case_hits": [],
+    "cited_statutes": [
+     "103"
+    ],
+    "invalid_statutes": []
+   },
+   "poison_pills_expected": {
+    "mpep_sections": [
+     "2143.07"
+    ],
+    "case_law": [
+     "Digital Innovations LLC v. Patent Office, 777 F.3d 333 (Fed. Cir. 2023)"
+    ]
+   },
+   "poison_substring_hits": []
+  },
+  {
+   "id": "mini-103-002",
+   "task_type": "103_argument",
+   "domain": "prosecution",
+   "tier": 3,
+   "evaluation_layers": [
+    "deterministic",
+    "llm_judge",
+    "comparative"
+   ],
+   "source_file": "data/mini/sample_103_argument.jsonl",
+   "sally_method": "live model draft (verification-first prompt)",
+   "live_model_call": true,
+   "exec_error": null,
+   "is_refusal": false,
+   "output": "In rejecting Claim 1 under 35 U.S.C. 103, the Examiner has not established a prima facie case of obviousness under the *Graham* and *KSR* frameworks. \n\nFirst, the cited combination fails to teach or suggest all limitations of Claim 1. Specifically, while Kowalski teaches enteric coatings for pH-sensitive drug delivery, the Office Action fails to establish that Kowalski, Thompson, or Nakamura teaches or suggests a pH-sensitive enteric coating specifically \"configured to dissolve at pH 6.8 or above,\" as positively recited in Claim 1.\n\nSecond, the Examiner lacks a sufficient rationale with a reasonable expectation of success to combine these references. Thompson discloses Compound X exclusively in an *injectable* formulation achieving 40% bioavailability. The Office Action points to no teaching in Thompson, Nakamura, or Kowalski indicating that transitioning Compound X from an injectable formulation to an oral dosage form utilizing a cyclodextrin-based solubility enhancer and a pH-sensitive enteric coating would successfully achieve \"at least 80% bioavailability.\" Given that injectable formulations inherently bypass gastrointestinal absorption barriers, one of ordinary skill in the art would not have had a reasonable expectation that combining these disparate references would result in the claimed 80% oral bioavailability. \n\nTherefore, the rejection over Thompson, Nakamura, and Kowalski should be withdrawn.",
+   "signals": {
+    "normalizeDate_mailed": null,
+    "parsePublicationNumber_app": null,
+    "normalizedNumber_app": null,
+    "entailment_output_vs_prompt": "CONTRADICTS",
+    "guardAnswerCitations": "RESEARCH REQUIRED",
+    "quote_spans_ge8": [
+     {
+      "span": "\"configured to dissolve at pH 6.8 or above,\"",
+      "verifyQuote_vs_prompt": "fuzzy",
+      "clean_verify_vs_prompt": "fuzzy"
+     },
+     {
+      "span": "\"at least 80% bioavailability.\"",
+      "verifyQuote_vs_prompt": "fuzzy",
+      "clean_verify_vs_prompt": "fuzzy"
+     }
+    ],
+    "claim_qa": "not_applicable (no claim text in prompt)"
+   },
+   "deterministic": {
+    "metric": "generic_accuracy",
+    "value": 0.0,
+    "passed": false,
+    "details": {}
+   },
+   "anti_hallucination": {
+    "score": 0.5,
+    "passed": true,
+    "cited_mpep_sections": [],
+    "valid_mpep_sections": [],
+    "invalid_mpep_sections": [],
+    "poison_pill_hits": [],
+    "cited_cases": [],
+    "verified_cases": [],
+    "fabricated_cases": [],
+    "poison_case_hits": [],
+    "cited_statutes": [
+     "103"
+    ],
+    "invalid_statutes": []
+   },
+   "poison_pills_expected": {
+    "mpep_sections": [
+     "2143.07",
+     "2181.05"
+    ],
+    "case_law": [
+     "Smith v. USPTO, 999 F.3d 1 (Fed. Cir. 2025)"
+    ]
+   },
+   "poison_substring_hits": []
+  }
+ ]
+}

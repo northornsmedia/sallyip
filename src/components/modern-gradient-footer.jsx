@@ -1,33 +1,25 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowDown, Check, Download, Sparkles } from 'lucide-react';
 import './modern-gradient-footer.css';
-
-const FAQ_ITEMS = [
-  {
-    question: "Is training required to get started?",
-    answer: "No specialized training is required. SallyIP provides an intuitive zero-configuration interface with ready-to-use templates for novelty search, patent claim charting, and trademark clearance."
-  },
-  {
-    question: "How does the platform ensure regulatory compliance?",
-    answer: "Our pipeline enforces strict deterministic proposition verification, ensuring every generated citation links directly to primary USPTO, EPO, or statutory authorities without dangling hallucinated claims."
-  },
-  {
-    question: "How securely is the data stored?",
-    answer: "All enterprise matter documents, patent drafts, and client data are encrypted in transit and at rest with AES-256 and stored in SOC2 Type II audited environments with strict zero-data-retention guarantees."
-  }
-];
 
 export default function ModernGradientFooter({
   onDemoClick,
   onNavigate,
 }) {
-  const [openFaq, setOpenFaq] = useState(-1);
+  const [email, setEmail] = useState('');
+  const [agreed, setAgreed] = useState(true);
+  const [submitted, setSubmitted] = useState(false);
 
-  const toggleFaq = (index) => {
-    setOpenFaq(openFaq === index ? -1 : index);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (email.trim()) {
+      setSubmitted(true);
+      setTimeout(() => setSubmitted(false), 4000);
+      setEmail('');
+    }
   };
 
-  const handleLinkClick = (hash) => {
+  const handleLink = (hash) => {
     if (onNavigate) {
       onNavigate(hash);
     } else {
@@ -37,217 +29,149 @@ export default function ModernGradientFooter({
   };
 
   return (
-    <div className="mg-footer-root">
-      {/* 1. FAQ Accordion Cards at the top of the footer gradient */}
-      <div className="mg-faq-container">
-        {FAQ_ITEMS.map((item, idx) => {
-          const isOpen = openFaq === idx;
-          return (
-            <div key={idx} className="mg-faq-card">
-              <button
-                type="button"
-                className="mg-faq-trigger"
-                onClick={() => toggleFaq(idx)}
-                aria-expanded={isOpen}
-              >
-                <span>{item.question}</span>
-                <ChevronDown
-                  size={18}
-                  className={`mg-faq-chevron ${isOpen ? 'open' : ''}`}
-                />
+    <div className="viroka-footer-root">
+      {/* Ambient Radial Glows */}
+      <div className="viroka-ambient-glow-top" />
+      <div className="viroka-ambient-glow-bottom" />
+
+      {/* Perspective 3D Wireframe Grid Horizon */}
+      <div className="viroka-grid-floor">
+        <div className="viroka-grid-floor-lines" />
+      </div>
+
+      <div className="viroka-footer-inner">
+        {/* 1. Hero / CTA Block */}
+        <div className="viroka-cta-hero">
+          <div className="viroka-logo-squircle">
+            <img
+              src="/sallyip-brand-mark.png"
+              alt="SallyIP"
+              className="viroka-logo-img"
+            />
+          </div>
+
+          <h2 className="viroka-cta-title">
+            Uncover a new approach to IP intelligence
+          </h2>
+
+          <p className="viroka-cta-desc">
+            Get SallyIP now and be part of a community of patent attorneys,
+            legal engineers, and innovators across Fortune 500 companies.
+          </p>
+
+          <button
+            type="button"
+            className="viroka-cta-btn"
+            onClick={onDemoClick ? onDemoClick : () => handleLink('chat')}
+          >
+            <span>Get started for free</span>
+            <Download size={16} />
+          </button>
+        </div>
+
+        {/* 2. 4-Column Navigation Links */}
+        <div className="viroka-links-grid">
+          {/* Column 1 */}
+          <div>
+            <div className="viroka-col-header">// Product</div>
+            <ul className="viroka-col-list">
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('modules')}>What's New</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('modules')}>Novelty Search</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('modules')}>Claim Charts</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('modules')}>Office Action Defense</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('modules')}>Developer API</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('modules')}>All Modules</button></li>
+            </ul>
+          </div>
+
+          {/* Column 2 */}
+          <div>
+            <div className="viroka-col-header">// Support</div>
+            <ul className="viroka-col-list">
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('chat')}>Documentation</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('chat')}>Help Center</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('chat')}>Support Community</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('security')}>Enterprise Support</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('security')}>Verification Logs</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('security')}>System Audits</button></li>
+            </ul>
+          </div>
+
+          {/* Column 3 */}
+          <div>
+            <div className="viroka-col-header">// Resources</div>
+            <ul className="viroka-col-list">
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('benchmarks')}>Our Benchmarks</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('lifecycle')}>Lifecycle Guide</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('pricing')}>Pricing</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('performance')}>Roadmap</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('pricing')}>Free for Education</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('benchmarks')}>Newsletter</button></li>
+            </ul>
+          </div>
+
+          {/* Column 4 */}
+          <div>
+            <div className="viroka-col-header">// About</div>
+            <ul className="viroka-col-list">
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('home')}>About Us</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('security')}>Security & Compliance</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('performance')}>Performance</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('home')}>Careers</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('home')}>Partners</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('security')}>Trust Center</button></li>
+            </ul>
+          </div>
+        </div>
+
+        {/* 3. Subtle Horizontal Divider */}
+        <div className="viroka-divider" />
+
+        {/* 4. Newsletter & Signup Bottom Split */}
+        <div className="viroka-bottom-split">
+          <div className="viroka-newsletter-info">
+            <h4>Never miss an update</h4>
+            <p>
+              Get all the latest legal intelligence, statutory updates, and product releases from SallyIP.
+              Delivered directly to your inbox. We'll rarely send more than once a month.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="viroka-form-wrap">
+            <div className="viroka-input-row">
+              <input
+                type="email"
+                placeholder="example@gmail.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="viroka-email-input"
+                required
+              />
+              <button type="submit" className="viroka-join-btn">
+                {submitted ? 'Joined!' : 'Join'}
               </button>
-              {isOpen && (
-                <div className="mg-faq-body">
-                  {item.answer}
-                </div>
-              )}
             </div>
-          );
-        })}
-      </div>
 
-      {/* 2. Main Footer Content Row */}
-      <div className="mg-footer-main">
-        {/* Left Column: Socials, Email & Address */}
-        <div className="mg-footer-left">
-          <div className="mg-social-row">
-            {/* Facebook / Web Icon */}
-            <a
-              href="https://facebook.com"
-              target="_blank"
-              rel="noreferrer"
-              className="mg-social-icon"
-              aria-label="Facebook"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M14.5 9h-2.2c-.8 0-1.3.5-1.3 1.3V12H9v2.5h2v6.5h2.5V14.5h2l.5-2.5h-2.5v-1.5c0-.4.3-.7.7-.7h1.8V9z" />
-              </svg>
-            </a>
-
-            {/* LinkedIn Icon */}
-            <a
-              href="https://linkedin.com"
-              target="_blank"
-              rel="noreferrer"
-              className="mg-social-icon"
-              aria-label="LinkedIn"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <rect width="18" height="18" x="3" y="3" rx="4" />
-                <path d="M8 11v5" />
-                <path d="M8 8v.01" />
-                <path d="M12 16v-5" />
-                <path d="M16 16v-3a2 2 0 0 0-4 0" />
-              </svg>
-            </a>
-
-            {/* X / Twitter Icon */}
-            <a
-              href="https://x.com"
-              target="_blank"
-              rel="noreferrer"
-              className="mg-social-icon"
-              aria-label="X / Twitter"
-            >
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-              </svg>
-            </a>
-          </div>
-
-          <a href="mailto:hello@sallyip.ai" className="mg-footer-email">
-            hello@sallyip.ai
-          </a>
-
-          <address className="mg-footer-address">
-            Harju maakond, Tallinn,<br />
-            Kesklinna linnaosa,<br />
-            Vesivärava tn 50-201, 10152
-          </address>
+            <label className="viroka-consent-label">
+              <input
+                type="checkbox"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                className="viroka-consent-checkbox"
+              />
+              <span>I agree to receive product and research updates from SallyIP</span>
+            </label>
+          </form>
         </div>
 
-        {/* Center: Animated Constellation & Bracketed "Get a Demo [FREE]" pill */}
-        <div className="mg-footer-center">
-          <div className="mg-center-bracket-wrap">
-            {/* Left Dot Constellation with twinkling animations and crosshairs */}
-            <svg className="mg-dot-constellation" viewBox="0 0 100 90" fill="none">
-              {[...Array(5)].map((_, r) =>
-                [...Array(6)].map((_, c) => {
-                  const idx = (r * 6 + c) % 4;
-                  const isCross = (r + c) % 5 === 0;
-                  const cx = 10 + c * 15;
-                  const cy = 10 + r * 16;
-                  if (isCross) {
-                    return (
-                      <g key={`l-${r}-${c}`} className={`mg-twinkle-${idx}`} transform={`translate(${cx}, ${cy})`}>
-                        <line x1="-3" y1="0" x2="3" y2="0" stroke="#60a5fa" strokeWidth="0.8" />
-                        <line x1="0" y1="-3" x2="0" y2="3" stroke="#60a5fa" strokeWidth="0.8" />
-                      </g>
-                    );
-                  }
-                  return (
-                    <circle
-                      key={`l-${r}-${c}`}
-                      cx={cx}
-                      cy={cy}
-                      r={(r + c) % 3 === 0 ? 2.2 : 1.2}
-                      className={`mg-twinkle-${idx}`}
-                    />
-                  );
-                })
-              )}
-            </svg>
-
-            {/* Left Animated Bracket Line */}
-            <div className="mg-bracket-line left">
-              <div className="mg-bracket-pulse" />
-            </div>
-
-            {/* Glowing Ambient Halo behind the button */}
-            <div className="mg-btn-ambient-halo" />
-
-            {/* Dark Demo Action Pill Button with Hover and Sheen Animation */}
-            <button
-              type="button"
-              className="mg-demo-pill-btn"
-              onClick={onDemoClick ? onDemoClick : () => handleLinkClick('chat')}
-            >
-              <span className="mg-demo-btn-text">Get a Demo</span>
-              <span className="mg-free-tag">FREE</span>
-              <div className="mg-demo-btn-sheen" />
-            </button>
-
-            {/* Right Animated Bracket Line */}
-            <div className="mg-bracket-line right">
-              <div className="mg-bracket-pulse" />
-            </div>
-
-            {/* Right Dot Constellation with twinkling animations and crosshairs */}
-            <svg className="mg-dot-constellation" viewBox="0 0 100 90" fill="none">
-              {[...Array(5)].map((_, r) =>
-                [...Array(6)].map((_, c) => {
-                  const idx = (r * 6 + c + 2) % 4;
-                  const isCross = (r + c + 1) % 5 === 0;
-                  const cx = 10 + c * 15;
-                  const cy = 10 + r * 16;
-                  if (isCross) {
-                    return (
-                      <g key={`r-${r}-${c}`} className={`mg-twinkle-${idx}`} transform={`translate(${cx}, ${cy})`}>
-                        <line x1="-3" y1="0" x2="3" y2="0" stroke="#60a5fa" strokeWidth="0.8" />
-                        <line x1="0" y1="-3" x2="0" y2="3" stroke="#60a5fa" strokeWidth="0.8" />
-                      </g>
-                    );
-                  }
-                  return (
-                    <circle
-                      key={`r-${r}-${c}`}
-                      cx={cx}
-                      cy={cy}
-                      r={(r + c) % 2 === 0 ? 2.2 : 1.2}
-                      className={`mg-twinkle-${idx}`}
-                    />
-                  );
-                })
-              )}
-            </svg>
+        {/* 5. Legal Bar */}
+        <div className="viroka-legal-bar">
+          <span>© 2026 SallyIP. Designed for Legal Excellence</span>
+          <div className="viroka-legal-links">
+            <a href="#privacy" className="viroka-legal-link">Privacy Policy</a>
+            <a href="#terms" className="viroka-legal-link">Terms of Service</a>
           </div>
         </div>
-
-        {/* Right Column: Navigation Links */}
-        <div className="mg-footer-right">
-          <button type="button" className="mg-footer-nav-link" onClick={() => handleLinkClick('modules')}>
-            Platform
-          </button>
-          <button type="button" className="mg-footer-nav-link" onClick={() => handleLinkClick('lifecycle')}>
-            Use Cases
-          </button>
-          <button type="button" className="mg-footer-nav-link" onClick={() => handleLinkClick('benchmarks')}>
-            Resources
-          </button>
-          <button type="button" className="mg-footer-nav-link" onClick={() => handleLinkClick('performance')}>
-            Services
-          </button>
-          <button type="button" className="mg-footer-nav-link" onClick={() => handleLinkClick('home')}>
-            About
-          </button>
-        </div>
-      </div>
-
-      {/* 3. Sub-footer Legal & Copyright Row */}
-      <div className="mg-footer-bottom-row">
-        <a href="#terms" className="mg-bottom-link">
-          Terms and conditions
-        </a>
-        <span>© 2026 SallyIP. All Rights Reserved</span>
-        <a href="#privacy" className="mg-bottom-link">
-          Privacy Policy
-        </a>
-      </div>
-
-      {/* 4. Giant Watermark Typography matching user screenshot */}
-      <div className="mg-watermark-wrap">
-        <span className="mg-watermark-text">sallyip</span>
       </div>
     </div>
   );

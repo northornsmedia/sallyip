@@ -576,7 +576,7 @@ Would you like me to draft specific claim sets or perform a targeted prior-art s
 function Mark({ className = "" }) {
   return (
     <span className={`brandMark ${className}`}>
-      <img src="/sallyip-logo.png" alt="" />
+      <img src="/sallyip-logo.png" alt="SallyIP" />
     </span>
   );
 }
@@ -1602,7 +1602,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
 
           {/* Active Conversation Tab */}
           <div className="beebotTabBtn active">
-            <img src="/sallyip-brand-mark.png" alt="" className="w-3.5 h-3.5 object-contain shrink-0" />
+            <img src="/sallyip-brand-mark.png" alt="SallyIP" className="w-3.5 h-3.5 object-contain shrink-0" />
             <span className="max-w-[160px] truncate">{active?.title || "New conversation"}</span>
             <button
               className="beebotTabClose"
@@ -1880,7 +1880,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                 onClick={() => setModelMenuOpen((v) => !v)}
               >
                 <div className="beebotModelIcon">
-                  <img src="/sallyip-brand-mark.png" alt="" className="w-3.5 h-3.5 object-contain" />
+                  <img src="/sallyip-brand-mark.png" alt="SallyIP" className="w-3.5 h-3.5 object-contain" />
                 </div>
                 <span>{selectedEngine === "nvidia/nemotron-3.5-lightning:free" ? "Nemotron 3.5" : selectedEngine === "google/gemma-4-26b-a4b-it:free" ? "Gemma 4 26B" : selectedEngine === "liquid/lfm-2.5-2.6b:free" ? "Liquid LFM Fast" : "SallyIP 4.2 Pro"}</span>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
