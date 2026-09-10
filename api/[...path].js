@@ -47,6 +47,7 @@ const handlers = {
   'artifacts': artifactsHandler,
   'auth': authHandler,
   'chat': chatHandler,
+  'chat-stream': chatHandler,
   'claim-charts': claimChartsHandler,
   'citations': citationsHandler,
   'conversations': conversationsHandler,
