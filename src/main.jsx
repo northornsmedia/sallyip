@@ -62,6 +62,7 @@ import ModulesPage from "@/components/modules-page";
 import PerformancePage from "@/components/performance-page";
 import SecurityPage from "@/components/security-page";
 import BenchmarksPage from "@/components/benchmarks-page";
+import VoiceChatWidget from "@/components/voice-chat-widget";
 import "./home-redesign.css";
 import "./styles.css";
 import "./brand.css";
@@ -1816,6 +1817,7 @@ function App() {
       ) : (
         <ProtectedAppShell page={page} />
       )}
+      <VoiceChatWidget />
     </>
   );
 }

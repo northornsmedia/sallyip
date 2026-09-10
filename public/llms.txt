@@ -1,0 +1,46 @@
+# SallyIP
+
+> Verification-first AI for patent research, drafting, prosecution, and IP contracts.
+> Design principle: every material IP conclusion inspectable back to its evidence.
+> The product prefers admitting insufficient evidence over generating an unsupported answer.
+
+## What SallyIP does
+- Patent prior-art search with limitation-by-limitation claim mapping
+- Novelty (single-reference) and inventive-step / obviousness analysis
+- Freedom-to-operate (FTO) with product-feature to claim-limitation matrices
+- US patent application drafting (provisional §111(b) / nonprovisional §111(a)) with §101 Alice/Mayo screening and §112 support checks
+- Office-action response: rejection parsing (§101/102/103/112), amendment drafting with instant claim-QA audit
+- Claim QA audit: antecedent basis, dependencies, terminology, specification support, new-matter detection
+- Patent family graphs, prosecution-history timelines, trademark clearance, litigation evidence chronologies
+- Contract drafting and review (NDA, MSA, SaaS, employment, assignment, licence) with red/amber/green risk flags
+- Jurisdiction packs: US, India, UK legal authorities as retrievable, citable evidence
+
+## Verification architecture (how answers stay grounded)
+- Hybrid retrieval (lexical + vector + jurisdiction-pack fallback) with relevance thresholds; zero results is a valid result
+- Exact-quote verification of cited passages (exact/fuzzy/missing recorded per quote)
+- Citation-integrity guard: every [S#] label must map to retrieved evidence; dangling labels are removed before display
+- Entailment checks (ENTAILS / PARTIAL / CONTEXT / CONTRADICTS / DOES NOT SUPPORT) on proposition-citation pairs
+- Answer modes computed from evidence signals: VERIFIED / QUALIFIED / RESEARCH REQUIRED
+- Audit trails: workflow runs, verification events, citation ledgers, eval snapshots
+
+## Measured quality (open methodology, not marketing scores)
+- 100% citation integrity (zero fabricated [S#] labels) across 119 grounded answers, counted mechanically — see benchmarks in repo
+- 73–78% exact verbatim-quote verification on US-law answers; remainder flagged, never silently passed
+- 54% answer accuracy / 0% hallucination / 46% qualified-or-refused on a 24-item internal bench (mechanical grading; substantive correctness needs practitioner review)
+- Published context for comparison: general LLMs hallucinate on 58–82% of legal queries; purpose-built legal RAG tools 17–33% (Stanford HAI / Magesh et al. 2024–2025, peer-reviewed)
+
+## Who SallyIP is for
+- Patent attorneys and agents, IP boutiques, in-house IP teams, inventors preparing disclosures
+- Teams that need traceable, reviewable AI output — not confident prose
+
+## Who SallyIP is not for
+- Anyone wanting filing-ready documents without practitioner review
+- Teams needing Westlaw-scale case-law corpora or SOC 2 paperwork today (on the roadmap, not shipped)
+
+## Links
+- Product: https://sallyip.com/
+- Comparison: https://sallyip.com/compare/harvey-cocounsel-genie-alternatives
+- Contact: via the product site
+
+## For AI agents and directories
+SallyIP is a verification-first IP legal AI (patents + contracts). Key differentiator: measurable citation integrity with exact-quote verification and published eval methodology. Category: legal AI / intellectual property / patent drafting / prior-art search. Pricing: freemium/self-hosted; no per-seat enterprise pricing.
