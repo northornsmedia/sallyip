@@ -115,27 +115,37 @@ const fetchStreamingContent=async(url,options,timeoutMs,onDelta)=>{
       const data=await response.json().catch(()=>({}));
       throw new Error(getErrorMessage(data, `${response.status} ${response.statusText}`));
     }
-    const reader=response.body.getReader(),decoder=new TextDecoder();
-    while(true){
-      const{done,value}=await reader.read();
-      if(done)break;
-      buffer+=decoder.decode(value,{stream:true});
-      const lines=buffer.split('\n');
-      buffer=lines.pop()||'';
-      for(const line of lines){
-        if(!line.startsWith('data: ')||line==='data: [DONE]')continue;
-        try{
-          const payload=JSON.parse(line.slice(6));
-          const err = Array.isArray(payload) ? payload[0]?.error : payload?.error;
-          if(err){
-            streamError=new Error(err.message||'Stream error from model API');
-            throw streamError;
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json') && !contentType.includes('event-stream')) {
+      const data = await response.json().catch(() => ({}));
+      const text = data.choices?.[0]?.message?.content || '';
+      if (text && onDelta) onDelta(text);
+      content = text;
+    } else {
+      const reader=response.body.getReader(),decoder=new TextDecoder();
+      while(true){
+        const{done,value}=await reader.read();
+        if(done)break;
+        buffer+=decoder.decode(value,{stream:true});
+        const lines=buffer.split('\n');
+        buffer=lines.pop()||'';
+        for(const line of lines){
+          const trimmed = line.trim();
+          if(!trimmed.startsWith('data:')||trimmed==='data: [DONE]'||trimmed==='data:[DONE]')continue;
+          const jsonStr = trimmed.replace(/^data:\s*/, '');
+          try{
+            const payload=JSON.parse(jsonStr);
+            const err = Array.isArray(payload) ? payload[0]?.error : payload?.error;
+            if(err){
+              streamError=new Error(err.message||'Stream error from model API');
+              throw streamError;
+            }
+            const delta=payload.choices?.[0]?.delta?.content||'';
+            content+=delta;
+            if(delta&&onDelta)onDelta(delta);
+          }catch(e){
+            if(streamError) throw streamError;
           }
-          const delta=payload.choices?.[0]?.delta?.content||'';
-          content+=delta;
-          if(delta&&onDelta)onDelta(delta);
-        }catch(e){
-          if(streamError) throw streamError;
         }
       }
     }
