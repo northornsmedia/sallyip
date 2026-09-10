@@ -180,9 +180,9 @@ export default function HomePageRedesign({
               transition={{ duration: 0.6, delay: 0.08 }}
               className="sh-hero-title"
             >
-              Patent intelligence,
+              IP intelligence,
               <br />
-              from idea to
+              from creation to
               <br />
               <span className="sh-gradient-text">enforcement.</span>
             </motion.h1>

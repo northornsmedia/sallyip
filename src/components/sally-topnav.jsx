@@ -45,7 +45,6 @@ export default function SallyTopNav({
             />
           </div>
           <span className="sh-brand-name">SallyIP</span>
-          <span className="sh-brand-badge">2026</span>
         </button>
 
         {/* Desktop Navigation Links */}

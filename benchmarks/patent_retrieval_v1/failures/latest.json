@@ -1,10 +1,110 @@
 {
- "at": "2026-09-09T13:22:50.584Z",
+ "at": "2026-09-10T06:56:31.586Z",
  "failures": [
   {
    "id": "ret-001",
    "metric": "family-resolution",
    "detail": "3 families for 3 members"
+  },
+  {
+   "id": "ret-002",
+   "metric": "family-resolution",
+   "detail": "29 families for 30 members"
+  },
+  {
+   "id": "ret-003",
+   "metric": "family-resolution",
+   "detail": "30 families for 30 members"
+  },
+  {
+   "id": "ret-004",
+   "metric": "family-resolution",
+   "detail": "28 families for 29 members"
+  },
+  {
+   "id": "ret-005",
+   "metric": "family-resolution",
+   "detail": "30 families for 30 members"
+  },
+  {
+   "id": "ret-006",
+   "metric": "family-resolution",
+   "detail": "30 families for 30 members"
+  },
+  {
+   "id": "ret-007",
+   "metric": "family-resolution",
+   "detail": "30 families for 30 members"
+  },
+  {
+   "id": "ret-008",
+   "metric": "family-resolution",
+   "detail": "29 families for 30 members"
+  },
+  {
+   "id": "ret-009",
+   "metric": "family-resolution",
+   "detail": "4 families for 5 members"
+  },
+  {
+   "id": "ret-010",
+   "metric": "family-resolution",
+   "detail": "29 families for 30 members"
+  },
+  {
+   "id": "ret-011",
+   "metric": "family-resolution",
+   "detail": "11 families for 12 members"
+  },
+  {
+   "id": "ret-012",
+   "metric": "family-resolution",
+   "detail": "30 families for 30 members"
+  },
+  {
+   "id": "ret-013",
+   "metric": "family-resolution",
+   "detail": "30 families for 30 members"
+  },
+  {
+   "id": "ret-014",
+   "metric": "family-resolution",
+   "detail": "30 families for 30 members"
+  },
+  {
+   "id": "ret-015",
+   "metric": "family-resolution",
+   "detail": "30 families for 30 members"
+  },
+  {
+   "id": "ret-016",
+   "metric": "family-resolution",
+   "detail": "30 families for 30 members"
+  },
+  {
+   "id": "ret-017",
+   "metric": "family-resolution",
+   "detail": "30 families for 30 members"
+  },
+  {
+   "id": "ret-018",
+   "metric": "family-resolution",
+   "detail": "18 families for 20 members"
+  },
+  {
+   "id": "ret-019",
+   "metric": "family-resolution",
+   "detail": "30 families for 30 members"
+  },
+  {
+   "id": "corpus",
+   "metric": "duplicate-collapse",
+   "detail": "18 families for 19 cases x2"
+  },
+  {
+   "id": "corpus",
+   "metric": "false-merge-rate",
+   "detail": "1 cross-case merges"
   }
  ]
 }

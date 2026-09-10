@@ -33,7 +33,7 @@
 .sh-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -43,43 +43,51 @@
 }
 
 .sh-brand-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  background: #0f0f15;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: transparent;
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px;
-  box-shadow: 0 0 16px rgba(99, 102, 241, 0.25);
-  overflow: hidden;
+  padding: 0;
+  box-shadow: none;
+  overflow: visible;
   flex-shrink: 0;
 }
 
 .sh-brand-logo-img {
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: 28px;
+  max-height: 30px;
   object-fit: contain;
   display: block;
+  filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.4));
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s ease;
+}
+
+.sh-brand:hover .sh-brand-logo-img {
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 14px rgba(129, 140, 248, 0.6));
 }
 
 .sh-brand-name {
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.025em;
   color: #ffffff;
 }
 
 .sh-brand-badge {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 500;
   color: #818cf8;
-  background: rgba(99, 102, 241, 0.12);
-  border: 1px solid rgba(99, 102, 241, 0.25);
-  padding: 2px 7px;
+  background: rgba(99, 102, 241, 0.14);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  padding: 2px 9px;
   border-radius: 6px;
-  margin-left: 4px;
+  margin-left: 2px;
 }
 
 .sh-nav-links {
@@ -1076,6 +1084,8 @@
 }
 
 @media (max-width: 640px) {
+  .sh-brand-logo-img { height: 24px; }
+  .sh-brand-name { font-size: 16px; }
   .sh-nav-links { display: none; }
   .sh-hero-title { font-size: 40px; }
   .sh-hero-subtitle { font-size: 16px; }

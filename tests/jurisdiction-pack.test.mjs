@@ -18,11 +18,11 @@ test('lists packs with authority counts', async () => {
 })
 
 test('pack passages join results without duplicating matter hits', async () => {
-  const packRow = { passage_id: 'pack-1', content: 'Section 101 patentable subject matter', title: '35 U.S.C.', authority_tier: 1, citation: '35 U.S.C. § 101' }
+  const packRow = { passage_id: 'pack-1', source_id: 's-1', jurisdiction: 'US', content: 'Section 101 patentable subject matter', title: '35 U.S.C.', authority_tier: 1, citation: '35 U.S.C. § 101' }
   const mockSql = async (strings) => {
     const q = strings.join('?')
     if (q.includes('jurisdiction_pack')) return [packRow]
-    if (q.includes('source_passages')) return [{ passage_id: 'm-1', content: 'twelve months fees matter text here', title: 'Doc', authority_tier: 5 }]
+    if (q.includes('source_passages')) return [{ passage_id: 'm-1', source_id: 's-2', jurisdiction: 'US', content: 'twelve months fees matter text here', title: 'Doc', authority_tier: 5 }]
     return []
   }
   const results = await retrieveHybridEvidence(mockSql, 'u1', 'matter-1', 'patentable subject matter invention', { packCodes: ['US'] })
@@ -44,6 +44,6 @@ test('no pack codes means no pack query effect', async () => {
 test('extracts section references for direct passage lookup', async () => {
   const { extractSectionRefs } = await import('../src/lib/verification-service.js')
   assert.deepEqual(extractSectionRefs('rejected under 35 U.S.C. 102 as anticipated'), ['102'])
-  assert.deepEqual(extractSectionRefs('Under MPEP 2106, is this eligible?'), ['2106'])
+  assert.deepEqual(extractSectionRefs('Under MPEP 2106, is this eligible?'), ['2106', '101'])
   assert.deepEqual(extractSectionRefs('What is a patent?'), [])
 })

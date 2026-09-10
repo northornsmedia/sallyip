@@ -8,6 +8,7 @@ const UA = { 'User-Agent': 'SallyIP-bench/1.0 (public-data research harvest)' };
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const QUERIES = ['vacuum cleaner', 'drone propeller guard', 'solar panel mounting bracket', 'bicycle gear shifting', 'surgical stapler', 'lithium battery separator', 'hearing aid feedback cancellation', 'irrigation drip valve'];
 const TARGET = 50;
+const SESSION_LIMIT = 18; // per-session cap to avoid re-triggering throttle (task: +15-20 new cases max)
 const STATE_FILE = 'benchmarks/patent_retrieval_v1/harvest-state.json';
 const DATASET_FILE = 'benchmarks/patent_retrieval_v1/dataset.json';
 
@@ -67,7 +68,7 @@ if (!state.seedsDone) {
       }
       state.queried = [...(state.queried || []), query];
     } catch (e) { console.log(`seed query failed: ${e.message.slice(0, 80)}`); }
-    await sleep(15000);
+    await sleep(25000);
   } else state.seedsDone = true;
 }
 
@@ -99,22 +100,29 @@ async function harvestOne(pub, query) {
 }
 
 let fetched = 0;
-while (items.length < TARGET && state.queue.length) {
+const START_COUNT = items.length;
+while (items.length < TARGET && state.queue.length && (items.length - START_COUNT) < SESSION_LIMIT) {
   const next = state.queue.shift();
   if (seen.has(next.pub)) continue;
   seen.add(next.pub);
   try {
     const item = await harvestOne(next.pub, next.query);
-    state.done.push(next.pub);
-    items.push(item);
-    fetched++;
-    console.log(`+ ${next.pub} fam=${item.expected_family_members.length} refs=${item.expected_backward_refs.length} total=${items.length}`);
+    // Honesty gate: every number/date must come from a fetched page; skip incomplete cases.
+    if (!item.title || !item.publication_date || !item.filing_date || !item.expected_family_members.length) {
+      console.log(`SKIP incomplete ${next.pub}: title=${!!item.title} pubdate=${item.publication_date} filing=${item.filing_date} fam=${item.expected_family_members.length}`);
+      state.done.push(next.pub);
+    } else {
+      state.done.push(next.pub);
+      items.push(item);
+      fetched++;
+      console.log(`+ ${next.pub} fam=${item.expected_family_members.length} refs=${item.expected_backward_refs.length} total=${items.length}`);
+    }
   } catch (e) { console.log(`SKIP ${next.pub}: ${e.message.slice(0, 80)}`); }
   await mkdir('benchmarks/patent_retrieval_v1', { recursive: true });
   await writeFile(STATE_FILE, JSON.stringify({ queue: state.queue.slice(0, 400), done: state.done, queried: state.queried || [], seedsDone: state.seedsDone, items }, null, 1));
   if (items.length) {
     await writeFile(DATASET_FILE, JSON.stringify({ version: 'v1-frozen', frozen_at: new Date().toISOString(), source: 'Google Patents public pages (aggregated official office data); each case links its source URL', items }, null, 1));
   }
-  await sleep(12000);
+  await sleep(25000);
 }
 console.log(`CASES:${items.length} QUEUE:${state.queue.length} FETCHED_THIS_RUN:${fetched}`);
