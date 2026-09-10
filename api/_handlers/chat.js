@@ -6,7 +6,7 @@ import {routeSpecialists} from '../../src/lib/specialist-router.js'
 import {draftGuidanceFor} from '../../src/lib/invention-interview.js'
 import {packCodesFor} from '../../src/lib/jurisdiction-pack-service.js'
 import {getMatterContext,matterContextPrompt} from '../../src/lib/matter-service.js'
-import {retrieveHybridEvidence,evidencePrompt,verificationSummary,finalizeVerifiedAnswer,isHighRiskLegalRequest} from '../../src/lib/verification-service.js'
+import {retrieveHybridEvidence,evidencePrompt,verificationSummary,guardAnswerCitations} from '../../src/lib/verification-service.js'
 
 export default async function handler(req,res){
   if(req.method!=='POST')return res.status(405).json({error:{message:'Method not allowed'}})
@@ -47,7 +47,7 @@ export default async function handler(req,res){
       } catch {}
     }
     if (databaseUrl) await recordSallyTelemetry(databaseUrl,result.meta).catch(()=>{})
-    const guarded=finalizeVerifiedAnswer(result.answer,evidence,verification,{highRisk:isHighRiskLegalRequest(route,latest)})
+    const guarded=guardAnswerCitations(result.answer,evidence,verification)
     const answer=guarded.answer
     return res.status(200).json({id:`sally-${Date.now()}`,object:'chat.completion',model:'sallyip/4.1-pro',choices:[{index:0,message:{role:'assistant',content:answer},finish_reason:'stop'}],sally_meta:{...result.meta,agent_run_id:run?.id||null,route,verification,sources:evidence.map(({content,...source})=>source),citation_guard:guarded.guard}})
   }catch(error){return res.status(503).json({error:{message:error.message}})}
