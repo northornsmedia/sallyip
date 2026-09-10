@@ -41,6 +41,7 @@ import {
   Home,
   Layers3,
   LogOut,
+  Menu,
   MessageSquare,
   Mic,
   MicOff,
@@ -647,6 +648,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   });
   const [libraryLoading, setLibraryLoading] = useState(false);
   const [sidebarTab, setSidebarTab] = useState("chats"); // 'chats' | 'library'
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Sally Permanent Voice & Audio State
   const [playingAudioIndex, setPlayingAudioIndex] = useState(null);
@@ -1133,6 +1135,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
     const changed={...active,messages:[...(active.messages||[]),message]};updateActive(()=>changed);await persistChat(changed).catch(()=>{});
   };
   const newChat = async () => {
+    setMobileSidebarOpen(false);
     if (active?.messages.length === 0) {
       setInput("");
       return;
@@ -1185,6 +1188,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
     if (loading) return;
     setActiveId(id);
     setInput("");
+    setMobileSidebarOpen(false);
   };
   const streamResponseLineByLine = async (fullText) => {
     setIsWriting(true);
@@ -1854,15 +1858,34 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         </div>
       </header>
 
+      {/* Mobile Sidebar Backdrop */}
+      {mobileSidebarOpen && (
+        <div
+          className="beebotSidebarBackdrop"
+          onClick={() => setMobileSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Main Body */}
       <div className="beebotBody">
         {/* Left Sidebar */}
-        <aside className="beebotSidebar">
-          <div className="beebotBrand" onClick={onHome}>
-            <div className="beebotLogoIcon">
-              <img src="/sallyip-brand-mark.png" alt="SallyIP" className="beebotBrandLogoImg" />
+        <aside className={`beebotSidebar ${mobileSidebarOpen ? "mobile-open" : ""}`}>
+          <div className="beebotBrandRow">
+            <div className="beebotBrand" onClick={() => { setMobileSidebarOpen(false); onHome(); }}>
+              <div className="beebotLogoIcon">
+                <img src="/sallyip-brand-mark.png" alt="SallyIP" className="beebotBrandLogoImg" />
+              </div>
+              <div className="beebotLogoText">SallyIP</div>
             </div>
-            <div className="beebotLogoText">SallyIP</div>
+            <button
+              type="button"
+              className="beebotSidebarCloseBtn"
+              onClick={() => setMobileSidebarOpen(false)}
+              aria-label="Close sidebar"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
 
           <div className="beebotSearchWrap">
@@ -2096,18 +2119,29 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         <main className="beebotMainArea">
           {/* Main Top Bar */}
           <div className="beebotMainTop">
-            <div className="beebotModelPickerWrap">
+            <div className="beebotTopLeftGroup">
               <button
                 type="button"
-                className="beebotModelPicker"
-                onClick={() => setModelMenuOpen((v) => !v)}
+                className="beebotMobileMenuBtn"
+                onClick={() => setMobileSidebarOpen((v) => !v)}
+                title="Toggle sidebar menu"
+                aria-label="Toggle sidebar menu"
               >
-                <div className="beebotModelIcon">
-                  <img src="/sallyip-brand-mark.png" alt="SallyIP" className="w-3.5 h-3.5 object-contain" />
-                </div>
-                <span>{selectedEngine === "nvidia/nemotron-3.5-lightning:free" ? "Nemotron 3.5" : selectedEngine === "google/gemma-4-26b-a4b-it:free" ? "Gemma 4 26B" : selectedEngine === "liquid/lfm-2.5-2.6b:free" ? "Liquid LFM Fast" : "SallyIP 4.2 Pro"}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                <Menu className="w-4 h-4 text-slate-700" />
               </button>
+
+              <div className="beebotModelPickerWrap">
+                <button
+                  type="button"
+                  className="beebotModelPicker"
+                  onClick={() => setModelMenuOpen((v) => !v)}
+                >
+                  <div className="beebotModelIcon">
+                    <img src="/sallyip-brand-mark.png" alt="SallyIP" className="w-3.5 h-3.5 object-contain" />
+                  </div>
+                  <span>{selectedEngine === "nvidia/nemotron-3.5-lightning:free" ? "Nemotron 3.5" : selectedEngine === "google/gemma-4-26b-a4b-it:free" ? "Gemma 4 26B" : selectedEngine === "liquid/lfm-2.5-2.6b:free" ? "Liquid LFM Fast" : "SallyIP 4.2 Pro"}</span>
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                </button>
 
               {modelMenuOpen && (
                 <div className="beebotModelDropdown">
@@ -2159,8 +2193,9 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                 </div>
               )}
             </div>
+          </div>
 
-            <div className="beebotTopRightActions">
+          <div className="beebotTopRightActions">
               <button
                 type="button"
                 className={`beebotNewChatBtn ${autoSpeakVoice ? "border-indigo-300 text-indigo-600 dark:border-indigo-700 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/30" : ""}`}

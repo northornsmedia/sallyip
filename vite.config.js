@@ -136,33 +136,51 @@ function sallyChatApi(apiKey, databaseUrl, model, embeddingKey, embeddingModel, 
           const { input, text, model } = JSON.parse(raw || '{}')
           const speechText = String(input || text || '').trim()
           if (!speechText) { res.statusCode = 400; res.setHeader('Content-Type','application/json'); return res.end(JSON.stringify({error:{message:'Speech text is required'}})) }
-          const speechApiKey = process.env.OPENROUTER_SPEECH_API_KEY || apiKey
+          const candidateKeys = [
+            process.env.OPENROUTER_SPEECH_API_KEY,
+            process.env.OPENROUTER_API_KEY,
+            apiKey,
+            process.env.OPENROUTER_LFM_CHAT_API_KEY,
+            process.env.OPENROUTER_GEMMA_API_KEY,
+            process.env.OPENROUTER_EMBEDDING_API_KEY,
+            process.env.OPENROUTER_OX_API_KEY,
+            process.env.OPENROUTER_RERANK_API_KEY,
+          ].filter(Boolean)
           const speechModel = model || process.env.SALLYIP_SPEECH_MODEL || 'fish-audio/s2.1-pro-free:free'
-          const response = await fetch('https://openrouter.ai/api/v1/audio/speech', {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${speechApiKey}`,
-              'Content-Type': 'application/json',
-              'HTTP-Referer': 'https://sallyip.com',
-              'X-Title': 'SallyIP Voice Mode'
-            },
-            body: JSON.stringify({
-              model: speechModel,
-              input: speechText,
-              response_format: 'mp3'
+          let lastErr = null
+          let lastStatus = 500
+          for (const speechApiKey of candidateKeys) {
+            const response = await fetch('https://openrouter.ai/api/v1/audio/speech', {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${speechApiKey}`,
+                'Content-Type': 'application/json',
+                'HTTP-Referer': 'https://sallyip.com',
+                'X-Title': 'SallyIP Voice Mode'
+              },
+              body: JSON.stringify({
+                model: speechModel,
+                input: speechText,
+                response_format: 'mp3'
+              })
             })
-          })
-          if (!response.ok) {
-            const err = await response.json().catch(() => ({}))
-            res.statusCode = response.status
+            if (response.ok) {
+              const buf = Buffer.from(await response.arrayBuffer())
+              res.statusCode = 200
+              res.setHeader('Content-Type', 'audio/mpeg')
+              res.setHeader('Content-Length', String(buf.length))
+              return res.end(buf)
+            }
+            lastStatus = response.status
+            lastErr = await response.json().catch(() => ({}))
+            if (response.status === 429) continue
+            res.statusCode = lastStatus
             res.setHeader('Content-Type', 'application/json')
-            return res.end(JSON.stringify(err))
+            return res.end(JSON.stringify(lastErr))
           }
-          const buf = Buffer.from(await response.arrayBuffer())
-          res.statusCode = 200
-          res.setHeader('Content-Type', 'audio/mpeg')
-          res.setHeader('Content-Length', String(buf.length))
-          return res.end(buf)
+          res.statusCode = lastStatus
+          res.setHeader('Content-Type', 'application/json')
+          return res.end(JSON.stringify(lastErr || { error: { message: 'Speech failed' } }))
         } catch (error) {
           res.statusCode = 500
           res.setHeader('Content-Type', 'application/json')
@@ -193,33 +211,51 @@ function sallyChatApi(apiKey, databaseUrl, model, embeddingKey, embeddingModel, 
           const { input, text, model } = JSON.parse(raw || '{}')
           const speechText = String(input || text || '').trim()
           if (!speechText) { res.statusCode = 400; res.setHeader('Content-Type','application/json'); return res.end(JSON.stringify({error:{message:'input text is required'}})) }
-          const speechApiKey = process.env.OPENROUTER_SPEECH_API_KEY || apiKey
+          const candidateKeys = [
+            process.env.OPENROUTER_SPEECH_API_KEY,
+            process.env.OPENROUTER_API_KEY,
+            apiKey,
+            process.env.OPENROUTER_LFM_CHAT_API_KEY,
+            process.env.OPENROUTER_GEMMA_API_KEY,
+            process.env.OPENROUTER_EMBEDDING_API_KEY,
+            process.env.OPENROUTER_OX_API_KEY,
+            process.env.OPENROUTER_RERANK_API_KEY,
+          ].filter(Boolean)
           const speechModel = model || process.env.SALLYIP_SPEECH_MODEL || 'fish-audio/s2.1-pro-free:free'
-          const response = await fetch('https://openrouter.ai/api/v1/audio/speech', {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${speechApiKey}`,
-              'Content-Type': 'application/json',
-              'HTTP-Referer': 'https://sallyip.com',
-              'X-Title': 'SallyIP Voice Agent'
-            },
-            body: JSON.stringify({
-              model: speechModel,
-              input: speechText,
-              response_format: 'mp3'
+          let lastErr = null
+          let lastStatus = 500
+          for (const speechApiKey of candidateKeys) {
+            const response = await fetch('https://openrouter.ai/api/v1/audio/speech', {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${speechApiKey}`,
+                'Content-Type': 'application/json',
+                'HTTP-Referer': 'https://sallyip.com',
+                'X-Title': 'SallyIP Voice Agent'
+              },
+              body: JSON.stringify({
+                model: speechModel,
+                input: speechText,
+                response_format: 'mp3'
+              })
             })
-          })
-          if (!response.ok) {
-            const err = await response.json().catch(() => ({}))
-            res.statusCode = response.status
+            if (response.ok) {
+              const buf = Buffer.from(await response.arrayBuffer())
+              res.statusCode = 200
+              res.setHeader('Content-Type', 'audio/mpeg')
+              res.setHeader('Content-Length', String(buf.length))
+              return res.end(buf)
+            }
+            lastStatus = response.status
+            lastErr = await response.json().catch(() => ({}))
+            if (response.status === 429) continue
+            res.statusCode = lastStatus
             res.setHeader('Content-Type', 'application/json')
-            return res.end(JSON.stringify(err))
+            return res.end(JSON.stringify(lastErr))
           }
-          const buf = Buffer.from(await response.arrayBuffer())
-          res.statusCode = 200
-          res.setHeader('Content-Type', 'audio/mpeg')
-          res.setHeader('Content-Length', String(buf.length))
-          return res.end(buf)
+          res.statusCode = lastStatus
+          res.setHeader('Content-Type', 'application/json')
+          return res.end(JSON.stringify(lastErr || { error: { message: 'Speech failed' } }))
         } catch (error) {
           res.statusCode = 500
           res.setHeader('Content-Type', 'application/json')

@@ -43,38 +43,58 @@ export default async function handler(req, res) {
       }
     }
 
-    const apiKey = process.env.OPENROUTER_SPEECH_API_KEY || process.env.OPENROUTER_API_KEY;
-    if (!apiKey) {
+    const candidateKeys = [
+      process.env.OPENROUTER_SPEECH_API_KEY,
+      process.env.OPENROUTER_API_KEY,
+      process.env.OPENROUTER_LFM_CHAT_API_KEY,
+      process.env.OPENROUTER_GEMMA_API_KEY,
+      process.env.OPENROUTER_EMBEDDING_API_KEY,
+      process.env.OPENROUTER_OX_API_KEY,
+      process.env.OPENROUTER_RERANK_API_KEY,
+    ].filter(Boolean);
+
+    if (!candidateKeys.length) {
       return res.status(500).json({ error: { message: 'OpenRouter Speech API key is not configured' } });
     }
 
-    const response = await fetch('https://openrouter.ai/api/v1/audio/speech', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': `https://${req.headers.host || 'sallyip.com'}`,
-        'X-Title': 'SallyIP Voice Mode',
-      },
-      body: JSON.stringify({
-        model: speechModel,
-        input: speechText,
-        response_format: 'mp3',
-      }),
-    });
+    let lastError = null;
+    let lastStatus = 500;
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      return res.status(response.status).json(errorData);
+    for (const apiKey of candidateKeys) {
+      const response = await fetch('https://openrouter.ai/api/v1/audio/speech', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': `https://${req.headers.host || 'sallyip.com'}`,
+          'X-Title': 'SallyIP Voice Mode',
+        },
+        body: JSON.stringify({
+          model: speechModel,
+          input: speechText,
+          response_format: 'mp3',
+        }),
+      });
+
+      if (response.ok) {
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        res.setHeader('Content-Type', 'audio/mpeg');
+        res.setHeader('Content-Length', String(buffer.length));
+        res.setHeader('Cache-Control', 'no-cache, no-store');
+        return res.status(200).send(buffer);
+      }
+
+      lastStatus = response.status;
+      lastError = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
+      if (response.status === 429) {
+        continue;
+      }
+      return res.status(lastStatus).json(lastError);
     }
 
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    res.setHeader('Content-Type', 'audio/mpeg');
-    res.setHeader('Content-Length', String(buffer.length));
-    res.setHeader('Cache-Control', 'no-cache, no-store');
-    return res.status(200).send(buffer);
+    return res.status(lastStatus).json(lastError || { error: { message: 'Speech synthesis failed' } });
   } catch (error) {
     console.error('[voice-speak] Synthesis error:', error);
     return res.status(500).json({ error: { message: error.message || 'Speech synthesis failed' } });
