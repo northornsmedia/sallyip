@@ -214,13 +214,14 @@ function Landing() {
           </div>
           <Reveal>
             <h1>
-              Build IP intelligence.
+              IP intelligence,
               <br />
-              <span>Shape what comes next.</span>
+              <span>from creation to enforcement.</span>
             </h1>
             <p>
-              A research platform for creating specialized intellectual-property
-              AI—without managing models, GPU queues, or training scripts.
+              A verification-first AI workspace for intellectual-property
+              professionals working across patents, trademarks and the wider
+              IP lifecycle — every material conclusion traceable to its evidence.
             </p>
             <div className="heroCtas">
               <button className="darkBtn big" onClick={() => go("train")}>
@@ -272,25 +273,29 @@ function Landing() {
         </section>
         <MagicNumbers />
         <section className="trust">
-          <span>Built for ambitious research teams</span>
+          <span>Verification-first across the IP lifecycle</span>
           <div>
-            <b>LEXFORD</b>
-            <b>Northstar University</b>
-            <b>INSTITUTE / 04</b>
-            <b>FORMA LEGAL</b>
-            <b>ARC RESEARCH</b>
+            <b>PATENT PROSECUTION</b>
+            <b>TRADEMARK CLEARANCE</b>
+            <b>IP LITIGATION</b>
+            <b>CONTRACT REVIEW</b>
+            <b>BENCHMARKS</b>
           </div>
         </section>
         <section id="platform" className="section split">
           <Reveal>
             <Pill>THE PLATFORM</Pill>
-            <ScrollAssembleText text="Private legal knowledge, made remarkably useful." />
+            <ScrollAssembleText text="Verification-first AI for the full IP lifecycle." />
           </Reveal>
           <Reveal>
             <p className="lead">
-              SallyIP Labs turns carefully prepared legal knowledge into useful
-              model adaptations. You bring the expertise. We orchestrate
-              validation, indexing, retrieval evaluation, and provenance.
+              SallyIP is a verification-first AI workspace for intellectual
+              property professionals. Live product workflows cover patent
+              research, drafting and prosecution, trademark clearance and IP
+              contracts — with guidance and research coverage across copyright,
+              designs, trade secrets and enforcement. Every material conclusion
+              links to retrieved evidence; where evidence is missing, SallyIP
+              says so.
             </p>
           </Reveal>
         </section>

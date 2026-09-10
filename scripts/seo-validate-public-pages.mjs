@@ -59,7 +59,7 @@ for (const f of pages) {
   const desc = h.match(/<meta name="description" content="([\s\S]*?)"\s*\/>/);
   if (!desc) fail(`CRITICAL: ${rel} missing meta description`);
   else if (desc[1].length < 100 || desc[1].length > 175) warn(`${rel} description length ${desc[1].length} (aim 120-160)`);
-  const ld = h.match(/<script type="application\/ld\+json">\n([\s\S]*?)\n<\/script>/);
+  const ld = h.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
   if (!ld) fail(`CRITICAL: ${rel} missing JSON-LD`);
   else try { JSON.parse(ld[1]); } catch { fail(`CRITICAL: ${rel} JSON-LD invalid`); }
   const links = [...h.matchAll(/href="https:\/\/sallyip\.com(\/[^"]*)"/g)].map(x => x[1]);
@@ -74,6 +74,8 @@ for (const f of pages) {
     if (!/glossary\/">All definitions|glossary\/">All/.test(h) && !h.includes('>All definitions<')) warn(`${rel} missing backlink to glossary index`);
   }
   if ((rel === '/patents/' || rel === '/ip-ai/' || rel === '/trademarks/') && words(h) < 500) fail(`CRITICAL: hub ${rel} too thin (<500 words visible)`);
+  if ((rel === '/prior-art-search/' || rel === '/freedom-to-operate/' || rel === '/office-action-response/' || rel === '/legal-ai-verification/' || rel === '/legal-ai-hallucinations/') && words(h) < 400) fail(`CRITICAL: cluster ${rel} fails quality gate (<400 words)`);
+  if ((rel.startsWith('/research/') || (rel.startsWith('/benchmarks/') && rel !== '/benchmarks/')) && words(h) < 300) fail(`CRITICAL: research ${rel} too thin (<300 words)`);
   if (rel.startsWith('/benchmarks')) {
     if (!/3368daf1|fe26da44|regression_report|ablation-report|cross-bench/.test(h) && !/latest\.json/.test(h)) warn(`${rel} benchmark claims lack run references`);
     if (/100% accuracy|0% hallucination[^s]|best legal AI|#1/.test(h)) fail(`CRITICAL: ${rel} contains banned superlative`);

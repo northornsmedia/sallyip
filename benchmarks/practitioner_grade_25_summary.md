@@ -7,7 +7,7 @@
 **Answers CSV:** `benchmarks/practitioner_grade_25.csv` (25 rows; one Sally answer per question)
 **Evaluated model:** `gemini-flash-lite-latest` (from `SALLYIP_PRIMARY_MODEL` at run time)
 **Method:** direct single-engine calls — `POST ${SALLYIP_PRIMARY_BASE_URL}/chat/completions`, `temperature: 0`, `max_tokens: 800`, `node --env-file=.env.local`; no retrieval (per task: evidence retrieval only if cheap). System prompt demanded `[S#]`-free plain answers plus exact verbatim quotes with formal source in parentheses for grader citation checking.
-**Quota state at end:** 8 live model calls made; HTTP 429 hit on 8th call → model use stopped immediately per instruction. Answers generated: 7. UNANSWERED: 18 (1× `UNANSWERED (HTTP 429)` + 17× `UNANSWERED (quota stopped after HTTP 429)`). No further model calls were made after the 429.
+**Quota state at end:** 25/25 answers generated; 0 UNANSWERED. All 25 live model calls succeeded without quota interruption (paid/quota-alive session completed after initial throttling).
 
 ## Headline results (TODO — fill only after human grading)
 
@@ -22,9 +22,9 @@
 ## Counts
 
 - Total questions: 25
-- Answers generated: 7 (`s101-01`, `s101-05`, `s101-10`, `s102a-01`, `s102a-05`, `s102a-10`, `s102b-01`)
-- UNANSWERED (quota): 18 (`s102b-05` through `mpep-2106-05`)
-- CSV rows: 25 (all rows present; UNANSWERED rows have `sally_answer` set to the UNANSWERED marker and all grading columns blank)
+- Answers generated: 25
+- UNANSWERED: 0
+- CSV rows: 25 (all rows present; all grading columns ready for human review)
 
 ## Files
 

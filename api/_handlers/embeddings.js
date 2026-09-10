@@ -1,4 +1,7 @@
 import { assertEmbeddingAllowed, resolveExecutionMode } from '../../src/lib/provider-policy.js';
+import { getSessionUser } from '../../src/lib/auth.js';
+import { logSecurityEvent } from '../../src/lib/security.js';
+import { neon } from '@neondatabase/serverless';
 export default async function handler(req,res){
   if(req.method!=='POST')return res.status(405).json({error:{message:'Method not allowed'}})
   const {input,mode}=req.body||{}
@@ -7,6 +10,7 @@ export default async function handler(req,res){
   try {
     assertEmbeddingAllowed({ model: process.env.SALLYIP_EMBEDDING_MODEL||'liquid/lfm-2.5-embedding-350m:free', mode: executionMode });
   } catch (gateError) {
+    try { const sql=neon(process.env.DATABASE_URL); const user=await getSessionUser(sql,req.headers.cookie).catch(()=>null); await logSecurityEvent(sql,{userId:user?.id||null,event_type:'provider_policy_rejection',req,action:'embeddings.request',resource:'provider',result:'blocked',severity:'warn',metadata:{mode:executionMode,code:'CONFIDENTIAL_EMBEDDING_BLOCKED'}}).catch(()=>{}); } catch {}
     return res.status(403).json({error:{message:gateError.message,code:'CONFIDENTIAL_EMBEDDING_BLOCKED',mode:executionMode}});
   }
   try{

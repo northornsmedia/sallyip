@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { ArrowRight, Check } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import MarketingLayout from '../MarketingLayout';
-import { Hero, Section, Split, Shot, Reveal, Eyebrow, CTASection, Breadcrumbs, go } from '../ui';
+import { Hero, Section, Split, Reveal, Eyebrow, CTASection, Breadcrumbs, go } from '../ui';
+import { ProductShot, VerifiedPanel } from '../shots';
 import { NoveltyDemo, ClaimChartDemo, VerificationDemo } from '../demos';
 
 const STAGES = [
@@ -15,28 +16,42 @@ const STAGES = [
 ];
 
 const SHOWCASES = [
-  { k: 'MATTER WORKSPACE', t: 'Every matter, all its context, in one place.', b: 'Sources, vault passages, IP graph, playbooks and audit trails scoped to the matter — never bleeding across clients.', bullets: ['Matter-scoped vault and IP graph', 'Playbooks versioned per workflow', 'Full audit trail per action'], label: 'MATTER / ACME-2026-014 · VAULT · 18,420 PASSAGES' },
-  { k: 'VERIFICATION DESK', t: 'Review what the model actually relied on.', b: 'Each proposition shows its source, exact passage, and entailment grade. Missing quotes are rejected at attach time.', bullets: ['Proposition → source → passage', 'Exact + fuzzy quote states', 'Fail-closed: unverified never passes silently'], label: 'VERIFICATION DESK · 3 PROPOSITIONS · 1 QUALIFIED' },
-  { k: 'NOVELTY SEARCH', t: 'Novelty mapped feature-by-feature to art.', b: 'Invention features compared against retrieved references with stated gaps — not a score, a mapping.', bullets: ['Feature-to-limitation matrices', 'Official sources: EPO, USPTO', 'Honest unavailable-provider reporting'], label: 'NOVELTY / LEDGER-CONSENSUS · 3 REFERENCES' },
-  { k: 'OFFICE ACTION RESPONSE', t: 'Rejections answered with cited authority.', b: 'Parses §101/102/103/112 rejections, drafts amendments, and audits claim support before anything leaves the desk.', bullets: ['Rejection breakdown per statute', 'Amendment drafting + QA audit', 'MPEP-grounded reasoning'], label: 'OA / NON-FINAL §103 · 4 STEPS' },
-  { k: 'TRADEMARK INTELLIGENCE', t: 'Clearance work with a paper trail.', b: 'Candidates, variants, goods terms and language coverage tracked through review states — research support, never an opinion.', bullets: ['Variant + goods-term review', 'Intelligence-to-clearance sync', 'Every review audit-logged'], label: 'CLEARANCE / SALLYIP · 3 CANDIDATES' },
-  { k: 'CONTRACTS + LITIGATION', t: 'Contracts reviewed. Evidence ordered.', b: 'Clause-level risk flags for contracts; chronologies and evidence maps for disputes — all matter-scoped.', bullets: ['Template variables validated', 'Risk flags: uncapped liability et al.', 'Evidence chronologies with sources'], label: 'CONTRACTS · LITIGATION EVIDENCE' },
+  { k: 'MATTER WORKSPACE', t: 'Every matter, all its context, in one place.', b: 'Sources, vault passages, IP graph, playbooks and audit trails scoped to the matter — never bleeding across clients.', bullets: ['Matter-scoped vault and IP graph', 'Playbooks versioned per workflow', 'Full audit trail per action'], visual: 'panel-matter' },
+  { k: 'VERIFICATION DESK', t: 'Review what the model actually relied on.', b: 'Each proposition shows its source, exact passage, and entailment grade. Missing quotes are rejected at attach time.', bullets: ['Proposition → source → passage', 'Exact + fuzzy quote states', 'Fail-closed: unverified never passes silently'], visual: 'panel-verify' },
+  { k: 'NOVELTY SEARCH', t: 'Novelty mapped feature-by-feature to art.', b: 'Invention features compared against retrieved references with stated gaps — not a score, a mapping.', bullets: ['Feature-to-limitation matrices', 'Official sources: EPO, USPTO', 'Honest unavailable-provider reporting'], visual: 'shot-actions' },
+  { k: 'OFFICE ACTION RESPONSE', t: 'Rejections answered with cited authority.', b: 'Parses §101/102/103/112 rejections, drafts amendments, and audits claim support before anything leaves the desk.', bullets: ['Rejection breakdown per statute', 'Amendment drafting + QA audit', 'MPEP-grounded reasoning'], visual: 'shot-drafting-focus' },
+  { k: 'TRADEMARK INTELLIGENCE', t: 'Clearance work with a paper trail.', b: 'Candidates, variants, goods terms and language coverage tracked through review states — research support, never an opinion.', bullets: ['Variant + goods-term review', 'Intelligence-to-clearance sync', 'Every review audit-logged'], visual: 'panel-tm' },
+  { k: 'CONTRACTS + LITIGATION', t: 'Contracts reviewed. Evidence ordered.', b: 'Clause-level risk flags for contracts; chronologies and evidence maps for disputes — all matter-scoped.', bullets: ['Template variables validated', 'Risk flags: uncapped liability et al.', 'Evidence chronologies with sources'], visual: 'panel-contracts' },
 ];
 
-function FakeShot({ label, lines }) {
-  return (
-    <Shot label={label}>
-      <div style={{ display: 'grid', gap: 10 }}>
-        {lines.map((l, i) => (
-          <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', fontSize: 13.5, color: i === 0 ? '#fff' : '#b8bdc9' }}>
-            <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#5d6372' }}>{String(i + 1).padStart(2, '0')}</span>
-            <span style={{ lineHeight: 1.6 }}>{l}</span>
-          </div>
-        ))}
-        <div style={{ marginTop: 6, fontSize: 11.5, fontFamily: 'monospace', color: '#3fb97f' }}>✓ 2 exact-quote verified · 1 qualified — nothing asserted without evidence</div>
-      </div>
-    </Shot>
-  );
+const PANELS = {
+  'panel-matter': { eyebrow: 'MATTER / GENERAL MATTER · VAULT · WORKSPACES', rows: [
+    ['[S1] VAULT · §§101–103 PACK', 'Matter passage retrieved first — generation gated on evidence.', 'VERIFIED'],
+    ['[S2] PLAYBOOK v3 · OA-RESPONSE', 'Run pinned to playbook version; variables substituted per matter.', 'VERIFIED'],
+    ['[S3] AUDIT · EXPORT', 'Security event written with redacted metadata; revocation on next check.', 'QUALIFIED'],
+  ]},
+  'panel-verify': { eyebrow: 'VERIFICATION DESK · 3 PROPOSITIONS · 1 QUALIFIED', rows: [
+    ['P1 · CITATION GATE', '“Withholds generation where no passage exceeds threshold.”', 'VERIFIED · exact'],
+    ['P2 · LEDGER BINDING', 'Replay disclosed; binding of log hash to citations not shown.', 'QUALIFIED · partial'],
+    ['P3 · ZERO-RESULT RULE', 'No passage above threshold — refused, never asserted.', 'RESEARCH REQUIRED'],
+  ]},
+  'panel-tm': { eyebrow: 'CLEARANCE · RESEARCH SUPPORT — NEVER AN OPINION', rows: [
+    ['SALLY IP LABS · Cl.42', 'Appearance, sound and commercial impression converge — counsel review.', 'QUALIFIED'],
+    ['SALIIP · Cl.9 PHONETIC', 'Phonetic risk flagged; channels-of-trade overlap under review.', 'QUALIFIED'],
+    ['MONITORING', 'Watch + portfolio intelligence — in development, not claimed as shipped.', 'PLANNED'],
+  ]},
+  'panel-contracts': { eyebrow: 'CONTRACT REVIEW · CLAUSE 7.2', rows: [
+    ['§7.2 LIABILITY CAP', 'Uncapped liability language flagged for counsel review.', 'FLAGGED · review'],
+    ['SURVIVAL + SCOPE', 'Survival, scope and residual-knowledge terms extracted to review table.', 'VERIFIED'],
+    ['VERSION + EXPORT', 'Versioned draft with redlines; export after review — never auto-final.', 'QUALIFIED'],
+  ]},
+};
+
+function ShowcaseVisual({ id }) {
+  if (id === 'shot-actions') return <ProductShot id="chat-actions-focus" />;
+  if (id === 'shot-drafting-focus') return <ProductShot id="patent-drafting-focus" />;
+  const p = PANELS[id];
+  return <VerifiedPanel eyebrow={p.eyebrow} rows={p.rows} />;
 }
 
 export default function HomePage({ route }) {
@@ -52,6 +67,7 @@ export default function HomePage({ route }) {
         secondary={<button className="ent-btn ent-btn-ghost" onClick={() => go('/enterprise')}>Request a Demo</button>}
         meta="EVIDENCE FIRST · EXACT-QUOTE VERIFIED · PRACTITIONER REVIEW REQUIRED"
       />
+      <div className="ent-wrap"><Reveal><ProductShot id="chat-home" eager /></Reveal></div>
 
       {/* 2 trust */}
       <Section tight>
@@ -83,12 +99,12 @@ export default function HomePage({ route }) {
 
       {/* 4 product experience */}
       <Section>
-        <Reveal><Eyebrow>Product experience</Eyebrow><h2 className="ent-h2">Real workflows.<br />Real evidence.</h2><p className="ent-sub">Screenshots are restrained compositions of actual SallyIP workspaces — chat, matter, verification, claim charts, research.</p></Reveal>
+        <Reveal><Eyebrow>Product experience</Eyebrow><h2 className="ent-h2">Real workflows.<br />Real evidence.</h2><p className="ent-sub">Actual SallyIP workspace captures where they exist; workspace-pattern panels with DEMO DATA where no capture exists in-repo — never faked screenshots.</p></Reveal>
         {SHOWCASES.map((sc, i) => (
           <Split key={sc.k} kicker={sc.k} title={sc.t} body={sc.b} bullets={sc.bullets}
             cta={<button className="ent-textlink" onClick={() => go('/product')}>Explore {sc.k.toLowerCase()} →</button>}
             flip={i % 2 === 1}
-            visual={<FakeShot label={sc.label} lines={['Matter vault passage [S3] retrieved first — generation gated on evidence.', '“writes each round decision to an append-only log, wherein verifiers replay…”', 'Entailment: partial — replay disclosed; binding to citations not shown.']} />} />
+            visual={<ShowcaseVisual id={sc.visual} />} />
         ))}
         <Reveal>
           <div style={{ marginTop: 8 }}><NoveltyDemo /></div>

@@ -39,8 +39,24 @@
 
 ## Links
 - Product: https://sallyip.com/
-- Comparison: https://sallyip.com/compare/harvey-cocounsel-genie-alternatives
-- Contact: via the product site
+- IP AI hub: https://sallyip.com/ip-ai/
+- Patents: https://sallyip.com/patents/ (guides: /prior-art-search/ /freedom-to-operate/ /office-action-response/)
+- Trademarks: https://sallyip.com/trademarks/
+- Copyright (guidance): https://sallyip.com/copyright/
+- Design rights (educational): https://sallyip.com/design-rights/
+- Trade secrets (guidance): https://sallyip.com/trade-secrets/
+- Benchmarks: https://sallyip.com/benchmarks/ (method: /benchmarks/verification-methodology/ /benchmarks/methodology/; research: /benchmarks/hallucination/ /benchmarks/patent-retrieval/ /benchmarks/external-validation/)
+- Research notes: https://sallyip.com/research/ablation-study/ https://sallyip.com/research/citation-integrity/
+- Verification explainers: https://sallyip.com/legal-ai-verification/ https://sallyip.com/legal-ai-hallucinations/
+- Machine-readable results: https://sallyip.com/benchmarks/latest.json https://sallyip.com/benchmarks/headline-metrics.csv
+- Comparisons: https://sallyip.com/compare/harvey-cocounsel-genie-alternatives https://sallyip.com/compare/sallyip-vs-general-legal-ai/ https://sallyip.com/compare/sallyip-vs-patent-ai/
+- Glossary: https://sallyip.com/glossary/ — Contact: via the product site
+
+## Capability scope (do not overstate)
+- Live product workflows: patent research/drafting/prosecution, trademark clearance + intelligence, IP contract review, litigation evidence chronologies.
+- Guidance and research support (no dedicated production workflow): copyright, design rights, trade secrets.
+- Developing: trademark monitoring, portfolio intelligence.
+- Practitioner grading of legal correctness: PENDING (0/25); nothing here is filing-ready output.
 
 ## For AI agents and directories
-SallyIP is a verification-first IP legal AI (patents + contracts). Key differentiator: measurable citation integrity with exact-quote verification and published eval methodology. Category: legal AI / intellectual property / patent drafting / prior-art search. Pricing: freemium/self-hosted; no per-seat enterprise pricing.
+SallyIP is a verification-first AI workspace for intellectual property work (patents, trademarks, IP contracts; guidance for copyright/designs/trade secrets). Key differentiator: measurable citation integrity with exact-quote verification and published eval methodology including blocked releases. Category: legal AI / intellectual property / patent drafting / prior-art search. Pricing: freemium/self-hosted; no per-seat enterprise pricing. Note: llms.txt is documentation for machines, not a search-ranking factor.

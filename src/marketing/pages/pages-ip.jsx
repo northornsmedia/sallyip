@@ -2,6 +2,7 @@ import React from 'react';
 import MarketingLayout from '../MarketingLayout';
 import { Hero, Section, Reveal, Eyebrow, CTASection, Shot, go } from '../ui';
 import { NoveltyDemo, ClaimChartDemo, OfficeActionDemo, TrademarkDemo, VerificationDemo } from '../demos';
+import { ProductShot } from '../shots';
 
 function AreaShell({ route, eyebrow, scope, shipped, guidance, developing, children, links }) {
   return (
@@ -52,6 +53,7 @@ export function PatentsPage({ route }) {
       shipped="prior-art search with claim mapping; novelty + inventive step; FTO matrices; US drafting with §101/§112 screens; OA response with QA; claim charts; families; prosecution timelines."
       links={[['Novelty search', '/novelty-search'], ['Claim charts', '/claim-charts'], ['Office action defense', '/office-action-defense'], ['All modules', '/modules']]}>
       <Reveal><div style={{ marginTop: 28 }}><NoveltyDemo /></div></Reveal>
+      <Reveal><ProductShot id="patent-drafting" /></Reveal>
       <Reveal><div style={{ marginTop: 20 }}><OfficeActionDemo /></div></Reveal>
       <Reveal><p className="ent-sub" style={{ marginTop: 24 }}>Official sources reported honestly: when EPO/USPTO/CourtListener is unavailable, the product says so instead of simulating results. Every run persisted with audit trail.</p></Reveal>
     </AreaShell>
@@ -64,7 +66,8 @@ export function TrademarksPage({ route }) {
       shipped="candidate screening with review states; variant + goods/services analysis with language coverage; similarity review; intelligence-to-clearance sync, all audit-logged."
       developing="trademark monitoring and portfolio intelligence."
       links={[['Office action defense', '/office-action-defense'], ['Verification logs', '/verification-logs'], ['Solutions', '/solutions']]}>
-      <Reveal><div style={{ marginTop: 28 }}><TrademarkDemo /></div></Reveal>
+      <Reveal><ProductShot id="chat-actions-focus" /></Reveal>
+      <Reveal><div style={{ marginTop: 20 }}><TrademarkDemo /></div></Reveal>
       <Reveal><div style={{ marginTop: 24 }}><h3 style={{ fontSize: 22 }}>The clearance process, step by step</h3><ol style={{ color: '#b8bdc9', lineHeight: 1.75, fontSize: 14.5 }}><li><b style={{ color: '#fff' }}>Knockout</b> — identical marks, identical goods; fast elimination.</li><li><b style={{ color: '#fff' }}>Similarity expansion</b> — phonetic, visual, conceptual variants across classes.</li><li><b style={{ color: '#fff' }}>Factor analysis</b> — similarity, relatedness, channels, strength, and jurisdiction factors.</li><li><b style={{ color: '#fff' }}>Risk judgment</b> — counsel decides; SallyIP records evidence + decision.</li></ol></div></Reveal>
     </AreaShell>
   );

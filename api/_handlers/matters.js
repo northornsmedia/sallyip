@@ -1,14 +1,14 @@
 import {neon} from '@neondatabase/serverless'
 import {getSessionUser} from '../../src/lib/auth.js'
 import {getMatterContext} from '../../src/lib/matter-service.js'
-import {requireEditor} from '../../src/lib/security.js'
+import {requireEditor, logSecurityEvent} from '../../src/lib/security.js'
 
 export default async function handler(req,res){
   const sql=neon(process.env.DATABASE_URL)
   try{
     const user=await getSessionUser(sql,req.headers.cookie);if(!user)return res.status(401).json({error:{message:'Not authenticated'}})
     if(req.method==='GET'){
-      if(req.query?.id){const context=await getMatterContext(sql,user.id,req.query.id);if(!context)return res.status(404).json({error:{message:'Matter not found'}});return res.status(200).json(context)}
+      if(req.query?.id){const context=await getMatterContext(sql,user.id,req.query.id);if(!context){await logSecurityEvent(sql,{userId:user.id,event_type:'cross_tenant_denial',req,matter_id:req.query.id,action:'matter.read',resource:'matter',result:'denied',severity:'warn'}).catch(()=>{});return res.status(404).json({error:{message:'Matter not found'}});}await logSecurityEvent(sql,{userId:user.id,event_type:'matter_access',req,matter_id:req.query.id,action:'matter.read',resource:'matter',result:'ok',severity:'info'}).catch(()=>{});return res.status(200).json(context)}
       const matters=await sql`SELECT id,name,client_name,matter_type,jurisdictions,description,status,created_at,updated_at FROM matters WHERE user_id=${user.id} ORDER BY updated_at DESC`
       return res.status(200).json({matters})
     }

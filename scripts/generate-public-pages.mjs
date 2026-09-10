@@ -21,6 +21,12 @@ try {
 const practitionerBlock = `<div class="note"><strong>Practitioner review — status: ${practitioner.status}.</strong> ${practitioner.graded}/${practitioner.total} graded${practitioner.score == null ? '; no score displayed until human grading exists' : `: score ${practitioner.score}`}. Mechanical metrics above do not establish legal correctness.</div>`;
 
 const withPractitioner = (body) => body.replace('{{PRACTITIONER}}', practitionerBlock);
+const ogFor = (dir) => {
+  const top = dir.split('/')[0];
+  const map = { 'ip-ai': 'home.png', patents: 'patents.png', trademarks: 'trademarks.png', benchmarks: 'benchmarks.png', research: 'research.png', glossary: 'glossary.png' };
+  return map[top] ? `${SITE_URL}/og/${map[top]}` : undefined;
+};
+const withOg = (dir, args) => ({ ...args, ...(ogFor(dir) ? { ogImage: ogFor(dir) } : {}) });
 let count = 0;
 const write = (dir, html) => {
   const d = join(pub, dir);
@@ -34,19 +40,19 @@ for (const p of PAGES) {
     ? breadcrumbJson([['Home', '/'], [p.dir.split('/')[0], `/${p.dir.split('/')[0]}/`], [p.h1, null]])
     : breadcrumbJson([['Home', '/'], [p.h1, null]]);
   const extra = [crumbs, ...(typeof p.extraSchema === 'function' ? p.extraSchema() : (p.extraSchema || []))];
-  write(p.dir, page({ slug: `/${p.dir}/`, ...p, body: withPractitioner(p.body), extraSchema: extra }));
+  write(p.dir, page(withOg(p.dir, { slug: `/${p.dir}/`, ...p, body: withPractitioner(p.body), extraSchema: extra })));
 }
 for (const p of [...WAVE3_PAGES]) {
   const segs = p.dir.split('/');
   const crumbs = segs.length > 1
     ? breadcrumbJson([['Home', '/'], [segs[0][0].toUpperCase() + segs[0].slice(1), `/${segs[0]}/`], [p.h1, null]])
     : breadcrumbJson([['Home', '/'], [p.h1, null]]);
-  write(p.dir, page({ slug: `/${p.dir}/`, ...p, extraSchema: [crumbs] }));
+  write(p.dir, page(withOg(p.dir, { slug: `/${p.dir}/`, ...p, extraSchema: [crumbs] })));
 }
 
 // Glossary index
 const cards = GLOSSARY.map(([s, t, d]) => `<div class="card"><a href="${SITE_URL}glossary/${s}/">${t}</a><p>${d}</p></div>`).join('');
-write('glossary', page({
+write('glossary', page(withOg('glossary', {
   slug: '/glossary/', title: 'IP Glossary: 20 Definitions That Matter — SallyIP',
   description: 'Plain-English definitions for IP AI, patents, trademarks, verification and more — each linked to the workflow it belongs to.',
   h1: 'Definitions that do work', intro: 'Twenty terms, answered immediately and linked to the workflow each belongs to. No filler, no hype.',
@@ -61,12 +67,12 @@ for (const [slug, term, short, more] of GLOSSARY) {
   const siblings = GLOSSARY.filter(([s]) => s !== slug && hubOf(s) === hub).slice(0, 3);
   const relDefs = siblings.length ? `<h2>Related definitions</h2><ul>${siblings.map(([s, t, d]) => `<li><a href="${SITE_URL}glossary/${s}/">${t}</a> — ${d}</li>`).join('')}</ul>` : '';
   const qa = [[`What is ${term.toLowerCase()}?`, `${short} ${more}`]];
-  write(`glossary/${slug}`, page({
+  write(`glossary/${slug}`, page(withOg(`glossary/${slug}`, {
     slug: `/glossary/${slug}/`, title: `${term} — IP Glossary — SallyIP`, description: short.replace(/<[^>]+>/g, '').slice(0, 155),
     h1: term, intro: short,
     body: `<p>${more}</p>${relDefs}<section aria-label="Frequently asked questions"><div class="qa"><h3>What is ${term.toLowerCase()}?</h3><p>${short} ${more}</p></div></section><p><a href="${SITE_URL}${hub}">Related hub</a> · <a href="${SITE_URL}glossary/">All definitions</a></p>`,
     extraSchema: [breadcrumbJson([['Home', '/'], ['Glossary', '/glossary/'], [term, null]]), { '@type': 'DefinedTerm', name: term, description: short.replace(/<[^>]+>/g, ''), inDefinedTermSet: `${SITE_URL}glossary/` }, faqJson(qa)],
-  }));
+  })));
 }
 
 console.log(`public pages generated: ${count} (core ${PAGES.length} + wave3 ${WAVE3_PAGES.length} + glossary ${GLOSSARY.length + 1})`);

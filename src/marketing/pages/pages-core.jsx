@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowRight, Check } from 'lucide-react';
 import MarketingLayout from '../MarketingLayout';
 import { Hero, Section, Reveal, Eyebrow, CTASection, Breadcrumbs, Shot, go } from '../ui';
+import { ProductShot, VerifiedPanel } from '../shots';
 import { BENCHMARKS } from '../bench-data';
 import { OfficeActionDemo, TrademarkDemo } from '../demos';
 
@@ -16,6 +17,7 @@ export function ProductPage({ route }) {
   return (
     <MarketingLayout route={route} active="/product">
       <Hero eyebrow="Product" title={<>One intelligent workspace<br />for IP.</>} lede="Research, drafting, prosecution, clearance, verification and enforcement — scoped to the matter, gated on evidence, ready for practitioner review." primary={<button className="ent-btn ent-btn-primary" onClick={() => go('/novelty-search')}>See novelty search <ArrowRight /></button>} secondary={<button className="ent-btn ent-btn-ghost" onClick={() => go('/enterprise')}>Request a Demo</button>} meta="12+ SPECIALIST WORKSPACES · MATTER-SCOPED · AUDIT-LOGGED" />
+      <div className="ent-wrap"><Reveal><ProductShot id="workspaces" eager /></Reveal></div>
       <Section>
         <Reveal><Eyebrow>Modules by lifecycle</Eyebrow><h2 className="ent-h2">From disclosure to dispute.</h2></Reveal>
         {groups.map((g) => (
@@ -29,6 +31,7 @@ export function ProductPage({ route }) {
       </Section>
       <Section>
         <Reveal><Eyebrow>Walkthrough</Eyebrow><h2 className="ent-h2">Rejection to response.</h2></Reveal>
+        <Reveal><ProductShot id="patent-drafting" /></Reveal>
         <Reveal><OfficeActionDemo /></Reveal>
       </Section>
       <CTASection title="Try the workspace on real IP work." body="Start with prior art or an office action. Every output links to the passage behind it." />
@@ -135,6 +138,7 @@ export function BenchmarksPage({ route }) {
           </div>
         </Reveal>
         <Reveal>
+          <div className="ent-table-wrap">
           <table className="ent-table">
             <thead><tr><th>Benchmark (sample · model · date)</th><th>Recorded result</th><th>Status</th></tr></thead>
             <tbody>
@@ -143,6 +147,7 @@ export function BenchmarksPage({ route }) {
               ))}
             </tbody>
           </table>
+          </div>
           {tab === 'External' && <p className="ent-sub">Peer-reviewed context: general LLMs hallucinate on 58–88% of legal queries (Dahl et al., Stanford HAI 2024); purpose-built RAG tools 17–33% (Magesh et al. 2024–2025). Harvey / Genie / Solve / DeepIP publish no public hallucination measurements (observed Sep 2026).</p>}
           <p style={{ fontSize: 12.5, color: '#8b91a1' }}>Sources: benchmarks/cross-bench-report.md, regression_report_p0_full.md, ablation reports, eval_scorecard_sample_25.md. Machine-readable latest.json via benchmarks pipeline. Legal correctness requires practitioner grading — pending.</p>
         </Reveal>

@@ -1,4 +1,7 @@
 import { assertRerankAllowed, resolveExecutionMode } from '../../src/lib/provider-policy.js';
+import { getSessionUser } from '../../src/lib/auth.js';
+import { logSecurityEvent } from '../../src/lib/security.js';
+import { neon } from '@neondatabase/serverless';
 export default async function handler(req,res){
   if(req.method!=='POST')return res.status(405).json({error:{message:'Method not allowed'}})
   const {query,documents,top_n,mode}=req.body||{}
@@ -8,6 +11,7 @@ export default async function handler(req,res){
   try {
     assertRerankAllowed({ model: process.env.SALLYIP_RERANK_MODEL||'nvidia/llama-nemotron-rerank-vl-1b-v2:free', mode: executionMode });
   } catch (gateError) {
+    try { const sql=neon(process.env.DATABASE_URL); const user=await getSessionUser(sql,req.headers.cookie).catch(()=>null); await logSecurityEvent(sql,{userId:user?.id||null,event_type:'provider_policy_rejection',req,action:'rerank.request',resource:'provider',result:'blocked',severity:'warn',metadata:{mode:executionMode,code:'CONFIDENTIAL_RERANK_BLOCKED'}}).catch(()=>{}); } catch {}
     return res.status(403).json({error:{message:gateError.message,code:'CONFIDENTIAL_RERANK_BLOCKED',mode:executionMode}});
   }
   const safeDocuments=documents.filter(document=>document&&((typeof document.text==='string'&&document.text)||(typeof document.image==='string'&&document.image))).slice(0,100)
