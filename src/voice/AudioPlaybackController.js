@@ -20,6 +20,7 @@ export class AudioPlaybackController {
     this.onPlaybackFinished = null;
     this.onChunkStarted = null;
     this.onChunkEnded = null;
+    this.onWordWindowUpdate = null;
   }
 
   /**
@@ -158,10 +159,33 @@ export class AudioPlaybackController {
       const audio = new Audio(url);
       this.currentAudioElement = audio;
 
+      const words = (chunk.text || '').split(/\s+/).filter(Boolean);
+      let teleprompterTimer = null;
+
+      if (words.length > 0 && this.onWordWindowUpdate) {
+        this.onWordWindowUpdate(words.slice(0, 1));
+        teleprompterTimer = setInterval(() => {
+          if (!audio || audio.paused) return;
+          const cur = audio.currentTime || 0;
+          const dur = audio.duration || 1;
+          const ratio = Math.min(0.99, Math.max(0, cur / dur));
+          const wordIdx = Math.floor(ratio * words.length);
+          const startIdx = Math.max(0, wordIdx - 6);
+          this.onWordWindowUpdate(words.slice(startIdx, wordIdx + 1));
+        }, 50);
+      }
+
       const cleanup = () => {
+        if (teleprompterTimer) {
+          clearInterval(teleprompterTimer);
+          teleprompterTimer = null;
+        }
         URL.revokeObjectURL(url);
         if (this.currentAudioElement === audio) {
           this.currentAudioElement = null;
+        }
+        if (this.onWordWindowUpdate) {
+          this.onWordWindowUpdate([]);
         }
         resolve();
       };
@@ -182,6 +206,10 @@ export class AudioPlaybackController {
    */
   stopAndClear(reason = 'USER_BARGE_IN') {
     const stopStarted = performance.now ? performance.now() : Date.now();
+
+    if (this.onWordWindowUpdate) {
+      this.onWordWindowUpdate([]);
+    }
 
     // 1. Invalidate generation ID so any pending network chunks are rejected
     this.activeGenerationId += 1;

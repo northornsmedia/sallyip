@@ -60,6 +60,13 @@ export class VoiceSessionController {
     this.isAssistantSpeaking = false;
     this.echoCooldownUntil = 0;
 
+    // Real-time speech recognition accumulation & auto-silence timer
+    this.accumulatedFinalText = '';
+    this.silenceTimer = null;
+    this.onWordWindowUpdate = null;
+    this.mediaRecorderFallback = null;
+    this.recordedAudioChunks = [];
+
     this.setupSubControllers();
   }
 
@@ -150,6 +157,13 @@ export class VoiceSessionController {
         this.currentTurn.wasInterrupted = true;
       }
     };
+
+    // Forward teleprompter words to caller
+    this.playbackController.onWordWindowUpdate = (wordsWindow) => {
+      if (this.onWordWindowUpdate) {
+        this.onWordWindowUpdate(wordsWindow);
+      }
+    };
   }
 
   /**
@@ -196,14 +210,22 @@ export class VoiceSessionController {
   }
 
   /**
-   * Initialize continuous streaming speech recognition (Web Speech API)
+   * Initialize continuous streaming speech recognition (Web Speech API) with automatic silence endpointing
    */
   initContinuousSpeechRecognition() {
     if (typeof window === 'undefined') return;
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) return;
+    if (!SpeechRecognition) {
+      this.initMediaRecorderFallback();
+      return;
+    }
 
     try {
+      if (this.speechRecognition) {
+        try { this.speechRecognition.stop(); } catch {}
+        this.speechRecognition = null;
+      }
+
       const recognition = new SpeechRecognition();
       const isMobile = typeof navigator !== 'undefined' &&
         (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || navigator.maxTouchPoints > 1);
@@ -212,6 +234,10 @@ export class VoiceSessionController {
       recognition.interimResults = true;
       recognition.lang = 'en-US';
 
+      recognition.onstart = () => {
+        this.isSpeechRecognitionActive = true;
+      };
+
       recognition.onresult = (event) => {
         // Drop any audio picked up from the speaker while Sally is speaking or in echo cooldown
         if (this.isAssistantSpeaking || Date.now() < this.echoCooldownUntil || this.state === VOICE_STATES.SPEAKING) {
@@ -219,38 +245,65 @@ export class VoiceSessionController {
         }
 
         let interim = '';
-        let final = '';
+        let newlyFinalized = '';
 
         for (let i = event.resultIndex; i < event.results.length; ++i) {
+          const piece = event.results[i][0]?.transcript || '';
           if (event.results[i].isFinal) {
-            final += event.results[i][0].transcript;
+            newlyFinalized += piece + ' ';
           } else {
-            interim += event.results[i][0].transcript;
+            interim += piece;
           }
         }
 
-        const heardText = (interim || final).trim();
-        if (!heardText) return;
-
-        if (interim) {
-          this.transcriptController.setPartial(interim);
+        if (newlyFinalized) {
+          this.accumulatedFinalText += newlyFinalized;
         }
 
-        if (final) {
-          this.transcriptController.setPartial('');
-          this.submitUserQuery(final.trim());
+        const totalSpoken = (this.accumulatedFinalText + interim).trim();
+        if (totalSpoken) {
+          if (this.state === VOICE_STATES.LISTENING) {
+            this.transitionTo(VOICE_STATES.CAPTURING);
+          }
+          this.transcriptController.setPartial(totalSpoken);
         }
+
+        // Auto-silence timer: when user pauses for 1350ms, auto-commit and send to Sally
+        if (this.silenceTimer) clearTimeout(this.silenceTimer);
+        this.silenceTimer = setTimeout(() => {
+          const toSend = (this.accumulatedFinalText + interim).trim() || this.transcriptController.partialTranscript.trim();
+          if (toSend && toSend.length > 1 && !this.isAssistantSpeaking && this.state !== VOICE_STATES.THINKING) {
+            this.accumulatedFinalText = '';
+            this.transcriptController.setPartial('');
+            this.submitUserQuery(toSend);
+          }
+        }, 1350);
       };
 
       recognition.onerror = (err) => {
         if (err.error !== 'no-speech') {
           console.warn('[VoiceSessionController] SpeechRecognition error:', err.error);
         }
+        if (err.error === 'not-allowed' || err.error === 'service-not-allowed' || err.error === 'network') {
+          try { recognition.stop(); } catch {}
+          this.speechRecognition = null;
+          this.isSpeechRecognitionActive = false;
+          this.initMediaRecorderFallback();
+        }
       };
 
       recognition.onend = () => {
+        this.isSpeechRecognitionActive = false;
+        const pending = (this.accumulatedFinalText || this.transcriptController.partialTranscript || '').trim();
+        if (pending && pending.length > 1 && !this.isAssistantSpeaking && this.state !== VOICE_STATES.THINKING) {
+          this.accumulatedFinalText = '';
+          this.transcriptController.setPartial('');
+          this.submitUserQuery(pending);
+          return;
+        }
+
         // Automatically restart speech recognition while session is active
-        if (this.state !== VOICE_STATES.IDLE && this.state !== VOICE_STATES.DISCONNECTED) {
+        if (this.state !== VOICE_STATES.IDLE && this.state !== VOICE_STATES.DISCONNECTED && !this.isAssistantSpeaking) {
           setTimeout(() => {
             try {
               if (this.state !== VOICE_STATES.IDLE && this.state !== VOICE_STATES.DISCONNECTED && !this.isAssistantSpeaking) {
@@ -265,7 +318,65 @@ export class VoiceSessionController {
       recognition.start();
       this.isSpeechRecognitionActive = true;
     } catch (e) {
-      console.warn('[VoiceSessionController] SpeechRecognition init failed:', e);
+      console.warn('[VoiceSessionController] SpeechRecognition init failed, activating MediaRecorder fallback:', e);
+      this.initMediaRecorderFallback();
+    }
+  }
+
+  /**
+   * MediaRecorder fallback for mobile/browsers where Web Speech API is blocked
+   */
+  initMediaRecorderFallback() {
+    if (this.mediaRecorderFallback || !this.micController.stream) return;
+    try {
+      const mimeType = typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported('audio/webm')
+        ? 'audio/webm'
+        : 'audio/mp4';
+
+      const recorder = new MediaRecorder(this.micController.stream, { mimeType });
+      this.recordedAudioChunks = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) {
+          this.recordedAudioChunks.push(e.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        if (this.recordedAudioChunks.length > 0 && !this.isAssistantSpeaking && this.state !== VOICE_STATES.THINKING) {
+          this.transcriptController.setPartial('Transcribing speech with AI...');
+          const blob = new Blob(this.recordedAudioChunks, { type: recorder.mimeType || 'audio/webm' });
+          const reader = new FileReader();
+          reader.onloadend = async () => {
+            const base64Audio = reader.result;
+            try {
+              const res = await fetch('/api/transcribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ audio: base64Audio, mimeType: recorder.mimeType }),
+              });
+              if (res.ok) {
+                const data = await res.json();
+                const text = (data.text || '').trim();
+                if (text && !this.isAssistantSpeaking) {
+                  this.transcriptController.setPartial(text);
+                  setTimeout(() => {
+                    this.submitUserQuery(text);
+                  }, 300);
+                  return;
+                }
+              }
+            } catch {}
+            this.transcriptController.setPartial('');
+          };
+          reader.readAsDataURL(blob);
+        }
+      };
+
+      this.mediaRecorderFallback = recorder;
+      recorder.start(1000);
+    } catch (err) {
+      console.warn('[VoiceSessionController] MediaRecorder fallback init failed:', err);
     }
   }
 
@@ -339,9 +450,11 @@ export class VoiceSessionController {
    * Finalize user utterance when silence endpoint is reached
    */
   finalizeUserUtterance() {
-    const text = this.transcriptController.partialTranscript || this.transcriptController.finalTranscript;
-    if (text && text.trim()) {
-      this.submitUserQuery(text.trim());
+    const text = (this.accumulatedFinalText || this.transcriptController.partialTranscript || this.transcriptController.finalTranscript || '').trim();
+    if (text && !this.isAssistantSpeaking) {
+      this.accumulatedFinalText = '';
+      this.transcriptController.setPartial('');
+      this.submitUserQuery(text);
     } else {
       this.transitionTo(VOICE_STATES.LISTENING);
     }
@@ -352,6 +465,12 @@ export class VoiceSessionController {
    */
   async submitUserQuery(userText) {
     if (!userText || !userText.trim()) return;
+
+    if (this.silenceTimer) {
+      clearTimeout(this.silenceTimer);
+      this.silenceTimer = null;
+    }
+    this.accumulatedFinalText = '';
 
     this.currentTurn = createTurnTelemetry();
     this.currentTurn.userSpeechEndedAt = Date.now();
@@ -588,11 +707,29 @@ export class VoiceSessionController {
       utterance.lang = 'en-US';
       utterance.rate = 1.05;
 
+      const words = (text || '').split(/\s+/).filter(Boolean);
+      let wordCounter = 0;
+      if (this.playbackController.onWordWindowUpdate && words.length > 0) {
+        this.playbackController.onWordWindowUpdate(words.slice(0, 1));
+      }
+      utterance.onboundary = (e) => {
+        if (e.name === 'word') {
+          wordCounter = Math.min(words.length - 1, wordCounter + 1);
+          const startIdx = Math.max(0, wordCounter - 6);
+          if (this.playbackController.onWordWindowUpdate) {
+            this.playbackController.onWordWindowUpdate(words.slice(startIdx, wordCounter + 1));
+          }
+        }
+      };
+
       this.isAssistantSpeaking = true;
       this.transitionTo(VOICE_STATES.SPEAKING);
       this.transcriptController.appendAssistantSpokenSegment(text);
 
       utterance.onend = () => {
+        if (this.playbackController.onWordWindowUpdate) {
+          this.playbackController.onWordWindowUpdate([]);
+        }
         if (generationId === this.activeGenerationId) {
           this.isAssistantSpeaking = false;
           this.echoCooldownUntil = Date.now() + 450;
@@ -602,6 +739,9 @@ export class VoiceSessionController {
       };
 
       utterance.onerror = () => {
+        if (this.playbackController.onWordWindowUpdate) {
+          this.playbackController.onWordWindowUpdate([]);
+        }
         if (generationId === this.activeGenerationId) {
           this.isAssistantSpeaking = false;
           this.echoCooldownUntil = Date.now() + 200;
@@ -624,6 +764,16 @@ export class VoiceSessionController {
     this.isAssistantSpeaking = false;
     this.echoCooldownUntil = 0;
 
+    if (this.silenceTimer) {
+      clearTimeout(this.silenceTimer);
+      this.silenceTimer = null;
+    }
+    this.accumulatedFinalText = '';
+
+    if (this.onWordWindowUpdate) {
+      this.onWordWindowUpdate([]);
+    }
+
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       try { window.speechSynthesis.cancel(); } catch {}
     }
@@ -638,6 +788,13 @@ export class VoiceSessionController {
         this.speechRecognition.stop();
       } catch {}
       this.speechRecognition = null;
+    }
+
+    if (this.mediaRecorderFallback && this.mediaRecorderFallback.state !== 'inactive') {
+      try {
+        this.mediaRecorderFallback.stop();
+      } catch {}
+      this.mediaRecorderFallback = null;
     }
 
     this.playbackController.stopAndClear('SESSION_STOP');

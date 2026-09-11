@@ -54,6 +54,8 @@ export default function VoiceChatWidget() {
   const currentAudioRef = useRef(null);
   const callStateRef = useRef(callState);
   const echoCooldownRef = useRef(0);
+  const accumulatedFinalRef = useRef("");
+  const silenceTimerRef = useRef(null);
 
   // Sync callStateRef to avoid stale closures in SpeechRecognition callbacks
   useEffect(() => {
@@ -204,26 +206,35 @@ export default function VoiceChatWidget() {
           }
 
           let interim = "";
-          let final = "";
+          let newlyFinalized = "";
           for (let i = event.resultIndex; i < event.results.length; ++i) {
+            const piece = event.results[i][0]?.transcript || "";
             if (event.results[i].isFinal) {
-              final += event.results[i][0].transcript;
+              newlyFinalized += piece + " ";
             } else {
-              interim += event.results[i][0].transcript;
+              interim += piece;
             }
           }
 
-          const heardText = (interim || final).trim();
-          if (!heardText) return;
-
-          if (interim) {
-            setLiveUserSpeech(interim);
+          if (newlyFinalized) {
+            accumulatedFinalRef.current += newlyFinalized;
           }
 
-          if (final) {
-            setLiveUserSpeech("");
-            handleUserUtterance(final.trim());
+          const totalSpoken = (accumulatedFinalRef.current + interim).trim();
+          if (totalSpoken) {
+            setLiveUserSpeech(totalSpoken);
           }
+
+          // Auto-silence timer: when user pauses for 1350ms, auto-commit and send to Sally
+          if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+          silenceTimerRef.current = setTimeout(() => {
+            const toSend = (accumulatedFinalRef.current + interim).trim();
+            if (toSend.length > 1 && callStateRef.current !== "speaking") {
+              accumulatedFinalRef.current = "";
+              setLiveUserSpeech("");
+              handleUserUtterance(toSend);
+            }
+          }, 1350);
         };
 
         recognition.onerror = (err) => {
@@ -233,6 +244,14 @@ export default function VoiceChatWidget() {
         };
 
         recognition.onend = () => {
+          const pending = (accumulatedFinalRef.current + (liveUserSpeech || "")).trim();
+          if (pending.length > 1 && callStateRef.current !== "speaking") {
+            accumulatedFinalRef.current = "";
+            setLiveUserSpeech("");
+            handleUserUtterance(pending);
+            return;
+          }
+
           // If call is still active and assistant not speaking, restart recognition
           if (callStateRef.current !== "idle") {
             setTimeout(() => {
@@ -256,6 +275,11 @@ export default function VoiceChatWidget() {
   // Stop speech recognition and synthesis
   const stopListeningAndSpeech = () => {
     echoCooldownRef.current = 0;
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+    accumulatedFinalRef.current = "";
     setLiveUserSpeech("");
     if (currentAudioRef.current) {
       try {

@@ -15,6 +15,8 @@ export function VoiceOverlay({
   const [sessionState, setSessionState] = useState(VOICE_STATES.IDLE);
   const [duration, setDuration] = useState(0);
   const [partialTranscript, setPartialTranscript] = useState('');
+  const [lastUserText, setLastUserText] = useState('');
+  const [sallySpokenWords, setSallySpokenWords] = useState([]);
   const [messages, setMessages] = useState([]);
 
   const controllerRef = useRef(null);
@@ -28,6 +30,9 @@ export function VoiceOverlay({
       }
       setSessionState(VOICE_STATES.IDLE);
       setDuration(0);
+      setPartialTranscript('');
+      setLastUserText('');
+      setSallySpokenWords([]);
       return;
     }
 
@@ -43,12 +48,24 @@ export function VoiceOverlay({
       }
     });
 
-    controller.transcriptController.onTranscriptUpdate = ({ partial }) => {
-      setPartialTranscript(partial);
+    controller.transcriptController.onTranscriptUpdate = ({ partial, final }) => {
+      if (partial) setPartialTranscript(partial);
+      if (final) {
+        setLastUserText(final);
+        setPartialTranscript('');
+      }
+    };
+
+    controller.onWordWindowUpdate = (words) => {
+      setSallySpokenWords([...words]);
     };
 
     controller.transcriptController.onMessagesUpdate = (msgs) => {
       setMessages([...msgs]);
+      const lastUser = [...msgs].reverse().find((m) => m.role === 'user');
+      if (lastUser?.text) {
+        setLastUserText(lastUser.text);
+      }
     };
 
     controllerRef.current = controller;
@@ -74,9 +91,15 @@ export function VoiceOverlay({
   if (!isOpen) return null;
 
   const handleToggleCall = () => {
-    if (sessionState === VOICE_STATES.IDLE || sessionState === VOICE_STATES.DISCONNECTED) {
+    if (
+      sessionState === VOICE_STATES.IDLE ||
+      sessionState === VOICE_STATES.DISCONNECTED ||
+      sessionState === VOICE_STATES.ERROR
+    ) {
       controllerRef.current?.unlockAudio();
-      controllerRef.current?.start();
+      controllerRef.current?.start().catch((err) => {
+        console.warn('[VoiceOverlay] Manual start error:', err);
+      });
     } else {
       controllerRef.current?.stop();
       onClose?.();
@@ -123,6 +146,8 @@ export function VoiceOverlay({
           <LiveTranscript
             state={sessionState}
             partialTranscript={partialTranscript}
+            sallyWordsWindow={sallySpokenWords}
+            lastUserText={lastUserText}
             onManualStop={handleManualStop}
           />
         </div>
