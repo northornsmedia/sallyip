@@ -25,6 +25,7 @@ const ClaimQaWorkspace=lazy(()=>import("./claim-qa-workspace"));
 const DocPanel=lazy(()=>import("./doc-panel"));
 const VerificationInspectorModal=lazy(()=>import("./verification-inspector-modal"));
 const VoiceOverlay=lazy(()=>import("./voice/VoiceOverlay.jsx"));
+const SallyVideoCallCard=lazy(()=>import("./voice/SallyVideoCallCard.jsx"));
 import "./voice-chat-widget.css";
 import {
   ArrowRight,
@@ -49,6 +50,7 @@ import {
   Paperclip,
   Pencil,
   PhoneCall,
+  Video,
   Plus,
   Search,
   Send,
@@ -656,6 +658,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   const [isDictating, setIsDictating] = useState(false);
   const [dictatedLiveText, setDictatedLiveText] = useState("");
   const [voiceOverlayOpen, setVoiceOverlayOpen] = useState(false);
+  const [videoCallOpen, setVideoCallOpen] = useState(false);
   const [autoSpeakVoice, setAutoSpeakVoice] = useState(() => {
     try {
       return localStorage.getItem("sallyip-auto-speak") === "true";
@@ -2412,6 +2415,15 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                 <PhoneCall className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Voice Call</span>
               </button>
+              <button
+                type="button"
+                className="beebotNewChatBtn border-indigo-300 text-indigo-700 dark:border-indigo-700 dark:text-indigo-300 bg-indigo-50/50 dark:bg-indigo-950/30 hover:bg-indigo-100/60 shadow-sm"
+                onClick={() => setVideoCallOpen(true)}
+                title="Start live interactive video call with Sally's photorealistic digital human"
+              >
+                <Video className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                <span>Video Call</span>
+              </button>
               <button className="beebotNewChatBtn" onClick={newChat}>
                 <Plus className="w-3.5 h-3.5" />
                 <span>New Chat</span>
@@ -2548,6 +2560,16 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                     >
                       <PhoneCall className="w-3.5 h-3.5 text-emerald-500" />
                       <span>Voice Call</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="beebotPillBtn text-indigo-700 dark:text-indigo-300 bg-indigo-50/50 dark:bg-indigo-950/30"
+                      onClick={() => setVideoCallOpen(true)}
+                      title="Launch Sally Photorealistic Video Call"
+                    >
+                      <Video className="w-3.5 h-3.5 text-indigo-500" />
+                      <span>Video Call</span>
                     </button>
                   </div>
 
@@ -2846,6 +2868,16 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                         <PhoneCall className="w-3.5 h-3.5 text-emerald-500" />
                         <span>Voice Call</span>
                       </button>
+
+                      <button
+                        type="button"
+                        className="beebotPillBtn text-indigo-700 dark:text-indigo-300 bg-indigo-50/50 dark:bg-indigo-950/30"
+                        onClick={() => setVideoCallOpen(true)}
+                        title="Launch Sally Photorealistic Video Call"
+                      >
+                        <Video className="w-3.5 h-3.5 text-indigo-500" />
+                        <span>Video Call</span>
+                      </button>
                     </div>
                     <button
                       className="beebotSendBtn"
@@ -2890,6 +2922,18 @@ export default function ChatPage({ onHome, onAuthRequired }) {
           <VoiceOverlay
             isOpen={voiceOverlayOpen}
             onClose={() => setVoiceOverlayOpen(false)}
+            matterId={activeMatterId}
+            conversationId={active?.id}
+          />
+        </Suspense>
+      )}
+
+      {/* Sally Photorealistic Digital Human Video Call Card */}
+      {videoCallOpen && (
+        <Suspense fallback={null}>
+          <SallyVideoCallCard
+            isOpen={videoCallOpen}
+            onClose={() => setVideoCallOpen(false)}
             matterId={activeMatterId}
             conversationId={active?.id}
           />

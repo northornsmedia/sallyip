@@ -21,6 +21,7 @@ export class AudioPlaybackController {
     this.onChunkStarted = null;
     this.onChunkEnded = null;
     this.onWordWindowUpdate = null;
+    this.analyser = null;
   }
 
   /**
@@ -38,6 +39,20 @@ export class AudioPlaybackController {
       await this.audioContext.resume();
     }
     return this.audioContext;
+  }
+
+  /**
+   * Return shared AnalyserNode for real-time lip sync
+   */
+  async getAnalyserNode() {
+    const ctx = await this.getAudioContext();
+    if (!ctx) return null;
+    if (!this.analyser) {
+      this.analyser = ctx.createAnalyser();
+      this.analyser.fftSize = 256;
+      this.analyser.smoothingTimeConstant = 0.3;
+    }
+    return this.analyser;
   }
 
   /**

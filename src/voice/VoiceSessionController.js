@@ -181,6 +181,16 @@ export class VoiceSessionController {
   }
 
   /**
+   * Return AnalyserNode for digital human canvas lip-sync
+   */
+  async getAnalyserNode() {
+    if (this.playbackController) {
+      return this.playbackController.getAnalyserNode();
+    }
+    return null;
+  }
+
+  /**
    * Start a voice session
    */
   async start() {
