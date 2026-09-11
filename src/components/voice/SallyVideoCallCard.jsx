@@ -2,18 +2,8 @@
  * SallyVideoCallCard.jsx
  *
  * Full-Window Immersive 3D Digital Human Video Call for Sally IP.
- * 100% Client-Side Pure JavaScript & Three.js WebGL.
+ * 100% Client-Side Pure JavaScript & Three.js WebGL (Pure Vanilla CSS).
  * ZERO GPU clusters, ZERO server rendering cost.
- *
- * Capabilities:
- * - Full-window cinema-grade video call theater (100vw x 100vh)
- * - Genuine 3D humanoid avatar with bone hierarchy & Oculus viseme lip sync
- * - Microsoft Edge Neural TTS audio analysis via WebAudio AnalyserNode
- * - Live two-way conversation with dual-channel speech recognition
- * - Real-time closed-captions HUD & rolling teleprompter
- * - Optional user webcam preview (Picture-in-Picture)
- * - Collapsible Live Legal Transcript & Patent Brief sidebar
- * - Picture-in-Picture minimizable mode for multitasking
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -33,7 +23,6 @@ import {
   Copy,
   Check,
   Radio,
-  Share2,
   X,
   Maximize,
 } from 'lucide-react';
@@ -272,7 +261,18 @@ export function SallyVideoCallCard({
     return (
       <div className="sally-pip-call-pill">
         <div className="sally-pip-avatar-ring">
-          <div className="w-full h-full rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+          <div style={{
+            width: '100%',
+            height: '100%',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#ffffff',
+            fontSize: '11px',
+            fontWeight: 'bold',
+          }}>
             3D
           </div>
           <span
@@ -317,62 +317,71 @@ export function SallyVideoCallCard({
   return (
     <div
       ref={videoContainerRef}
-      className="sally-video-modal-fullscreen fixed inset-0 z-[999999] bg-slate-950 flex flex-col overflow-hidden text-slate-100 font-sans"
+      className="sally-video-modal-fullscreen"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 999999,
+        background: 'radial-gradient(ellipse at 50% 35%, #0f172a 0%, #030712 100%)',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        color: '#f8fafc',
+      }}
     >
-      {/* TOP TELEMETRY & CALL HEADER */}
-      <header className="sally-fullscreen-header h-16 px-6 flex items-center justify-between bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/80 z-30 flex-shrink-0">
+      {/* TOP HEADER */}
+      <header className="sally-fs-header">
         {/* Left: Brand, Live status & Duration */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold tracking-wide">
-            <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+        <div className="sally-fs-header-left">
+          <div className="sally-fs-live-badge">
+            <span className="sally-fs-live-dot" />
             <span>LIVE 3D CALL</span>
           </div>
 
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-white tracking-tight">Sally IP</span>
-              <span className="text-xs px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-medium border border-indigo-500/30">
-                Digital Human
-              </span>
+          <div className="sally-fs-title-col">
+            <div className="sally-fs-title-row">
+              <span className="sally-fs-title-text">Sally IP</span>
+              <span className="sally-fs-title-pill">Digital Human</span>
             </div>
-            <div className="flex items-center gap-2 text-[11px] text-slate-400">
-              <ShieldCheck size={12} className="text-emerald-400" />
+            <div className="sally-fs-meta-row">
+              <ShieldCheck size={12} color="#34d399" />
               <span>256-bit AES P2P Encrypted</span>
               <span>•</span>
-              <span className="font-mono text-slate-300">{formatDuration(duration)}</span>
+              <span className="sally-fs-timer">{formatDuration(duration)}</span>
             </div>
           </div>
         </div>
 
         {/* Center: Neural Voice Selector Dropdown */}
-        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/60 shadow-inner">
-          <Volume2 size={14} className="text-indigo-400" />
-          <span className="text-xs text-slate-400 font-medium">Neural Voice:</span>
+        <div className="sally-fs-voice-picker">
+          <Volume2 size={14} color="#818cf8" />
+          <span className="sally-fs-voice-label">Neural Voice:</span>
           <select
             value={selectedVoice}
             onChange={(e) => handleVoiceChange(e.target.value)}
-            className="bg-transparent text-xs text-indigo-200 font-semibold focus:outline-none cursor-pointer pr-1"
+            className="sally-fs-voice-select"
           >
             {VOICE_OPTIONS.map((v) => (
-              <option key={v.id} value={v.id} className="bg-slate-900 text-slate-100">
+              <option key={v.id} value={v.id}>
                 {v.name} - {v.desc}
               </option>
             ))}
           </select>
-          <ChevronDown size={13} className="text-slate-500 pointer-events-none -ml-1" />
+          <ChevronDown size={13} color="#94a3b8" />
         </div>
 
         {/* Right: Window Controls */}
-        <div className="flex items-center gap-2">
+        <div className="sally-fs-header-right">
           {/* Transcript Drawer Toggle */}
           <button
             type="button"
             onClick={() => setShowTranscriptDrawer(!showTranscriptDrawer)}
-            className={`p-2 rounded-lg border transition-all ${
-              showTranscriptDrawer
-                ? 'bg-indigo-600/30 border-indigo-500 text-indigo-200'
-                : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800'
-            }`}
+            className={`sally-fs-btn-icon ${showTranscriptDrawer ? 'active' : ''}`}
             title={showTranscriptDrawer ? 'Hide Legal Transcript' : 'Show Legal Transcript'}
           >
             <FileText size={18} />
@@ -382,7 +391,7 @@ export function SallyVideoCallCard({
           <button
             type="button"
             onClick={() => setIsMinimized(true)}
-            className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
+            className="sally-fs-btn-icon"
             title="Minimize to Picture-in-Picture"
           >
             <Minimize2 size={18} />
@@ -392,29 +401,29 @@ export function SallyVideoCallCard({
           <button
             type="button"
             onClick={handleToggleFullscreen}
-            className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
+            className="sally-fs-btn-icon"
             title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
           >
-            {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+            {isFullscreen ? <Minimize2 size={18} /> : <Maximize size={18} />}
           </button>
 
           {/* End Call Button */}
           <button
             type="button"
             onClick={handleEndCall}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs transition-all shadow-lg shadow-rose-600/30 ml-2"
+            className="sally-fs-btn-end"
             title="End Video Call"
           >
             <PhoneOff size={15} />
-            <span className="hidden sm:inline">End Call</span>
+            <span>End Call</span>
           </button>
         </div>
       </header>
 
-      {/* MAIN VIDEO CALL THEATER & SIDEBAR */}
-      <div className="flex-1 flex overflow-hidden relative">
+      {/* MAIN STAGE & SIDEBAR */}
+      <div className="sally-fs-stage">
         {/* HERO 3D AVATAR VIEWPORT */}
-        <div className="flex-1 relative flex items-center justify-center bg-radial-gradient overflow-hidden">
+        <div className="sally-fs-viewport">
           {/* Three.js 3D Avatar WebGL Canvas */}
           <SallyDigitalHumanCanvas
             state={sessionState}
@@ -422,51 +431,42 @@ export function SallyVideoCallCard({
             isMuted={isMuted}
             activeVoiceName={activeVoiceObj.name}
             enableParallax={true}
-            className="absolute inset-0"
           />
 
           {/* User Webcam Preview PiP (Bottom-Right) */}
           {showUserCamera && (
-            <div className="absolute bottom-28 right-8 z-30 w-48 h-36 rounded-2xl overflow-hidden bg-slate-900 border-2 border-indigo-500/50 shadow-2xl transition-all">
+            <div className="sally-user-pip">
               <video
                 ref={userVideoRef}
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-full object-cover transform -scale-x-100"
+                className="sally-user-pip-video"
               />
-              <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-slate-950/80 backdrop-blur-sm text-[10px] font-semibold text-slate-300">
-                You (Camera)
-              </div>
+              <div className="sally-user-pip-tag">You (Camera)</div>
             </div>
           )}
 
           {/* REAL-TIME CLOSED CAPTIONS & TELEPROMPTER HUD */}
-          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-20 w-11/12 max-w-2xl pointer-events-none">
+          <div className="sally-fs-captions-hud">
             {sessionState === VOICE_STATES.THINKING ? (
-              <div className="flex items-center justify-center gap-2.5 px-5 py-3 rounded-2xl bg-slate-950/85 backdrop-blur-xl border border-indigo-500/40 shadow-2xl text-slate-200 animate-pulse">
-                <Sparkles size={16} className="text-indigo-400 animate-spin" />
-                <span className="text-sm font-medium">
-                  Sally IP is reasoning with legal intelligence database...
-                </span>
+              <div className="sally-hud-box thinking">
+                <Sparkles size={16} color="#818cf8" className="animate-spin" />
+                <span>Sally IP is reasoning with patent intelligence database...</span>
               </div>
             ) : sessionState === VOICE_STATES.SPEAKING && sallySpokenWords.length > 0 ? (
-              <div className="flex flex-col gap-1.5 px-6 py-3.5 rounded-2xl bg-slate-950/90 backdrop-blur-xl border border-indigo-500/30 shadow-2xl">
-                <div className="flex items-center gap-2 text-[11px] font-bold text-indigo-400 uppercase tracking-wider">
-                  <Radio size={12} className="text-indigo-400 animate-pulse" />
-                  <span>Sally IP:</span>
+              <div className="sally-hud-box speaking">
+                <div className="sally-hud-speaker-tag sally">
+                  <Radio size={12} color="#818cf8" />
+                  <span>Sally IP</span>
                 </div>
-                <div className="flex items-center flex-wrap gap-1.5 text-base text-slate-100 font-medium leading-relaxed">
+                <div className="sally-hud-content">
                   {sallySpokenWords.map((word, idx) => {
                     const isLatest = idx === sallySpokenWords.length - 1;
                     return (
                       <span
                         key={idx}
-                        className={`transition-all duration-150 ${
-                          isLatest
-                            ? 'text-indigo-300 font-bold scale-105 underline decoration-indigo-400 underline-offset-4'
-                            : 'text-slate-200'
-                        }`}
+                        className={`sally-hud-word ${isLatest ? 'active' : ''}`}
                       >
                         {word}{' '}
                       </span>
@@ -475,17 +475,16 @@ export function SallyVideoCallCard({
                 </div>
               </div>
             ) : partialTranscript ? (
-              <div className="flex flex-col gap-1.5 px-6 py-3.5 rounded-2xl bg-slate-950/90 backdrop-blur-xl border border-emerald-500/40 shadow-2xl">
-                <div className="flex items-center gap-2 text-[11px] font-bold text-emerald-400 uppercase tracking-wider">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+              <div className="sally-hud-box user">
+                <div className="sally-hud-speaker-tag user">
                   <span>You are saying:</span>
                 </div>
-                <div className="text-base text-white font-medium italic leading-relaxed">
+                <div className="sally-hud-content">
                   "{partialTranscript}"
                 </div>
               </div>
             ) : (
-              <div className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-slate-950/70 backdrop-blur-md border border-slate-800/80 text-slate-400 text-xs font-medium">
+              <div className="sally-hud-box idle">
                 <span>{isMuted ? 'Microphone is muted' : 'Listening... Speak naturally with Sally'}</span>
               </div>
             )}
@@ -494,26 +493,28 @@ export function SallyVideoCallCard({
 
         {/* COLLAPSIBLE LEGAL TRANSCRIPT & BRIEF DRAWER */}
         {showTranscriptDrawer && (
-          <aside className="w-96 flex flex-col bg-slate-900/95 backdrop-blur-2xl border-l border-slate-800/80 z-20 transition-all shadow-2xl">
+          <aside className="sally-fs-drawer">
             {/* Drawer Header */}
-            <div className="p-4 border-b border-slate-800 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <FileText size={16} className="text-indigo-400" />
-                <span className="text-sm font-bold text-white">Live Legal Transcript</span>
+            <div className="sally-fs-drawer-header">
+              <div className="sally-fs-drawer-title">
+                <FileText size={16} color="#818cf8" />
+                <span>Live Legal Transcript</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <button
                   type="button"
                   onClick={handleCopyTranscript}
-                  className="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                  className="sally-fs-btn-icon"
+                  style={{ width: '28px', height: '28px' }}
                   title="Copy Transcript"
                 >
-                  {copiedTranscript ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                  {copiedTranscript ? <Check size={14} color="#34d399" /> : <Copy size={14} />}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowTranscriptDrawer(false)}
-                  className="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                  className="sally-fs-btn-icon"
+                  style={{ width: '28px', height: '28px' }}
                 >
                   <X size={14} />
                 </button>
@@ -521,64 +522,52 @@ export function SallyVideoCallCard({
             </div>
 
             {/* Transcript Messages Stream */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 font-sans text-xs">
+            <div className="sally-fs-drawer-body">
               {conversationHistory.length === 0 ? (
-                <div className="text-center text-slate-500 py-12">
-                  <FileText size={28} className="mx-auto mb-2 opacity-40" />
+                <div style={{ textAlign: 'center', color: '#64748b', padding: '48px 0' }}>
+                  <FileText size={28} style={{ margin: '0 auto 8px auto', opacity: 0.4 }} />
                   <p>Conversation transcript will stream live here as you speak with Sally.</p>
                 </div>
               ) : (
                 conversationHistory.map((item, idx) => (
                   <div
                     key={idx}
-                    className={`p-3 rounded-xl border ${
-                      item.speaker === 'sally'
-                        ? 'bg-indigo-950/40 border-indigo-800/40 text-slate-200 ml-2'
-                        : 'bg-emerald-950/30 border-emerald-800/30 text-emerald-100 mr-2'
-                    }`}
+                    className={`sally-transcript-item ${item.speaker === 'sally' ? 'sally' : 'user'}`}
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <span
-                        className={`font-bold ${
-                          item.speaker === 'sally' ? 'text-indigo-400' : 'text-emerald-400'
-                        }`}
-                      >
+                    <div className="sally-transcript-meta">
+                      <span style={{ color: item.speaker === 'sally' ? '#818cf8' : '#34d399' }}>
                         {item.speaker === 'sally' ? 'Sally IP' : 'You'}
                       </span>
-                      <span className="text-[10px] text-slate-500">
+                      <span style={{ color: '#64748b' }}>
                         {item.timestamp?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                       </span>
                     </div>
-                    <p className="leading-relaxed whitespace-pre-wrap">{item.text}</p>
+                    <div>{item.text}</div>
                   </div>
                 ))
               )}
             </div>
 
             {/* Drawer Footer */}
-            <div className="p-3 border-t border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
+            <div className="sally-fs-drawer-footer">
               <span>{conversationHistory.length} turns logged</span>
-              <span className="text-indigo-400 font-medium">Synced with Matter</span>
+              <span style={{ color: '#818cf8', fontWeight: 600 }}>Synced with Matter</span>
             </div>
           </aside>
         )}
       </div>
 
-      {/* FLOATING GLASSMORPHIC CONTROL BAR */}
-      <footer className="h-20 bg-slate-950/90 backdrop-blur-2xl border-t border-slate-800/80 flex items-center justify-center px-6 z-30 flex-shrink-0">
-        <div className="flex items-center gap-3 px-6 py-2.5 rounded-full bg-slate-900/90 border border-slate-700/60 shadow-2xl">
+      {/* FLOATING BOTTOM CONTROLS DOCK */}
+      <footer className="sally-fs-footer">
+        <div className="sally-fs-dock">
           {/* Mute Microphone Button */}
           <button
             type="button"
             onClick={handleToggleMute}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-xs transition-all ${
-              isMuted
-                ? 'bg-rose-500/20 border border-rose-500/50 text-rose-400 hover:bg-rose-500/30'
-                : 'bg-slate-800 border border-slate-700 text-white hover:bg-slate-700 shadow-md'
-            }`}
+            className={`sally-dock-btn ${isMuted ? 'muted' : ''}`}
             title={isMuted ? 'Unmute microphone' : 'Mute microphone'}
           >
-            {isMuted ? <MicOff size={16} /> : <Mic size={16} className="text-emerald-400" />}
+            {isMuted ? <MicOff size={16} /> : <Mic size={16} color="#34d399" />}
             <span>{isMuted ? 'Muted' : 'Mic On'}</span>
           </button>
 
@@ -586,37 +575,18 @@ export function SallyVideoCallCard({
           <button
             type="button"
             onClick={() => setShowUserCamera(!showUserCamera)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-xs transition-all ${
-              showUserCamera
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
-                : 'bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700'
-            }`}
+            className={`sally-dock-btn ${showUserCamera ? 'active' : ''}`}
             title={showUserCamera ? 'Turn off camera' : 'Turn on camera'}
           >
             {showUserCamera ? <Video size={16} /> : <VideoOff size={16} />}
             <span>{showUserCamera ? 'Camera On' : 'Camera Off'}</span>
           </button>
 
-          {/* Mobile Voice Selector */}
-          <div className="md:hidden flex items-center">
-            <select
-              value={selectedVoice}
-              onChange={(e) => handleVoiceChange(e.target.value)}
-              className="bg-slate-800 text-xs text-indigo-200 px-3 py-2 rounded-full border border-slate-700 focus:outline-none cursor-pointer"
-            >
-              {VOICE_OPTIONS.map((v) => (
-                <option key={v.id} value={v.id} className="bg-slate-900">
-                  {v.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* Big Red End Call Button */}
           <button
             type="button"
             onClick={handleEndCall}
-            className="flex items-center gap-2 px-5 py-2 rounded-full bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs transition-all shadow-lg shadow-rose-600/40 ml-2"
+            className="sally-dock-btn end"
             title="Leave & End Video Call"
           >
             <PhoneOff size={16} />
