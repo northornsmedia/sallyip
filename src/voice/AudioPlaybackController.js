@@ -98,7 +98,7 @@ export class AudioPlaybackController {
     }
 
     this.isPlaying = true;
-    if (this.onPlaybackStarted && this.queuedChunks.length === 0) {
+    if (this.onPlaybackStarted) {
       this.onPlaybackStarted({ generationId: chunk.generationId, text: chunk.text });
     }
     if (this.onChunkStarted) {

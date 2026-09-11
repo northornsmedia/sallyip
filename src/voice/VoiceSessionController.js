@@ -56,6 +56,10 @@ export class VoiceSessionController {
     // Animation frame / timer for VAD audio polling
     this.vadInterval = null;
 
+    // Echo cancellation & acoustic self-interruption prevention
+    this.isAssistantSpeaking = false;
+    this.echoCooldownUntil = 0;
+
     this.setupSubControllers();
   }
 
@@ -94,12 +98,12 @@ export class VoiceSessionController {
    * Wire sub-controller event callbacks
    */
   setupSubControllers() {
-    // VAD Speech Start
+    // VAD Speech Start - ignore speaker audio when assistant is speaking or in echo cooldown
     this.vad.onSpeechStart = (event) => {
-      if (this.state === VOICE_STATES.SPEAKING || this.state === VOICE_STATES.THINKING) {
-        // Critical Barge-In Interruption!
-        this.handleUserBargeIn(event);
-      } else if (this.state === VOICE_STATES.LISTENING) {
+      if (this.isAssistantSpeaking || Date.now() < this.echoCooldownUntil) {
+        return;
+      }
+      if (this.state === VOICE_STATES.LISTENING) {
         this.transitionTo(VOICE_STATES.SPEECH_DETECTED, event);
         setTimeout(() => {
           if (this.state === VOICE_STATES.SPEECH_DETECTED) {
@@ -111,14 +115,25 @@ export class VoiceSessionController {
 
     // VAD Speech End (Turn endpointing)
     this.vad.onSpeechEnd = (event) => {
+      if (this.isAssistantSpeaking || Date.now() < this.echoCooldownUntil) return;
       if (this.state === VOICE_STATES.CAPTURING || this.state === VOICE_STATES.SPEECH_DETECTED) {
         this.finalizeUserUtterance();
       }
     };
 
+    // Playback started
+    this.playbackController.onPlaybackStarted = () => {
+      this.isAssistantSpeaking = true;
+      if (this.state !== VOICE_STATES.SPEAKING) {
+        this.transitionTo(VOICE_STATES.SPEAKING);
+      }
+    };
+
     // Playback finished
     this.playbackController.onPlaybackFinished = ({ generationId }) => {
-      if (generationId === this.activeGenerationId && this.state === VOICE_STATES.SPEAKING) {
+      if (generationId === this.activeGenerationId) {
+        this.isAssistantSpeaking = false;
+        this.echoCooldownUntil = Date.now() + 450;
         this.transcriptController.finalizeAssistantTurn();
         this.transitionTo(VOICE_STATES.LISTENING);
       }
@@ -138,9 +153,19 @@ export class VoiceSessionController {
   }
 
   /**
+   * Unlock WebAudio context synchronously during user gesture (required on iOS/Android)
+   */
+  unlockAudio() {
+    if (this.playbackController) {
+      this.playbackController.getAudioContext().catch(() => {});
+    }
+  }
+
+  /**
    * Start a voice session
    */
   async start() {
+    this.unlockAudio();
     try {
       this.transitionTo(VOICE_STATES.REQUESTING_MIC_PERMISSION);
       await this.micController.requestMicrophone();
@@ -180,11 +205,19 @@ export class VoiceSessionController {
 
     try {
       const recognition = new SpeechRecognition();
-      recognition.continuous = true;
+      const isMobile = typeof navigator !== 'undefined' &&
+        (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || navigator.maxTouchPoints > 1);
+
+      recognition.continuous = !isMobile;
       recognition.interimResults = true;
       recognition.lang = 'en-US';
 
       recognition.onresult = (event) => {
+        // Drop any audio picked up from the speaker while Sally is speaking or in echo cooldown
+        if (this.isAssistantSpeaking || Date.now() < this.echoCooldownUntil || this.state === VOICE_STATES.SPEAKING) {
+          return;
+        }
+
         let interim = '';
         let final = '';
 
@@ -197,11 +230,7 @@ export class VoiceSessionController {
         }
 
         const heardText = (interim || final).trim();
-
-        // If user speaks while assistant is speaking, trigger barge-in immediately
-        if (heardText.length > 1 && (this.state === VOICE_STATES.SPEAKING || this.state === VOICE_STATES.THINKING)) {
-          this.handleUserBargeIn({ text: heardText });
-        }
+        if (!heardText) return;
 
         if (interim) {
           this.transcriptController.setPartial(interim);
@@ -224,11 +253,11 @@ export class VoiceSessionController {
         if (this.state !== VOICE_STATES.IDLE && this.state !== VOICE_STATES.DISCONNECTED) {
           setTimeout(() => {
             try {
-              if (this.state !== VOICE_STATES.IDLE && this.state !== VOICE_STATES.DISCONNECTED) {
+              if (this.state !== VOICE_STATES.IDLE && this.state !== VOICE_STATES.DISCONNECTED && !this.isAssistantSpeaking) {
                 recognition.start();
               }
             } catch {}
-          }, 200);
+          }, 150);
         }
       };
 
@@ -284,6 +313,11 @@ export class VoiceSessionController {
    * Manual Stop button handler
    */
   handleManualStop() {
+    this.isAssistantSpeaking = false;
+    this.echoCooldownUntil = 0;
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try { window.speechSynthesis.cancel(); } catch {}
+    }
     this.bargeInController.handleManualStop();
     this.activeGenerationId += 1;
     this.pendingSentenceBuffer = '';
@@ -350,18 +384,18 @@ export class VoiceSessionController {
         content: m.text,
       }));
 
-      // Replace latest user message with contextualized text
+      // Replace latest user message with contextualized text (tuned for conversational voice output)
       if (requestMessages.length > 0 && requestMessages[requestMessages.length - 1].role === 'user') {
-        requestMessages[requestMessages.length - 1].content = resolution.contextualizedText;
+        requestMessages[requestMessages.length - 1].content = resolution.contextualizedText + " (Please answer concisely in 2 clear sentences for conversational voice response)";
       }
 
-      // Dispatch request to streaming chat endpoint
+      // Dispatch request to chat endpoint (supports both /api/chat-stream and /api/chat)
       const response = await fetch(this.config.chatStreamEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         signal: this.llmAbortController.signal,
         body: JSON.stringify({
-          mode: this.matterId ? 'CONFIDENTIAL_IP' : 'PUBLIC_RESEARCH',
+          mode: 'PUBLIC_RESEARCH',
           messages: requestMessages,
           matter_id: this.matterId,
           conversation_id: this.conversationId,
@@ -372,46 +406,60 @@ export class VoiceSessionController {
         throw new Error(`LLM stream returned HTTP ${response.status}`);
       }
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-
-        // Verify generation is still valid (not interrupted)
-        if (generationId !== this.activeGenerationId) {
-          reader.cancel();
-          break;
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('application/json') && !contentType.includes('event-stream')) {
+        const data = await response.json().catch(() => ({}));
+        const fullAnswer = data.choices?.[0]?.message?.content || data.answer || '';
+        if (fullAnswer && generationId === this.activeGenerationId) {
+          if (this.currentTurn && this.currentTurn.transcriptToFirstLlmTokenMs === 0) {
+            this.currentTurn.transcriptToFirstLlmTokenMs = Date.now() - this.currentTurn.userSpeechEndedAt;
+          }
+          this.transcriptController.appendAssistantDelta(fullAnswer);
+          await this.dispatchSentenceToTts(fullAnswer, generationId, 0);
         }
+      } else {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
 
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed.startsWith('data:')) continue;
-          const jsonStr = trimmed.slice(5).trim();
-          if (!jsonStr) continue;
+          // Verify generation is still valid (not interrupted)
+          if (generationId !== this.activeGenerationId) {
+            reader.cancel();
+            break;
+          }
 
-          try {
-            const data = JSON.parse(jsonStr);
-            if (data.type === 'delta' && data.delta) {
-              if (this.currentTurn.transcriptToFirstLlmTokenMs === 0) {
-                this.currentTurn.transcriptToFirstLlmTokenMs = Date.now() - this.currentTurn.userSpeechEndedAt;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith('data:')) continue;
+            const jsonStr = trimmed.replace(/^data:\s*/, '').trim();
+            if (!jsonStr || jsonStr === '[DONE]') continue;
+
+            try {
+              const data = JSON.parse(jsonStr);
+              const delta = data.type === 'delta' ? data.delta : (data.choices?.[0]?.delta?.content || '');
+              if (delta) {
+                if (this.currentTurn && this.currentTurn.transcriptToFirstLlmTokenMs === 0) {
+                  this.currentTurn.transcriptToFirstLlmTokenMs = Date.now() - this.currentTurn.userSpeechEndedAt;
+                }
+                this.handleIncomingTokenDelta(delta, generationId);
               }
-              this.handleIncomingTokenDelta(data.delta, generationId);
-            }
-          } catch {}
+            } catch {}
+          }
         }
-      }
 
-      // Flush remaining buffered text
-      if (generationId === this.activeGenerationId && this.pendingSentenceBuffer.trim()) {
-        this.dispatchSentenceToTts(this.pendingSentenceBuffer.trim(), generationId);
-        this.pendingSentenceBuffer = '';
+        // Flush remaining buffered text
+        if (generationId === this.activeGenerationId && this.pendingSentenceBuffer.trim()) {
+          await this.dispatchSentenceToTts(this.pendingSentenceBuffer.trim(), generationId, this.dispatchedChunkCount++);
+          this.pendingSentenceBuffer = '';
+        }
       }
     } catch (error) {
       if (error.name === 'AbortError') {
@@ -468,6 +516,7 @@ export class VoiceSessionController {
     }
 
     this.ttsAbortController = new AbortController();
+    let audioBlob = null;
 
     try {
       const response = await fetch(this.config.ttsEndpoint, {
@@ -476,22 +525,28 @@ export class VoiceSessionController {
         signal: this.ttsAbortController.signal,
         body: JSON.stringify({
           text: sentenceText,
+          input: sentenceText,
           model: this.config.ttsModel,
+          mode: 'PUBLIC_RESEARCH',
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`TTS synthesis returned HTTP ${response.status}`);
+      if (response.ok) {
+        audioBlob = await response.blob();
+      } else {
+        console.warn(`[VoiceSessionController] Fish Audio returned HTTP ${response.status}`);
       }
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+      console.warn('[VoiceSessionController] Fish Audio TTS dispatch error:', err.message);
+    }
 
-      const audioBlob = await response.blob();
+    // Check generation ID validity once more before enqueuing
+    if (generationId !== this.activeGenerationId) {
+      return;
+    }
 
-      // Check generation ID validity once more before enqueuing
-      if (generationId !== this.activeGenerationId) {
-        // Interrupted while synthesizing: drop this audio chunk!
-        return;
-      }
-
+    if (audioBlob && audioBlob.size > 200) {
       if (this.currentTurn && this.currentTurn.ttsFirstAudioMs === 0) {
         this.currentTurn.ttsFirstAudioMs = Date.now() - ttsStartTime;
         this.currentTurn.totalTimeToFirstVoiceMs = Date.now() - this.currentTurn.userSpeechEndedAt;
@@ -500,7 +555,7 @@ export class VoiceSessionController {
       // Record what Sally is speaking aloud
       this.transcriptController.appendAssistantSpokenSegment(sentenceText);
 
-      // Transition to SPEAKING as soon as audio starts
+      this.isAssistantSpeaking = true;
       if (this.state === VOICE_STATES.THINKING) {
         this.transitionTo(VOICE_STATES.SPEAKING);
       }
@@ -511,9 +566,53 @@ export class VoiceSessionController {
         text: sentenceText,
         chunkIndex,
       });
-    } catch (err) {
-      if (err.name === 'AbortError') return;
-      console.warn('[VoiceSessionController] TTS dispatch error:', err.message);
+    } else {
+      // Local SpeechSynthesis fallback so Sally is NEVER silent!
+      this.speakWithBrowserSynthesis(sentenceText, generationId);
+    }
+  }
+
+  /**
+   * Browser SpeechSynthesis fallback ensuring assistant always speaks even if cloud TTS fails
+   */
+  speakWithBrowserSynthesis(text, generationId) {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      this.transitionTo(VOICE_STATES.LISTENING);
+      return;
+    }
+    if (generationId !== this.activeGenerationId) return;
+
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.rate = 1.05;
+
+      this.isAssistantSpeaking = true;
+      this.transitionTo(VOICE_STATES.SPEAKING);
+      this.transcriptController.appendAssistantSpokenSegment(text);
+
+      utterance.onend = () => {
+        if (generationId === this.activeGenerationId) {
+          this.isAssistantSpeaking = false;
+          this.echoCooldownUntil = Date.now() + 450;
+          this.transcriptController.finalizeAssistantTurn();
+          this.transitionTo(VOICE_STATES.LISTENING);
+        }
+      };
+
+      utterance.onerror = () => {
+        if (generationId === this.activeGenerationId) {
+          this.isAssistantSpeaking = false;
+          this.echoCooldownUntil = Date.now() + 200;
+          this.transitionTo(VOICE_STATES.LISTENING);
+        }
+      };
+
+      window.speechSynthesis.speak(utterance);
+    } catch {
+      this.isAssistantSpeaking = false;
+      this.transitionTo(VOICE_STATES.LISTENING);
     }
   }
 
@@ -522,6 +621,12 @@ export class VoiceSessionController {
    */
   stop() {
     this.transitionTo(VOICE_STATES.IDLE);
+    this.isAssistantSpeaking = false;
+    this.echoCooldownUntil = 0;
+
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try { window.speechSynthesis.cancel(); } catch {}
+    }
 
     if (this.vadInterval) {
       clearInterval(this.vadInterval);

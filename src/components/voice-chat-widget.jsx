@@ -53,6 +53,7 @@ export default function VoiceChatWidget() {
   const messagesEndRef = useRef(null);
   const currentAudioRef = useRef(null);
   const callStateRef = useRef(callState);
+  const echoCooldownRef = useRef(0);
 
   // Sync callStateRef to avoid stale closures in SpeechRecognition callbacks
   useEffect(() => {
@@ -94,18 +95,27 @@ export default function VoiceChatWidget() {
 
   const fallbackSpeech = (text) => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
+      try { window.speechSynthesis.cancel(); } catch {}
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = selectedLang.voiceLang;
       utterance.rate = 1.05;
       utterance.pitch = 1.0;
       utterance.onstart = () => setCallState("speaking");
-      utterance.onend = () => setCallState("listening");
-      utterance.onerror = () => setCallState("listening");
+      utterance.onend = () => {
+        echoCooldownRef.current = Date.now() + 450;
+        setCallState("listening");
+      };
+      utterance.onerror = () => {
+        echoCooldownRef.current = Date.now() + 200;
+        setCallState("listening");
+      };
       window.speechSynthesis.speak(utterance);
     } else {
       setCallState("speaking");
-      setTimeout(() => setCallState("listening"), 3000);
+      setTimeout(() => {
+        echoCooldownRef.current = Date.now() + 450;
+        setCallState("listening");
+      }, 2500);
     }
   };
 
@@ -119,7 +129,7 @@ export default function VoiceChatWidget() {
       currentAudioRef.current = null;
     }
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
+      try { window.speechSynthesis.cancel(); } catch {}
     }
 
     setCallState("speaking");
@@ -133,24 +143,27 @@ export default function VoiceChatWidget() {
 
       if (res.ok) {
         const blob = await res.blob();
-        const audioUrl = URL.createObjectURL(blob);
-        const audio = new Audio(audioUrl);
-        currentAudioRef.current = audio;
+        if (blob && blob.size > 200) {
+          const audioUrl = URL.createObjectURL(blob);
+          const audio = new Audio(audioUrl);
+          currentAudioRef.current = audio;
 
-        audio.onended = () => {
-          URL.revokeObjectURL(audioUrl);
-          currentAudioRef.current = null;
-          setCallState("listening");
-        };
+          audio.onended = () => {
+            URL.revokeObjectURL(audioUrl);
+            currentAudioRef.current = null;
+            echoCooldownRef.current = Date.now() + 450;
+            setCallState("listening");
+          };
 
-        audio.onerror = () => {
-          URL.revokeObjectURL(audioUrl);
-          currentAudioRef.current = null;
-          fallbackSpeech(text);
-        };
+          audio.onerror = () => {
+            URL.revokeObjectURL(audioUrl);
+            currentAudioRef.current = null;
+            fallbackSpeech(text);
+          };
 
-        await audio.play();
-        return;
+          await audio.play();
+          return;
+        }
       }
     } catch (err) {
       console.warn("Fish Audio TTS failed, falling back to local speech:", err);
@@ -162,15 +175,19 @@ export default function VoiceChatWidget() {
   // Start speech recognition
   const startListening = () => {
     const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
+      typeof window !== "undefined" &&
+      (window.SpeechRecognition || window.webkitSpeechRecognition);
     if (SpeechRecognition) {
       try {
         if (recognitionRef.current) {
           try { recognitionRef.current.stop(); } catch {}
         }
 
+        const isMobile = typeof navigator !== "undefined" &&
+          (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || navigator.maxTouchPoints > 1);
+
         const recognition = new SpeechRecognition();
-        recognition.continuous = true;
+        recognition.continuous = !isMobile;
         recognition.interimResults = true;
         recognition.lang = selectedLang.voiceLang;
 
@@ -181,6 +198,11 @@ export default function VoiceChatWidget() {
         };
 
         recognition.onresult = (event) => {
+          // CRITICAL: Drop any audio picked up from the speaker while Sally is speaking or during echo cooldown
+          if (callStateRef.current === "speaking" || Date.now() < echoCooldownRef.current) {
+            return;
+          }
+
           let interim = "";
           let final = "";
           for (let i = event.resultIndex; i < event.results.length; ++i) {
@@ -192,22 +214,7 @@ export default function VoiceChatWidget() {
           }
 
           const heardText = (interim || final).trim();
-
-          // Interruption / Barge-in model:
-          // If the user starts speaking while Sally is speaking, cut off Sally's audio immediately!
-          if (heardText.length > 1 && callStateRef.current === "speaking") {
-            if (currentAudioRef.current) {
-              try {
-                currentAudioRef.current.pause();
-                currentAudioRef.current.currentTime = 0;
-              } catch {}
-              currentAudioRef.current = null;
-            }
-            if (typeof window !== "undefined" && "speechSynthesis" in window) {
-              window.speechSynthesis.cancel();
-            }
-            setCallState("listening");
-          }
+          if (!heardText) return;
 
           if (interim) {
             setLiveUserSpeech(interim);
@@ -226,15 +233,15 @@ export default function VoiceChatWidget() {
         };
 
         recognition.onend = () => {
-          // If call is still active, automatically restart recognition so listening never drops
+          // If call is still active and assistant not speaking, restart recognition
           if (callStateRef.current !== "idle") {
             setTimeout(() => {
               try {
-                if (callStateRef.current !== "idle" && recognitionRef.current) {
+                if (callStateRef.current !== "idle" && recognitionRef.current && callStateRef.current !== "speaking") {
                   recognition.start();
                 }
               } catch {}
-            }, 300);
+            }, 150);
           }
         };
 
@@ -248,6 +255,7 @@ export default function VoiceChatWidget() {
 
   // Stop speech recognition and synthesis
   const stopListeningAndSpeech = () => {
+    echoCooldownRef.current = 0;
     setLiveUserSpeech("");
     if (currentAudioRef.current) {
       try {
@@ -263,12 +271,13 @@ export default function VoiceChatWidget() {
       recognitionRef.current = null;
     }
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
+      try { window.speechSynthesis.cancel(); } catch {}
     }
   };
 
   // Immediate interruption / barge-in handler
   const interruptSpeech = () => {
+    echoCooldownRef.current = Date.now() + 200;
     if (currentAudioRef.current) {
       try {
         currentAudioRef.current.pause();
@@ -277,22 +286,29 @@ export default function VoiceChatWidget() {
       currentAudioRef.current = null;
     }
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
+      try { window.speechSynthesis.cancel(); } catch {}
     }
     setLiveUserSpeech("");
     setCallState("listening");
   };
 
   // Toggle call
-  const toggleCall = () => {
+  const toggleCall = async () => {
     if (callState === "idle") {
+      // Request mic permission on user gesture (crucial for mobile Safari/Chrome)
+      if (typeof navigator !== "undefined" && navigator.mediaDevices?.getUserMedia) {
+        try {
+          await navigator.mediaDevices.getUserMedia({
+            audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+          });
+        } catch (e) {
+          console.warn("Microphone permission check issue:", e);
+        }
+      }
       setCallState("connecting");
-      setTimeout(() => {
-        const greeting = `Hello! I'm Sally. What intellectual property matter or patent can I check for you today?`;
-        setCallState("speaking");
-        startListening();
-        speakText(greeting);
-      }, 700);
+      const greeting = `Hello! I'm Sally. What intellectual property matter or patent can I check for you today?`;
+      speakText(greeting);
+      startListening();
     } else {
       stopListeningAndSpeech();
       setCallState("idle");

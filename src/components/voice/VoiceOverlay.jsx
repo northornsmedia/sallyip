@@ -74,7 +74,8 @@ export function VoiceOverlay({
   if (!isOpen) return null;
 
   const handleToggleCall = () => {
-    if (sessionState === VOICE_STATES.IDLE) {
+    if (sessionState === VOICE_STATES.IDLE || sessionState === VOICE_STATES.DISCONNECTED) {
+      controllerRef.current?.unlockAudio();
       controllerRef.current?.start();
     } else {
       controllerRef.current?.stop();
