@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { VOICE_STATES } from '../../voice/types.js';
 import { VoiceSessionController } from '../../voice/VoiceSessionController.js';
-import { SallyDigitalHumanCanvas } from './SallyDigitalHumanCanvas.jsx';
+import { SallyRealHumanVideo } from './SallyRealHumanVideo.jsx';
 import { VOICE_OPTIONS } from './VoiceOverlay.jsx';
 import '../voice-chat-widget.css';
 
@@ -261,20 +261,16 @@ export function SallyVideoCallCard({
     return (
       <div className="sally-pip-call-pill">
         <div className="sally-pip-avatar-ring">
-          <div style={{
-            width: '100%',
-            height: '100%',
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#ffffff',
-            fontSize: '11px',
-            fontWeight: 'bold',
-          }}>
-            3D
-          </div>
+          <img
+            src="/images/sally_human_avatar.jpg"
+            alt="Sally IP"
+            style={{
+              width: '100%',
+              height: '100%',
+              borderRadius: '50%',
+              objectFit: 'cover',
+            }}
+          />
           <span
             className={`sally-pip-dot ${
               sessionState === VOICE_STATES.SPEAKING ? 'speaking' : 'listening'
@@ -282,12 +278,12 @@ export function SallyVideoCallCard({
           />
         </div>
         <div className="sally-pip-info">
-          <span className="sally-pip-title">Sally 3D Video Call</span>
+          <span className="sally-pip-title">Sally Video Call</span>
           <span className="sally-pip-sub">
             {sessionState === VOICE_STATES.SPEAKING
               ? 'Speaking...'
               : sessionState === VOICE_STATES.THINKING
-              ? 'Thinking...'
+              ? 'Reasoning...'
               : 'Listening...'}
           </span>
         </div>
@@ -340,13 +336,13 @@ export function SallyVideoCallCard({
         <div className="sally-fs-header-left">
           <div className="sally-fs-live-badge">
             <span className="sally-fs-live-dot" />
-            <span>LIVE 3D CALL</span>
+            <span>LIVE VIDEO CALL</span>
           </div>
 
           <div className="sally-fs-title-col">
             <div className="sally-fs-title-row">
               <span className="sally-fs-title-text">Sally IP</span>
-              <span className="sally-fs-title-pill">Digital Human</span>
+              <span className="sally-fs-title-pill">Real Human</span>
             </div>
             <div className="sally-fs-meta-row">
               <ShieldCheck size={12} color="#34d399" />
@@ -422,15 +418,14 @@ export function SallyVideoCallCard({
 
       {/* MAIN STAGE & SIDEBAR */}
       <div className="sally-fs-stage">
-        {/* HERO 3D AVATAR VIEWPORT */}
+        {/* HERO REAL HUMAN VIDEO VIEWPORT */}
         <div className="sally-fs-viewport">
-          {/* Three.js 3D Avatar WebGL Canvas */}
-          <SallyDigitalHumanCanvas
+          {/* Real Human Video Engine */}
+          <SallyRealHumanVideo
             state={sessionState}
             analyserNode={analyserNode}
             isMuted={isMuted}
             activeVoiceName={activeVoiceObj.name}
-            enableParallax={true}
           />
 
           {/* User Webcam Preview PiP (Bottom-Right) */}
