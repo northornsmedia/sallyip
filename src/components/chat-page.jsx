@@ -654,6 +654,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   const [playingAudioIndex, setPlayingAudioIndex] = useState(null);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isDictating, setIsDictating] = useState(false);
+  const [dictatedLiveText, setDictatedLiveText] = useState("");
   const [voiceOverlayOpen, setVoiceOverlayOpen] = useState(false);
   const [autoSpeakVoice, setAutoSpeakVoice] = useState(() => {
     try {
@@ -669,6 +670,11 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   const dictationRecorderRef = useRef(null);
   const dictationChunksRef = useRef([]);
   const dictationBaseInputRef = useRef("");
+  const inputRef = useRef(input);
+
+  useEffect(() => {
+    inputRef.current = input;
+  }, [input]);
 
   useEffect(() => {
     try {
@@ -761,14 +767,26 @@ export default function ChatPage({ onHome, onAuthRequired }) {
 
     try {
       const speechInput = clean.length > 500 ? clean.slice(0, 500) + "..." : clean;
-      const res = await fetch("/api/speech", {
+      let res = await fetch("/api/voice/speak", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          text: speechInput,
           input: speechInput,
-          model: "fish-audio/s2.1-pro-free:free",
+          mode: "PUBLIC_RESEARCH",
         }),
       });
+
+      if (!res.ok) {
+        res = await fetch("/api/speech", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            input: speechInput,
+            model: "fish-audio/s2.1-pro-free:free",
+          }),
+        });
+      }
 
       if (res.ok) {
         const blob = await res.blob();
@@ -819,9 +837,10 @@ export default function ChatPage({ onHome, onAuthRequired }) {
     }
   };
 
-  const stopDictation = () => {
+  const stopDictation = (autoSendAndSpeak = false) => {
     isDictatingRef.current = false;
     setIsDictating(false);
+    setDictatedLiveText("");
     if (dictationRecognitionRef.current) {
       try {
         dictationRecognitionRef.current.stop();
@@ -839,6 +858,14 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         dictationMediaStreamRef.current.getTracks().forEach((t) => t.stop());
       } catch {}
       dictationMediaStreamRef.current = null;
+    }
+    if (autoSendAndSpeak) {
+      setTimeout(() => {
+        const textToSend = inputRef.current.trim();
+        if (textToSend) {
+          send(textToSend, { autoSpeak: true });
+        }
+      }, 100);
     }
   };
 
@@ -869,7 +896,19 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       }
     }
 
+    // Pre-unlock AudioContext on mobile user tap
+    if (typeof window !== "undefined") {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+          const ctx = new AudioContext();
+          ctx.resume().catch(() => {});
+        }
+      } catch {}
+    }
+
     dictationBaseInputRef.current = input ? input.trim() + " " : "";
+    setDictatedLiveText("");
     isDictatingRef.current = true;
     setIsDictating(true);
 
@@ -880,7 +919,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
           (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || navigator.maxTouchPoints > 1);
 
         const recognition = new SpeechRecognition();
-        // Crucial: Mobile WebKit drops or errors on continuous=true; set to false and restart seamlessly on mobile
+        // Mobile WebKit drops on continuous=true; set to false and restart seamlessly on mobile
         recognition.continuous = !isMobile;
         recognition.interimResults = true;
         recognition.lang = "en-US";
@@ -890,18 +929,21 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         };
 
         recognition.onresult = (event) => {
-          let interim = "";
           let final = "";
+          let interim = "";
           for (let i = 0; i < event.results.length; ++i) {
+            const piece = event.results[i][0]?.transcript || "";
             if (event.results[i].isFinal) {
-              final += event.results[i][0].transcript;
+              final += piece;
             } else {
-              interim += event.results[i][0].transcript;
+              interim += piece;
             }
           }
-          const spoken = (final || interim).trim();
+          const spoken = (final + (interim ? (final ? " " : "") + interim : "")).trim();
           if (spoken) {
-            setInput(dictationBaseInputRef.current + spoken);
+            const combined = (dictationBaseInputRef.current + spoken).trim();
+            setInput(combined);
+            setDictatedLiveText(spoken);
           }
         };
 
@@ -916,7 +958,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         };
 
         recognition.onend = () => {
-          // Seamless mobile auto-restart: if user hasn't clicked stop, keep dictating across natural pauses!
+          // Seamless mobile auto-restart: if user hasn't stopped, keep dictating across natural pauses!
           if (isDictatingRef.current) {
             setTimeout(() => {
               try {
@@ -977,7 +1019,9 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                     if (transcribeRes.ok) {
                       const data = await transcribeRes.json();
                       if (data.text) {
-                        setInput((prev) => (prev ? prev.trim() + " " : "") + data.text);
+                        const newText = (inputRef.current ? inputRef.current.trim() + " " : "") + data.text;
+                        setInput(newText);
+                        setDictatedLiveText(data.text);
                       }
                     }
                   } catch (txErr) {
@@ -1362,7 +1406,8 @@ export default function ChatPage({ onHome, onAuthRequired }) {
     await new Promise((resolve) => setTimeout(resolve, 2400));
   };
 
-  const send = async (text = input) => {
+  const send = async (text = input, options = {}) => {
+    const { autoSpeak = false } = options;
     const clean = text.trim();
     if (!clean || loading) return;
     const next = [
@@ -1464,6 +1509,12 @@ export default function ChatPage({ onHome, onAuthRequired }) {
           };
           updateActive(() => finalChat);
           await persistChat(finalChat);
+          if (autoSpeak || autoSpeakVoice) {
+            const lastMsg = finalChat.messages[finalChat.messages.length - 1];
+            if (lastMsg?.role === "assistant" && lastMsg.content) {
+              setTimeout(() => togglePlayVoice(lastMsg.content, finalChat.messages.length - 1), 200);
+            }
+          }
           return;
         }
         if (workflowResponse.status !== 422) {
@@ -1548,6 +1599,12 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         }
         updateActive(() => finalChat);
         await persistChat(finalChat);
+        if (autoSpeak || autoSpeakVoice) {
+          const lastMsg = finalChat.messages[finalChat.messages.length - 1];
+          if (lastMsg?.role === "assistant" && lastMsg.content) {
+            setTimeout(() => togglePlayVoice(lastMsg.content, finalChat.messages.length - 1), 200);
+          }
+        }
         return;
       }
 
@@ -1735,6 +1792,12 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       };
       updateActive(() => finalChat);
       await persistChat(finalChat);
+      if (autoSpeak || autoSpeakVoice) {
+        const lastMsg = finalChat.messages[finalChat.messages.length - 1];
+        if (lastMsg?.role === "assistant" && lastMsg.content) {
+          setTimeout(() => togglePlayVoice(lastMsg.content, finalChat.messages.length - 1), 200);
+        }
+      }
     } catch (error) {
       clearInterval(progressTimer);
       const fallbackAns = getFallbackLegalResponse(clean, user, baseChat.messages);
@@ -1814,10 +1877,10 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       };
       updateActive(() => finalChat);
       await persistChat(finalChat).catch(() => {});
-      if (autoSpeakVoice) {
+      if (autoSpeak || autoSpeakVoice) {
         const lastMsg = finalChat.messages[finalChat.messages.length - 1];
         if (lastMsg?.role === "assistant" && lastMsg.content) {
-          togglePlayVoice(lastMsg.content, finalChat.messages.length - 1);
+          setTimeout(() => togglePlayVoice(lastMsg.content, finalChat.messages.length - 1), 200);
         }
       }
     } finally {
@@ -2384,17 +2447,56 @@ export default function ChatPage({ onHome, onAuthRequired }) {
               </div>
 
               {/* Floating Center Composer */}
-              <div className="beebotComposerCard">
+              <div className={`beebotComposerCard ${isDictating ? "is-dictating" : ""}`}>
+                {isDictating && (
+                  <div className="beebotDictationBanner">
+                    <div className="beebotDictationLeft">
+                      <div className="beebotDictationPulseWrap">
+                        <div className="beebotDictationRadar" />
+                        <div className="beebotDictationDot" />
+                      </div>
+                      <div className="beebotDictationTextWrap">
+                        <span className="beebotDictationTitle">
+                          Listening to your voice... (Live typing)
+                        </span>
+                        <span className="beebotDictationSubtitle">
+                          {dictatedLiveText || "Speak clearly into your microphone..."}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="beebotDictationActions">
+                      <button
+                        type="button"
+                        onClick={() => stopDictation(true)}
+                        className="beebotDictationSendBtn"
+                        title="Send query and speak response aloud"
+                      >
+                        <Send className="w-3 h-3" />
+                        <span>Send & Speak</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => stopDictation(false)}
+                        className="beebotDictationDoneBtn"
+                        title="Stop dictating and keep text"
+                      >
+                        Done
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <textarea
                   className="beebotComposerInput"
-                  placeholder="✦ Initiate a query or send a command to the AI..."
+                  placeholder={isDictating ? "Listening... Your spoken words appear here live as you talk..." : "✦ Initiate a query or send a command to the AI..."}
                   rows={2}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
-                      send();
+                      const wasDictating = isDictatingRef.current;
+                      if (wasDictating) stopDictation(false);
+                      send(input, { autoSpeak: wasDictating });
                     }
                   }}
                 />
@@ -2448,12 +2550,12 @@ export default function ChatPage({ onHome, onAuthRequired }) {
 
                     <button
                       type="button"
-                      className={`beebotPillBtn ${isDictating ? "active text-red-500 border-red-400 dark:border-red-600 animate-pulse" : ""}`}
+                      className={`beebotPillBtn ${isDictating ? "active text-red-600 border-red-400 dark:border-red-600 bg-red-50 dark:bg-red-950/30 animate-pulse font-semibold" : ""}`}
                       onClick={toggleDictation}
                       title={isDictating ? "Stop voice dictation" : "Voice dictation (Speak to Sally)"}
                     >
-                      {isDictating ? <MicOff className="w-3.5 h-3.5 text-red-500" /> : <Mic className="w-3.5 h-3.5 text-indigo-500" />}
-                      <span>{isDictating ? "Listening..." : "Dictate"}</span>
+                      {isDictating ? <MicOff className="w-3.5 h-3.5 text-red-600" /> : <Mic className="w-3.5 h-3.5 text-indigo-500" />}
+                      <span>{isDictating ? "Stop Dictating" : "Dictate"}</span>
                     </button>
 
                     <button
@@ -2470,7 +2572,11 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                   <button
                     className="beebotSendBtn"
                     disabled={!input.trim() || loading}
-                    onClick={() => send()}
+                    onClick={() => {
+                      const wasDictating = isDictatingRef.current;
+                      if (wasDictating) stopDictation(false);
+                      send(input, { autoSpeak: wasDictating });
+                    }}
                   >
                     <Send className="w-3.5 h-3.5" />
                   </button>
@@ -2660,17 +2766,56 @@ export default function ChatPage({ onHome, onAuthRequired }) {
 
               {/* Persistent Pinned Bottom Composer */}
               <div className="beebotBottomComposerWrap">
-                <div className="beebotComposerCard">
+                <div className={`beebotComposerCard ${isDictating ? "is-dictating" : ""}`}>
+                  {isDictating && (
+                    <div className="beebotDictationBanner">
+                      <div className="beebotDictationLeft">
+                        <div className="beebotDictationPulseWrap">
+                          <div className="beebotDictationRadar" />
+                          <div className="beebotDictationDot" />
+                        </div>
+                        <div className="beebotDictationTextWrap">
+                          <span className="beebotDictationTitle">
+                            Listening to your voice... (Live typing)
+                          </span>
+                          <span className="beebotDictationSubtitle">
+                            {dictatedLiveText || "Speak clearly into your microphone..."}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="beebotDictationActions">
+                        <button
+                          type="button"
+                          onClick={() => stopDictation(true)}
+                          className="beebotDictationSendBtn"
+                          title="Send query and speak response aloud"
+                        >
+                          <Send className="w-3 h-3" />
+                          <span>Send & Speak</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => stopDictation(false)}
+                          className="beebotDictationDoneBtn"
+                          title="Stop dictating and keep text"
+                        >
+                          Done
+                        </button>
+                      </div>
+                    </div>
+                  )}
                   <textarea
                     className="beebotComposerInput"
-                    placeholder="Ask SallyIP a follow-up or command..."
+                    placeholder={isDictating ? "Listening... Your spoken words appear here live as you talk..." : "Ask SallyIP a follow-up or command..."}
                     rows={1}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
-                        send();
+                        const wasDictating = isDictatingRef.current;
+                        if (wasDictating) stopDictation(false);
+                        send(input, { autoSpeak: wasDictating });
                       }
                     }}
                   />
@@ -2713,12 +2858,12 @@ export default function ChatPage({ onHome, onAuthRequired }) {
 
                       <button
                         type="button"
-                        className={`beebotPillBtn ${isDictating ? "active text-red-500 border-red-400 dark:border-red-600 animate-pulse" : ""}`}
+                        className={`beebotPillBtn ${isDictating ? "active text-red-600 border-red-400 dark:border-red-600 bg-red-50 dark:bg-red-950/30 animate-pulse font-semibold" : ""}`}
                         onClick={toggleDictation}
                         title={isDictating ? "Stop voice dictation" : "Voice dictation (Speak to Sally)"}
                       >
-                        {isDictating ? <MicOff className="w-3.5 h-3.5 text-red-500" /> : <Mic className="w-3.5 h-3.5 text-indigo-500" />}
-                        <span>{isDictating ? "Listening..." : "Dictate"}</span>
+                        {isDictating ? <MicOff className="w-3.5 h-3.5 text-red-600" /> : <Mic className="w-3.5 h-3.5 text-indigo-500" />}
+                        <span>{isDictating ? "Stop Dictating" : "Dictate"}</span>
                       </button>
 
                       <button
@@ -2734,7 +2879,11 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                     <button
                       className="beebotSendBtn"
                       disabled={!input.trim() || loading}
-                      onClick={() => send()}
+                      onClick={() => {
+                        const wasDictating = isDictatingRef.current;
+                        if (wasDictating) stopDictation(false);
+                        send(input, { autoSpeak: wasDictating });
+                      }}
                     >
                       <Send className="w-3.5 h-3.5" />
                     </button>
