@@ -670,6 +670,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   const dictationRecorderRef = useRef(null);
   const dictationChunksRef = useRef([]);
   const dictationBaseInputRef = useRef("");
+  const accumulatedFinalRef = useRef("");
   const inputRef = useRef(input);
 
   useEffect(() => {
@@ -865,186 +866,182 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         if (textToSend) {
           send(textToSend, { autoSpeak: true });
         }
-      }, 100);
+      }, 150);
     }
   };
 
-  const toggleDictation = async () => {
-    const SpeechRecognition =
-      typeof window !== "undefined" &&
-      (window.SpeechRecognition || window.webkitSpeechRecognition);
+  const startMediaRecorderFallback = async (autoSendOnDone = false) => {
+    try {
+      if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+        alert("Microphone is not supported in this browser.");
+        stopDictation();
+        return;
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+      });
+      dictationMediaStreamRef.current = stream;
+      dictationChunksRef.current = [];
+      setIsDictating(true);
+      isDictatingRef.current = true;
+      setDictatedLiveText("Recording speech... Speak clearly");
 
+      const mimeType = typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported("audio/webm")
+        ? "audio/webm"
+        : typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported("audio/mp4")
+        ? "audio/mp4"
+        : "";
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) {
+          dictationChunksRef.current.push(e.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        if (dictationChunksRef.current.length > 0) {
+          setDictatedLiveText("Transcribing speech with AI...");
+          const blob = new Blob(dictationChunksRef.current, { type: recorder.mimeType || "audio/webm" });
+          const reader = new FileReader();
+          reader.onloadend = async () => {
+            const base64Audio = (reader.result || "").split(",")[1];
+            if (base64Audio) {
+              try {
+                const res = await fetch("/api/voice/transcribe", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ audio_base64: base64Audio, mode: "PUBLIC_RESEARCH" }),
+                });
+                if (res.ok) {
+                  const data = await res.json();
+                  if (data.text) {
+                    const fullInput = (dictationBaseInputRef.current + data.text).trim();
+                    setInput(fullInput);
+                    setDictatedLiveText(data.text);
+                    if (autoSendOnDone) {
+                      setTimeout(() => send(fullInput, { autoSpeak: true }), 100);
+                    }
+                  }
+                }
+              } catch (err) {
+                console.warn("[Dictation] Transcribe error:", err);
+              }
+            }
+            stopDictation();
+          };
+          reader.readAsDataURL(blob);
+        } else {
+          stopDictation();
+        }
+      };
+
+      recorder.start();
+      dictationRecorderRef.current = recorder;
+    } catch (micErr) {
+      alert("Microphone access was denied. Please allow microphone permissions in your browser settings.");
+      stopDictation();
+    }
+  };
+
+  const toggleDictation = () => {
     if (isDictatingRef.current) {
       stopDictation();
       return;
     }
 
-    // Step 1: Explicitly request microphone stream on user gesture (required on mobile Safari / Chrome)
-    let stream = null;
-    if (typeof navigator !== "undefined" && navigator.mediaDevices?.getUserMedia) {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-        });
-        dictationMediaStreamRef.current = stream;
-      } catch (micErr) {
-        console.warn("[Dictation] Microphone permission error:", micErr);
-        if (micErr.name === "NotAllowedError" || micErr.name === "PermissionDeniedError") {
-          alert("Microphone permission was denied. Please allow microphone access in your browser settings to use dictation.");
-          return;
-        }
-      }
-    }
-
-    // Pre-unlock AudioContext on mobile user tap
-    if (typeof window !== "undefined") {
-      try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (AudioContext) {
-          const ctx = new AudioContext();
-          ctx.resume().catch(() => {});
-        }
-      } catch {}
-    }
+    const SpeechRecognition =
+      typeof window !== "undefined" &&
+      (window.SpeechRecognition || window.webkitSpeechRecognition);
 
     dictationBaseInputRef.current = input ? input.trim() + " " : "";
+    accumulatedFinalRef.current = "";
     setDictatedLiveText("");
-    isDictatingRef.current = true;
-    setIsDictating(true);
 
-    // Step 2: Try Web Speech API (SpeechRecognition)
+    // Try native Web Speech API first (works natively in Chrome, Safari iOS, Edge)
     if (SpeechRecognition) {
       try {
+        const recognition = new SpeechRecognition();
         const isMobile = typeof navigator !== "undefined" &&
           (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || navigator.maxTouchPoints > 1);
 
-        const recognition = new SpeechRecognition();
-        // Mobile WebKit drops on continuous=true; set to false and restart seamlessly on mobile
-        recognition.continuous = !isMobile;
+        try {
+          recognition.continuous = !isMobile;
+        } catch {
+          recognition.continuous = false;
+        }
         recognition.interimResults = true;
         recognition.lang = "en-US";
+        recognition.maxAlternatives = 1;
 
         recognition.onstart = () => {
           setIsDictating(true);
+          isDictatingRef.current = true;
         };
 
         recognition.onresult = (event) => {
-          let final = "";
           let interim = "";
-          for (let i = 0; i < event.results.length; ++i) {
+          let newlyFinalized = "";
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
             const piece = event.results[i][0]?.transcript || "";
             if (event.results[i].isFinal) {
-              final += piece;
+              newlyFinalized += piece + " ";
             } else {
               interim += piece;
             }
           }
-          const spoken = (final + (interim ? (final ? " " : "") + interim : "")).trim();
-          if (spoken) {
-            const combined = (dictationBaseInputRef.current + spoken).trim();
-            setInput(combined);
-            setDictatedLiveText(spoken);
+          if (newlyFinalized) {
+            accumulatedFinalRef.current += newlyFinalized;
+          }
+          const totalSpoken = (accumulatedFinalRef.current + interim).trim();
+          if (totalSpoken) {
+            const fullInput = (dictationBaseInputRef.current + totalSpoken).trim();
+            setInput(fullInput);
+            setDictatedLiveText(totalSpoken);
           }
         };
 
         recognition.onerror = (err) => {
-          if (err.error !== "no-speech") {
-            console.warn("[Dictation] Error:", err.error);
-          }
-          if (err.error === "not-allowed") {
-            alert("Microphone access was denied. Please enable microphone permissions in your mobile browser settings.");
+          console.warn("[Dictation] SpeechRecognition error:", err.error);
+          if (err.error === "not-allowed" || err.error === "service-not-allowed") {
+            alert("Microphone permission was denied. Please enable microphone permissions in your browser settings to use dictation.");
             stopDictation();
+          } else if (err.error === "network") {
+            try { recognition.stop(); } catch {}
+            dictationRecognitionRef.current = null;
+            startMediaRecorderFallback();
           }
         };
 
         recognition.onend = () => {
-          // Seamless mobile auto-restart: if user hasn't stopped, keep dictating across natural pauses!
           if (isDictatingRef.current) {
             setTimeout(() => {
               try {
                 if (isDictatingRef.current && dictationRecognitionRef.current) {
-                  // Update base input so next sentence appends cleanly
-                  setInput((prev) => {
-                    dictationBaseInputRef.current = prev ? prev.trim() + " " : "";
-                    return prev;
-                  });
                   dictationRecognitionRef.current.start();
                 }
-              } catch {}
-            }, 120);
+              } catch {
+                stopDictation();
+              }
+            }, 100);
           } else {
             stopDictation();
           }
         };
 
         dictationRecognitionRef.current = recognition;
+        // CRITICAL: Call recognition.start() synchronously within user click event!
         recognition.start();
+        setIsDictating(true);
+        isDictatingRef.current = true;
         return;
       } catch (err) {
-        console.warn("[Dictation] SpeechRecognition start failed, trying audio recording fallback:", err);
+        console.warn("[Dictation] SpeechRecognition init failed, falling back to MediaRecorder:", err);
       }
     }
 
-    // Step 3: MediaRecorder fallback for browsers without SpeechRecognition (e.g. mobile Firefox, WebViews)
-    if (stream && typeof MediaRecorder !== "undefined") {
-      try {
-        dictationChunksRef.current = [];
-        const mimeType = MediaRecorder.isTypeSupported("audio/webm")
-          ? "audio/webm"
-          : MediaRecorder.isTypeSupported("audio/mp4")
-          ? "audio/mp4"
-          : "";
-        const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
-
-        recorder.ondataavailable = (e) => {
-          if (e.data && e.data.size > 0) {
-            dictationChunksRef.current.push(e.data);
-          }
-        };
-
-        recorder.onstop = async () => {
-          if (dictationChunksRef.current.length > 0) {
-            try {
-              const audioBlob = new Blob(dictationChunksRef.current, { type: recorder.mimeType || "audio/webm" });
-              const reader = new FileReader();
-              reader.onloadend = async () => {
-                const base64Audio = (reader.result || "").split(",")[1];
-                if (base64Audio) {
-                  try {
-                    const transcribeRes = await fetch("/api/voice/transcribe", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ audio_base64: base64Audio, mode: "PUBLIC_RESEARCH" }),
-                    });
-                    if (transcribeRes.ok) {
-                      const data = await transcribeRes.json();
-                      if (data.text) {
-                        const newText = (inputRef.current ? inputRef.current.trim() + " " : "") + data.text;
-                        setInput(newText);
-                        setDictatedLiveText(data.text);
-                      }
-                    }
-                  } catch (txErr) {
-                    console.warn("[Dictation] Transcribe error:", txErr);
-                  }
-                }
-              };
-              reader.readAsDataURL(audioBlob);
-            } catch {}
-          }
-          stopDictation();
-        };
-
-        recorder.start(1000);
-        dictationRecorderRef.current = recorder;
-        return;
-      } catch (recErr) {
-        console.warn("[Dictation] MediaRecorder fallback error:", recErr);
-      }
-    }
-
-    alert("Speech recognition is not supported in this browser. Please use Chrome, Safari, or Edge with microphone permissions allowed.");
-    stopDictation();
+    // Fallback for browsers without SpeechRecognition (e.g. Chrome on iOS or Firefox)
+    startMediaRecorderFallback();
   };
 
   const syncLibraryFiles = async () => {
