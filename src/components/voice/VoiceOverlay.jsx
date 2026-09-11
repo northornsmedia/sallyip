@@ -5,6 +5,7 @@ import { VoiceSessionController } from '../../voice/VoiceSessionController.js';
 import { VoiceOrb } from './VoiceOrb.jsx';
 import { VoiceStatus } from './VoiceStatus.jsx';
 import { LiveTranscript } from './LiveTranscript.jsx';
+import '../voice-chat-widget.css';
 
 export function VoiceOverlay({
   isOpen = false,
