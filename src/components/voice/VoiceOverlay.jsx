@@ -65,16 +65,19 @@ export function VoiceOverlay({
 
     controller.onStateChange(({ newState }) => {
       setSessionState(newState);
+      if (newState === VOICE_STATES.LISTENING) {
+        setSallySpokenWords([]);
+        setPartialTranscript('');
+      }
       if (newState === VOICE_STATES.IDLE || newState === VOICE_STATES.DISCONNECTED) {
         if (timerRef.current) clearInterval(timerRef.current);
       }
     });
 
     controller.transcriptController.onTranscriptUpdate = ({ partial, final }) => {
-      if (partial) setPartialTranscript(partial);
+      setPartialTranscript(partial || '');
       if (final) {
         setLastUserText(final);
-        setPartialTranscript('');
       }
     };
 

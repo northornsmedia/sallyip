@@ -142,9 +142,12 @@ export class VoiceSessionController {
     this.playbackController.onPlaybackFinished = ({ generationId }) => {
       if (generationId === this.activeGenerationId) {
         this.isAssistantSpeaking = false;
-        this.echoCooldownUntil = Date.now() + 450;
+        this.echoCooldownUntil = Date.now() + 250;
         this.transcriptController.finalizeAssistantTurn();
         this.transitionTo(VOICE_STATES.LISTENING);
+        setTimeout(() => {
+          this.ensureSpeechRecognitionRunning();
+        }, 150);
       }
     };
 
@@ -297,21 +300,19 @@ export class VoiceSessionController {
       recognition.onend = () => {
         this.isSpeechRecognitionActive = false;
         const pending = (this.accumulatedFinalText || this.transcriptController.partialTranscript || '').trim();
-        if (pending && pending.length > 1 && !this.isAssistantSpeaking && this.state !== VOICE_STATES.THINKING) {
+        if (pending && pending.length > 1 && !this.isAssistantSpeaking && this.state !== VOICE_STATES.THINKING && this.state !== VOICE_STATES.SPEAKING) {
           this.accumulatedFinalText = '';
           this.transcriptController.setPartial('');
           this.submitUserQuery(pending);
           return;
         }
 
-        // Automatically restart speech recognition while session is active
-        if (this.state !== VOICE_STATES.IDLE && this.state !== VOICE_STATES.DISCONNECTED && !this.isAssistantSpeaking) {
+        // Automatically restart speech recognition while session is active and Sally is not speaking
+        if (this.state !== VOICE_STATES.IDLE && this.state !== VOICE_STATES.DISCONNECTED && !this.isAssistantSpeaking && this.state !== VOICE_STATES.THINKING && this.state !== VOICE_STATES.SPEAKING) {
           setTimeout(() => {
-            try {
-              if (this.state !== VOICE_STATES.IDLE && this.state !== VOICE_STATES.DISCONNECTED && !this.isAssistantSpeaking) {
-                recognition.start();
-              }
-            } catch {}
+            if (this.state !== VOICE_STATES.IDLE && this.state !== VOICE_STATES.DISCONNECTED && !this.isAssistantSpeaking) {
+              this.ensureSpeechRecognitionRunning();
+            }
           }, 150);
         }
       };
@@ -322,6 +323,35 @@ export class VoiceSessionController {
     } catch (e) {
       console.warn('[VoiceSessionController] SpeechRecognition init failed, activating MediaRecorder fallback:', e);
       this.initMediaRecorderFallback();
+    }
+  }
+
+  /**
+   * Ensure speech recognition is active and listening for user utterances on turn 2+
+   */
+  ensureSpeechRecognitionRunning() {
+    if (this.state === VOICE_STATES.IDLE || this.state === VOICE_STATES.DISCONNECTED) {
+      return;
+    }
+    if (this.isAssistantSpeaking || this.state === VOICE_STATES.SPEAKING || this.state === VOICE_STATES.THINKING) {
+      return;
+    }
+
+    this.accumulatedFinalText = '';
+    this.transcriptController.setPartial('');
+
+    if (this.speechRecognition && !this.isSpeechRecognitionActive) {
+      try {
+        this.speechRecognition.start();
+        this.isSpeechRecognitionActive = true;
+        return;
+      } catch (err) {
+        // Recognition instance ended or cannot restart; recreate it fresh
+        this.initContinuousSpeechRecognition();
+        return;
+      }
+    } else if (!this.speechRecognition) {
+      this.initContinuousSpeechRecognition();
     }
   }
 
@@ -446,6 +476,9 @@ export class VoiceSessionController {
 
     this.transcriptController.markAssistantInterrupted('MANUAL_STOP');
     this.transitionTo(VOICE_STATES.LISTENING);
+    setTimeout(() => {
+      this.ensureSpeechRecognitionRunning();
+    }, 100);
   }
 
   /**
@@ -748,9 +781,12 @@ export class VoiceSessionController {
         }
         if (generationId === this.activeGenerationId) {
           this.isAssistantSpeaking = false;
-          this.echoCooldownUntil = Date.now() + 450;
+          this.echoCooldownUntil = Date.now() + 250;
           this.transcriptController.finalizeAssistantTurn();
           this.transitionTo(VOICE_STATES.LISTENING);
+          setTimeout(() => {
+            this.ensureSpeechRecognitionRunning();
+          }, 150);
         }
       };
 
@@ -762,6 +798,9 @@ export class VoiceSessionController {
           this.isAssistantSpeaking = false;
           this.echoCooldownUntil = Date.now() + 200;
           this.transitionTo(VOICE_STATES.LISTENING);
+          setTimeout(() => {
+            this.ensureSpeechRecognitionRunning();
+          }, 150);
         }
       };
 
@@ -769,6 +808,9 @@ export class VoiceSessionController {
     } catch {
       this.isAssistantSpeaking = false;
       this.transitionTo(VOICE_STATES.LISTENING);
+      setTimeout(() => {
+        this.ensureSpeechRecognitionRunning();
+      }, 150);
     }
   }
 
