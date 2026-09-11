@@ -768,12 +768,14 @@ export default function ChatPage({ onHome, onAuthRequired }) {
 
     try {
       const speechInput = clean.length > 500 ? clean.slice(0, 500) + "..." : clean;
+      const chosenVoice = (typeof window !== 'undefined' ? localStorage.getItem('sally_selected_voice') : null) || 'en-US-AriaNeural';
       let res = await fetch("/api/voice/speak", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text: speechInput,
           input: speechInput,
+          voice: chosenVoice,
           mode: "PUBLIC_RESEARCH",
         }),
       });
@@ -784,6 +786,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             input: speechInput,
+            voice: chosenVoice,
             model: "fish-audio/s2.1-pro-free:free",
           }),
         });

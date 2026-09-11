@@ -17,6 +17,8 @@ import { ConversationalContext } from './ConversationalContext.js';
 export class VoiceSessionController {
   constructor(config = {}) {
     this.config = { ...DEFAULT_VOICE_CONFIG, ...config };
+    const savedVoice = typeof window !== 'undefined' ? localStorage.getItem('sally_selected_voice') : null;
+    this.voice = config.voice || savedVoice || 'en-US-AriaNeural';
 
     this.state = VOICE_STATES.IDLE;
     this.stateListeners = new Set();
@@ -622,7 +624,20 @@ export class VoiceSessionController {
   }
 
   /**
-   * Dispatch sentence to Fish Audio TTS and enqueue returned audio for playback
+   * Dynamically switch Sally's voice (e.g. en-US-JennyNeural, en-US-AvaNeural)
+   */
+  setVoice(voiceName) {
+    if (!voiceName) return;
+    this.voice = voiceName;
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('sally_selected_voice', voiceName);
+      } catch {}
+    }
+  }
+
+  /**
+   * Dispatch sentence to TTS and enqueue returned audio for playback
    */
   async dispatchSentenceToTts(sentenceText, generationId) {
     if (generationId !== this.activeGenerationId) return;
@@ -646,6 +661,7 @@ export class VoiceSessionController {
           text: sentenceText,
           input: sentenceText,
           model: this.config.ttsModel,
+          voice: this.voice || 'en-US-AriaNeural',
           mode: 'PUBLIC_RESEARCH',
         }),
       });
@@ -653,11 +669,11 @@ export class VoiceSessionController {
       if (response.ok) {
         audioBlob = await response.blob();
       } else {
-        console.warn(`[VoiceSessionController] Fish Audio returned HTTP ${response.status}`);
+        console.warn(`[VoiceSessionController] TTS returned HTTP ${response.status}`);
       }
     } catch (err) {
       if (err.name === 'AbortError') return;
-      console.warn('[VoiceSessionController] Fish Audio TTS dispatch error:', err.message);
+      console.warn('[VoiceSessionController] TTS dispatch error:', err.message);
     }
 
     // Check generation ID validity once more before enqueuing

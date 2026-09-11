@@ -853,3 +853,110 @@
   border-bottom-color: #818cf8;
   text-shadow: 0 0 12px rgba(129, 140, 248, 0.4);
 }
+
+/* Voice Picker Strip (Voice Overlay) */
+.voice-picker-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 10px 0 14px 0;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.dark .voice-picker-strip {
+  background: rgba(30, 41, 59, 0.7);
+  border-color: rgba(51, 65, 85, 0.8);
+}
+
+.voice-picker-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.voice-picker-icon {
+  color: #6366f1;
+  flex-shrink: 0;
+}
+
+.voice-picker-select {
+  width: 100%;
+  padding: 5px 8px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1e293b;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dark .voice-picker-select {
+  background: #1e293b;
+  border-color: #475569;
+  color: #f1f5f9;
+}
+
+.voice-picker-select:hover {
+  border-color: #94a3b8;
+}
+
+.voice-picker-select:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+.voice-preview-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.dark .voice-preview-btn {
+  background: #1e293b;
+  border-color: #475569;
+  color: #cbd5e1;
+}
+
+.voice-preview-btn:hover {
+  background: #f1f5f9;
+  color: #4f46e5;
+  border-color: #a5b4fc;
+}
+
+.dark .voice-preview-btn:hover {
+  background: #334155;
+  color: #818cf8;
+}
+
+.voice-preview-btn.playing {
+  background: #e0e7ff;
+  color: #4338ca;
+  border-color: #818cf8;
+}
+
+.dark .voice-preview-btn.playing {
+  background: #312e81;
+  color: #c7d2fe;
+  border-color: #6366f1;
+}
+
