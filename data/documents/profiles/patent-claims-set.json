@@ -1,0 +1,372 @@
+{
+  "id": "patent-claims-set",
+  "slug": "patent-claims-set",
+  "name": "Patent Claims Set",
+  "document_number": "010",
+  "aliases": [
+    "draft patent claims",
+    "prepare a claim set",
+    "write claims for this invention",
+    "draft an independent claim",
+    "draft dependent claims",
+    "help me broaden these claims",
+    "narrow these patent claims",
+    "review my patent claims",
+    "rewrite claim 1",
+    "build fallback claims",
+    "prepare method and system claims",
+    "turn this invention disclosure into claims",
+    "draft claims from this specification"
+  ],
+  "category": "IP_INNOVATION",
+  "subcategory": "PATENT",
+  "family": "PATENT_CLAIMS",
+  "practice_areas": ["patent_prosecution", "patent_drafting", "claim_strategy"],
+  "description": "A structured patent claim set for drafting, reviewing, and revising patent claims. This workflow produces ONLY the claims — NOT a complete patent application. It may be used within or alongside Utility Patent Application, Provisional Patent Application, Non-Provisional Patent Application, PCT International Patent Application, National Phase Patent Application, European Patent Application, or Patent Specification workflows.",
+  "status": "BETA",
+  "capability_level": "L3_DRAFTABLE",
+  "risk_level": "HIGH",
+  "jurisdiction_type": "CONTEXT_DEPENDENT",
+  "jurisdiction_classification": "CONTEXT_DEPENDENT",
+  "jurisdiction_scope": ["US", "PCT", "EP", "NATIONAL_PHASE_SPECIFIC", "OTHER", "UNDECIDED"],
+  "governing_law_required": false,
+  "forum_required": false,
+  "party_roles": ["inventor", "applicant", "assignee"],
+  "review_required": true,
+  "verification_required": true,
+  "interview_mode": "ONE_QUESTION_AT_A_TIME",
+  "drafting_status_default": "INFORMATION_GATHERING",
+  "readiness_levels": ["NOT_READY", "PARTIALLY_READY", "READY_FOR_FIRST_CLAIM_SET"],
+  "provenance_states": [
+    "USER_PROVIDED",
+    "MATTER_CONTEXT",
+    "SPECIFICATION_SOURCE",
+    "DISCLOSURE_SOURCE",
+    "FIGURE_SOURCE",
+    "PRIORITY_SOURCE",
+    "AI_PROPOSED",
+    "USER_EDITED",
+    "VERIFIED",
+    "UNVERIFIED",
+    "PLACEHOLDER"
+  ],
+  "required_inputs": [
+    {
+      "id": "core_inventive_concept",
+      "label": "Core Inventive Concept",
+      "type": "textarea",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "The single broadest technical concept you want the broadest independent claim to protect"
+    },
+    {
+      "id": "essential_features",
+      "label": "Essential Features (Must Be In Every Claim)",
+      "type": "textarea",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Features that are technically necessary — removing any would make the invention inoperable or fundamentally different"
+    },
+    {
+      "id": "claim_categories",
+      "label": "Desired Claim Categories",
+      "type": "select",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "options": [
+        "SYSTEM",
+        "METHOD",
+        "APPARATUS",
+        "DEVICE",
+        "PROCESS",
+        "COMPOSITION",
+        "PRODUCT",
+        "MANUFACTURE",
+        "USE",
+        "COMPUTER_IMPLEMENTED_METHOD",
+        "COMPUTER_READABLE_MEDIUM",
+        "SOFTWARE_RELATED",
+        "OTHER"
+      ],
+      "default": ["SYSTEM", "METHOD"],
+      "description": "Claim categories appropriate to the invention and jurisdiction"
+    },
+    {
+      "id": "jurisdiction",
+      "label": "Target Jurisdiction",
+      "type": "select",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "options": ["US", "PCT", "EP", "NATIONAL_PHASE_SPECIFIC", "OTHER", "UNDECIDED"],
+      "default": "UNDECIDED",
+      "description": "Jurisdiction affects claim format, categories, and dependency rules"
+    }
+  ],
+  "optional_inputs": [
+    {
+      "id": "invention_type",
+      "label": "Invention Type",
+      "type": "select",
+      "input_class": "RECOMMENDED",
+      "options": [
+        "SOFTWARE",
+        "AI_ML",
+        "SYSTEM",
+        "METHOD",
+        "DEVICE",
+        "MECHANICAL",
+        "ELECTRONICS",
+        "CHEMICAL",
+        "COMPOSITION",
+        "PHARMACEUTICAL",
+        "BIOTECH",
+        "MANUFACTURING",
+        "MATERIALS",
+        "OTHER"
+      ],
+      "description": "Determines technical depth and branching"
+    },
+    {
+      "id": "workflow_mode",
+      "label": "Workflow Mode",
+      "type": "select",
+      "input_class": "RECOMMENDED",
+      "options": [
+        "NEW_CLAIM_SET",
+        "CLAIMS_FROM_SPECIFICATION",
+        "CLAIMS_FROM_INVENTION_DISCLOSURE",
+        "CLAIMS_FROM_EXISTING_APPLICATION",
+        "CLAIM_REVIEW",
+        "CLAIM_BROADENING",
+        "CLAIM_NARROWING",
+        "DEPENDENT_CLAIM_EXPANSION",
+        "FALLBACK_CLAIM_STRATEGY",
+        "CLAIM_CATEGORY_EXPANSION",
+        "CLAIM_REWRITE",
+        "CLAIM_COMPARISON",
+        "OFFICE_ACTION_AMENDMENT_SUPPORT"
+      ],
+      "default": "NEW_CLAIM_SET",
+      "description": "What claim task to perform"
+    },
+    {
+      "id": "preferred_features",
+      "label": "Preferred Features (Commercially Important)",
+      "type": "textarea",
+      "input_class": "OPTIONAL",
+      "description": "Features in the preferred commercial embodiment — candidates for dependent claims"
+    },
+    {
+      "id": "optional_features",
+      "label": "Optional Features / Alternative Embodiments",
+      "type": "textarea",
+      "input_class": "OPTIONAL",
+      "description": "Alternative implementations, materials, or configurations — candidates for fallback claims"
+    },
+    {
+      "id": "known_design_arounds",
+      "label": "Known Design-Around Possibilities",
+      "type": "textarea",
+      "input_class": "OPTIONAL",
+      "description": "What could a competitor change while keeping the core commercial function?"
+    },
+    {
+      "id": "known_prior_art",
+      "label": "Known Prior Art / Closest Competing Approach",
+      "type": "textarea",
+      "input_class": "OPTIONAL",
+      "description": "References to distinguish from — informs claim scope and fallback strategy"
+    },
+    {
+      "id": "source_specification",
+      "label": "Source Patent Specification (if any)",
+      "type": "textarea",
+      "input_class": "OPTIONAL",
+      "description": "Existing specification text to extract claims from or ensure support"
+    },
+    {
+      "id": "source_disclosure",
+      "label": "Invention Disclosure Source (if any)",
+      "type": "textarea",
+      "input_class": "OPTIONAL",
+      "description": "Existing invention disclosure or technical documentation"
+    },
+    {
+      "id": "existing_claims",
+      "label": "Existing Claims (for review/revision)",
+      "type": "textarea",
+      "input_class": "OPTIONAL",
+      "description": "Claims already drafted that you want reviewed, revised, or expanded"
+    },
+    {
+      "id": "terminology_preferences",
+      "label": "Terminology Preferences",
+      "type": "textarea",
+      "input_class": "OPTIONAL",
+      "description": "Preferred terms, aliases, or specific vocabulary to use/avoid"
+    },
+    {
+      "id": "filing_strategy",
+      "label": "Filing Strategy",
+      "type": "select",
+      "input_class": "OPTIONAL",
+      "options": [
+        "BROADEST_SUPPORTED",
+        "BALANCED_WITH_FALLBACKS",
+        "NARROW_COMMERCIAL_EMBODIMENT",
+        "DESIGN_AROUND_DEFENSIVE",
+        "PRIORITY_MAXIMIZATION",
+        "OTHER"
+      ],
+      "description": "Overall claim strategy approach"
+    },
+    {
+      "id": "inventors",
+      "label": "Inventors",
+      "type": "array",
+      "input_class": "OPTIONAL",
+      "description": "Natural persons who contributed to the inventive concept"
+    },
+    {
+      "id": "applicant",
+      "label": "Applicant / Assignee",
+      "type": "text",
+      "input_class": "OPTIONAL"
+    },
+    {
+      "id": "priority_application",
+      "label": "Priority Application Details",
+      "type": "textarea",
+      "input_class": "OPTIONAL",
+      "description": "Priority application number, filing date, and relationship for priority support mapping"
+    }
+  ],
+  "matter_inputs": [
+    { "fact_type": "title", "entity_types": ["patent", "invention"], "confidence_threshold": 0.8 },
+    { "fact_type": "inventor", "entity_types": ["person"], "confidence_threshold": 0.8 },
+    { "fact_type": "applicant", "entity_types": ["organization", "client"], "confidence_threshold": 0.8 },
+    { "fact_type": "jurisdiction", "entity_types": ["country", "jurisdiction"], "confidence_threshold": 0.9 },
+    { "fact_type": "claims", "entity_types": ["patent"], "confidence_threshold": 0.8 },
+    { "fact_type": "specification", "entity_types": ["patent"], "confidence_threshold": 0.8 },
+    { "fact_type": "invention_type", "entity_types": ["patent"], "confidence_threshold": 0.7 }
+  ],
+  "sections": [
+    {
+      "id": "claim_strategy",
+      "heading": "Claim Strategy Summary",
+      "order": 1,
+      "required": true,
+      "clause_families": [],
+      "show_if": "true"
+    },
+    {
+      "id": "independent_claims",
+      "heading": "Independent Claims",
+      "order": 2,
+      "required": true,
+      "clause_families": ["patent.claims"],
+      "show_if": "true"
+    },
+    {
+      "id": "dependent_claims",
+      "heading": "Dependent Claims",
+      "order": 3,
+      "required": true,
+      "clause_families": ["patent.claims"],
+      "show_if": "true"
+    },
+    {
+      "id": "claim_tree",
+      "heading": "Claim Dependency Tree",
+      "order": 4,
+      "required": false,
+      "clause_families": [],
+      "show_if": "true"
+    },
+    {
+      "id": "support_map",
+      "heading": "Claim Support Map",
+      "order": 5,
+      "required": false,
+      "clause_families": [],
+      "show_if": "answers.source_specification || answers.source_disclosure"
+    },
+    {
+      "id": "terminology",
+      "heading": "Claim Terminology Dictionary",
+      "order": 6,
+      "required": false,
+      "clause_families": [],
+      "show_if": "answers.terminology_preferences"
+    },
+    {
+      "id": "fallback_ladder",
+      "heading": "Fallback Ladder (Breadth Levels)",
+      "order": 7,
+      "required": false,
+      "clause_families": [],
+      "show_if": "answers.workflow_mode === 'FALLBACK_CLAIM_STRATEGY' || answers.workflow_mode === 'NEW_CLAIM_SET'"
+    },
+    {
+      "id": "review_flags",
+      "heading": "Review Flags & Recommendations",
+      "order": 8,
+      "required": true,
+      "clause_families": [],
+      "show_if": "true"
+    }
+  ],
+  "clause_families": ["patent.claims", "patent.priority", "patent.assignment"],
+  "authority_required": [
+    "35 U.S.C. § 101",
+    "35 U.S.C. § 102",
+    "35 U.S.C. § 103",
+    "35 U.S.C. § 111",
+    "35 U.S.C. § 112",
+    "37 C.F.R. § 1.75",
+    "37 C.F.R. § 1.77",
+    "MPEP Chapter 600",
+    "MPEP Chapter 2100",
+    "PCT Article 6",
+    "PCT Rule 6",
+    "EPC Article 84",
+    "EPC Rule 43"
+  ],
+  "claim_support_rules": {
+    "require_antecedent_basis": true,
+    "require_written_description_mapping": true,
+    "disallow_unsupported_limitations": true,
+    "track_support_matrix": true,
+    "track_priority_support": true,
+    "track_new_matter_risk": true
+  },
+  "review_flags": [
+    "DISCLOSURE_TIMING_REVIEW_REQUIRED",
+    "INVENTORSHIP_REVIEW_REQUIRED",
+    "UNSUPPORTED_LIMITATION_FLAGGED",
+    "SUBJECT_MATTER_101_RISK",
+    "CONFIDENTIAL_MATTER_UNPUBLISHED",
+    "NEW_MATTER_OR_SUPPORT_REVIEW_REQUIRED",
+    "PRIORITY_SUPPORT_REVIEW_REQUIRED",
+    "ANTECEDENT_BASIS_REVIEW_REQUIRED",
+    "FUNCTIONAL_LANGUAGE_REVIEW_REQUIRED",
+    "SPECIAL_CLAIM_FORM_REVIEW_REQUIRED",
+    "DESIGN_AROUND_REVIEW_REQUIRED",
+    "SPECIALIST_REVIEW_REQUIRED",
+    "TERMINOLOGY_CONFLICT_DETECTED",
+    "CLAIM_INTERNAL_CONFLICT"
+  ],
+  "output_formats": ["docx", "pdf", "md", "json"],
+  "related_documents": [
+    "utility-patent-application",
+    "provisional-patent-application",
+    "non-provisional-patent-application",
+    "pct-international-patent-application",
+    "national-phase-patent-application",
+    "european-patent-application",
+    "patent-specification",
+    "patent-abstract",
+    "invention-disclosure-form",
+    "patent-claim-chart",
+    "patent-office-action-response"
+  ],
+  "source_status": "CANONICAL_DOCUMENT_TRAINING_010",
+  "version": "1.0.0",
+  "last_reviewed": "2026-09-11"
+}

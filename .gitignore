@@ -14,4 +14,7 @@ playwright-report/
 tests/__snapshots__/
 *.trace.zip
 *.exe
+scratch/*.jpg
+scratch/*.png
+scratch/*.glb
 

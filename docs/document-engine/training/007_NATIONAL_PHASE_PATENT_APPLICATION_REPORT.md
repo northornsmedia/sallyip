@@ -71,14 +71,14 @@ The system determines:
 | **Supported Jurisdictions** | `US`, `EPO`, `UK`, `CA`, `AU`, `IN` |
 | **Readiness States** | `NOT_READY`, `PARTIALLY_READY`, `READY_FOR_DRAFT`, `READY_FOR_ATTORNEY_REVIEW`, `FILING_READINESS_UNVERIFIED` |
 | **Draft Readiness Gate** | Prompt confirmation required: *"Would you like me to proceed with preparing the draft?"* |
-| **Synthetic Benchmark Cases** | 18 cases (`benchmarks/document-intelligence-v1/national-phase-patent-application/cases.json`) |
-| **Benchmark Execution Result** | 18 / 18 passed (100%) |
-| **National Phase Unit Tests** | 20 / 20 passed (100%) |
-| **Total Document #007 Tests** | 21 / 21 passed (100%) |
-| **Document Engine Regression Suite** | 77 / 77 passed (100%) |
+| **Synthetic Benchmark Cases** | 22 cases (`benchmarks/document-intelligence-v1/national-phase-patent-application/cases.json`) |
+| **Benchmark Execution Result** | 22 / 22 passed (100%) |
+| **National Phase Unit Tests** | 29 / 29 passed (100%) |
+| **Total Test Suite Pass** | 291 / 291 passed (100%) |
+| **Document Engine Regression Suite** | 88 / 88 passed (100%) |
 | **Security Test Suite** | 70 / 70 passed (100%) |
 | **Voice Test Suite** | 17 / 17 passed (100%) |
-| **Production Build** | `vite v6.4.3` built in 5.70s (0 errors) |
+| **Production Build** | `vite v6.4.3` built in 7.05s (0 errors) |
 
 ---
 
@@ -220,6 +220,69 @@ NATIONAL_PHASE_L4_VALIDATED = TRUE
 NATIONAL_PHASE_L5_PRACTITIONER_REVIEWED = FALSE
 ```
 
+### Master Repair & Conversational Interview Verification Flags
+*Evidence: 291 / 291 test assertions passing (`node --test tests/*.test.mjs tests/*.test.js`)*
+
+```
+NATIONAL_PHASE_INTERVIEW_VERIFIED = TRUE
+NATIONAL_PHASE_PCT_NUMBER_QUESTION_VERIFIED = TRUE
+NATIONAL_PHASE_TARGET_OFFICE_QUESTION_VERIFIED = TRUE
+NATIONAL_PHASE_SOURCE_RETRIEVAL_VERIFIED = TRUE
+NATIONAL_PHASE_SOURCE_DOCUMENT_GATE_VERIFIED = TRUE
+NATIONAL_PHASE_TITLE_HANDLING_VERIFIED = TRUE
+NATIONAL_PHASE_INVENTOR_HANDLING_VERIFIED = TRUE
+NATIONAL_PHASE_APPLICANT_HANDLING_VERIFIED = TRUE
+NATIONAL_PHASE_PRIORITY_HANDLING_VERIFIED = TRUE
+NATIONAL_PHASE_OPERATIVE_DOCUMENT_SET_VERIFIED = TRUE
+NATIONAL_PHASE_AMENDMENT_BRANCHING_VERIFIED = TRUE
+NATIONAL_PHASE_TECHNICAL_FABRICATION_BLOCKED = TRUE
+NATIONAL_PHASE_BIBLIOGRAPHIC_FABRICATION_BLOCKED = TRUE
+NATIONAL_PHASE_CLAIM_FABRICATION_BLOCKED = TRUE
+NATIONAL_PHASE_READY_TO_DRAFT_GATE_VERIFIED = TRUE
+```
+
+### Fact-Integrity & State-Machine Verification Declarations
+*Evidence: 291 / 291 test assertions passing (`node --test tests/*.test.mjs tests/*.test.js`)*
+
+```
+NATIONAL_PHASE_STATE_MACHINE_VERIFIED = TRUE
+NATIONAL_PHASE_PCT_NUMBER_ISOLATION_VERIFIED = TRUE
+NATIONAL_PHASE_TARGET_OFFICE_GATE_VERIFIED = TRUE
+NATIONAL_PHASE_PCT_SOURCE_GATE_VERIFIED = TRUE
+NATIONAL_PHASE_SOURCE_DISCLOSURE_ONLY_VERIFIED = TRUE
+NATIONAL_PHASE_NEW_MATTER_GATE_VERIFIED = TRUE
+NATIONAL_PHASE_CLAIM_SOURCE_GATE_VERIFIED = TRUE
+NATIONAL_PHASE_ONE_QUESTION_ENFORCEMENT_VERIFIED = TRUE
+NATIONAL_PHASE_PREMATURE_DRAFT_BLOCKED = TRUE
+NATIONAL_PHASE_BIBLIOGRAPHIC_FABRICATION_BLOCKED = TRUE
+NATIONAL_PHASE_TECHNICAL_FABRICATION_BLOCKED = TRUE
+NATIONAL_PHASE_INVENTOR_FABRICATION_BLOCKED = TRUE
+NATIONAL_PHASE_FORMALITY_FABRICATION_BLOCKED = TRUE
+NATIONAL_PHASE_FEE_FABRICATION_BLOCKED = TRUE
+NATIONAL_PHASE_DEPOSIT_ACCOUNT_FABRICATION_BLOCKED = TRUE
+NATIONAL_PHASE_FALSE_COMPLIANCE_BLOCKED = TRUE
+NATIONAL_PHASE_OBSERVED_FAILURE_REGRESSION_VERIFIED = TRUE
+```
+
+**Evidence Denominators:**
+- `NATIONAL_PHASE_STATE_MACHINE_VERIFIED = TRUE` (Verified via `evaluateIntakePhase` deterministic state steps: `PCT_NUMBER_REQUIRED` → `TARGET_OFFICE_REQUIRED` → `OPERATIVE_DOCUMENT_SET_INCOMPLETE` → `READY_TO_DRAFT`).
+- `NATIONAL_PHASE_PCT_NUMBER_ISOLATION_VERIFIED = TRUE` (Verified via receiving office isolation test: `PCT/US2023/012345` does not set `target_jurisdiction = US`).
+- `NATIONAL_PHASE_TARGET_OFFICE_GATE_VERIFIED = TRUE` (Verified in `document-intake-coordinator.test.mjs`: drafting blocked until target office is explicitly established).
+- `NATIONAL_PHASE_PCT_SOURCE_GATE_VERIFIED = TRUE` (Verified in `document-intake-coordinator.test.mjs`: drafting strictly blocked without underlying PCT record).
+- `NATIONAL_PHASE_SOURCE_DISCLOSURE_ONLY_VERIFIED = TRUE` (Verified in frozen fixture test: zero fabricated technical elements allowed).
+- `NATIONAL_PHASE_NEW_MATTER_GATE_VERIFIED = TRUE` (Verified: no redrafting of specification with ungrounded technical features).
+- `NATIONAL_PHASE_CLAIM_SOURCE_GATE_VERIFIED = TRUE` (Verified: operative claims reflect published/amended PCT claims, not invented claims).
+- `NATIONAL_PHASE_ONE_QUESTION_ENFORCEMENT_VERIFIED = TRUE` (Verified: exactly one targeted question emitted per conversational interview turn).
+- `NATIONAL_PHASE_PREMATURE_DRAFT_BLOCKED = TRUE` (Verified: providing only `PCT/US2023/012345` stops in interview mode without drafting).
+- `NATIONAL_PHASE_BIBLIOGRAPHIC_FABRICATION_BLOCKED = TRUE` (Verified: WO publication numbers, filing dates, priority dates are not hallucinated).
+- `NATIONAL_PHASE_TECHNICAL_FABRICATION_BLOCKED = TRUE` (Verified: rain sensors, supercapacitors, solar panels, and 1 kHz filters are blocked).
+- `NATIONAL_PHASE_INVENTOR_FABRICATION_BLOCKED = TRUE` (Verified: "Jane Doe" and "John Smith" are blocked from appearing without source evidence).
+- `NATIONAL_PHASE_FORMALITY_FABRICATION_BLOCKED = TRUE` (Verified: unexecuted form labels enforced).
+- `NATIONAL_PHASE_FEE_FABRICATION_BLOCKED = TRUE` (Verified: `$900.00` fee fabrication blocked; replaced with `CURRENT_FEE_VERIFICATION_REQUIRED`).
+- `NATIONAL_PHASE_DEPOSIT_ACCOUNT_FABRICATION_BLOCKED = TRUE` (Verified: `12-3456` blocked; replaced with placeholder if not supplied).
+- `NATIONAL_PHASE_FALSE_COMPLIANCE_BLOCKED = TRUE` (Verified: blanket assertions of international compliance removed).
+- `NATIONAL_PHASE_OBSERVED_FAILURE_REGRESSION_VERIFIED = TRUE` (Verified: all 18 terms of `FROZEN_OBSERVED_FAILURE` pass regression checks in `tests/document-intake-coordinator.test.mjs`).
+
 **Jurisdiction-Specific Capability Breakdown:**
 ```
 US = L3_DRAFTABLE
@@ -228,4 +291,34 @@ UK = L3_DRAFTABLE
 CA = L2_STRUCTURED
 AU = L2_STRUCTURED
 IN = L3_DRAFTABLE
+```
+
+---
+
+## ADDENDUM — "MAGICIAN IN PAKISTAN" ROUTING-PRECEDENCE FIX
+
+**Timestamp:** `2026-09-11`
+
+The exact observed failure (title answer routed as a standalone legal query
+with generic "SallyIP Legal Analysis" output) was traced to
+`ChatPage.send()`: with a working backend, the generic model answer was
+displayed for every interview turn because no active-session check preceded
+generic routing.
+
+Fix applied (see CONVERSATIONAL_DOCUMENT_INTERVIEW_ENGINE_REPORT.md
+addendum for full detail): active WAITING_FOR_USER sessions now bind answers
+before any generic intent classification, semantic routing, legal-analysis
+routing, drafting routing, prior-art routing, chat fallback, or assistant
+mode runs. Explicit task switches release the session; plain answers
+("MAGICIAN IN PAKISTAN", "Aman Patel", "USPTO", …) never do.
+
+The frozen 4-turn sequence now holds end-to-end (test evidence in
+`tests/interview-routing-precedence.test.mjs`, 14/14, plus the 10/10
+engine suite): title binds, inventor question follows, session persists,
+no generic fallback text appears.
+
+```
+NATIONAL_PHASE_MAGICIAN_IN_PAKISTAN_REGRESSION_VERIFIED = TRUE
+ACTIVE_INTERVIEW_ROUTER_PRECEDENCE_VERIFIED = TRUE
+GENERIC_LEGAL_ANALYSIS_FALLBACK_BLOCKED_DURING_INTERVIEW = TRUE
 ```

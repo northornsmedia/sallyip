@@ -9,6 +9,44 @@
   -webkit-font-smoothing: antialiased;
 }
 
+body.sally-video-call-active .voice-widget-root {
+  display: none;
+}
+
+.sally-human3d-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #070a14;
+}
+
+.sally-human3d-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  outline: none;
+}
+
+.sally-human3d-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgba(4, 6, 15, .22), transparent 26%, transparent 72%, rgba(3, 5, 12, .4)),
+    radial-gradient(ellipse at center, transparent 45%, rgba(3, 5, 12, .42) 100%);
+}
+
+.sally-human3d-error {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: #fecdd3;
+  background: #070a14;
+  font-size: 13px;
+}
+
 /* Launcher Floating Pill Button (Closed State) */
 .voice-launcher-btn {
   display: inline-flex;
@@ -2044,6 +2082,44 @@
   overflow: hidden;
 }
 
+/* USER PICTURE-IN-PICTURE (PiP) */
+.sally-user-pip {
+  position: absolute;
+  bottom: 24px;
+  right: 28px;
+  width: 148px;
+  height: 96px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+}
+
+.sally-user-pip-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sally-user-pip-tag {
+  position: absolute;
+  bottom: 6px;
+  left: 8px;
+  background: rgba(0, 0, 0, 0.75);
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.66rem;
+  color: #f1f5f9;
+  font-weight: 600;
+  font-family: monospace;
+}
+
 /* 3D AVATAR CANVAS CONTAINER */
 .sally-3d-avatar-container {
   position: absolute !important;
@@ -2284,6 +2360,9 @@
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   z-index: 40;
   box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  margin: 0;
 }
 
 .sally-fs-dock {
@@ -2295,6 +2374,11 @@
   background: rgba(15, 23, 42, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+  flex-direction: row;
+}
+
+footer.sally-fs-footer > .sally-fs-dock {
+  flex-direction: row;
 }
 
 .sally-dock-btn {
@@ -2379,3 +2463,234 @@
   color: #c7d2fe;
 }
 
+/* Sally animated avatar — production video-call stage */
+.sally-avatar-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(104, 78, 220, .2), transparent 32%),
+    linear-gradient(155deg, #0b1022 0%, #070a14 55%, #111128 100%);
+  isolation: isolate;
+}
+
+.sally-avatar-stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(to bottom, black, transparent 78%);
+}
+
+.sally-avatar-stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 140px rgba(0,0,0,.58);
+}
+
+.sally-avatar-ambient i {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(2px);
+  background: rgba(139, 92, 246, .38);
+  animation: sallyAmbientFloat 9s ease-in-out infinite;
+}
+
+.sally-avatar-ambient i:nth-child(1) { width: 8px; height: 8px; left: 20%; top: 28%; }
+.sally-avatar-ambient i:nth-child(2) { width: 5px; height: 5px; left: 76%; top: 22%; animation-delay: -3s; }
+.sally-avatar-ambient i:nth-child(3) { width: 6px; height: 6px; left: 68%; top: 66%; animation-delay: -6s; }
+
+@keyframes sallyAmbientFloat {
+  0%, 100% { transform: translateY(0); opacity: .25; }
+  50% { transform: translateY(-28px); opacity: .7; }
+}
+
+.sally-avatar-presence {
+  position: absolute;
+  inset: 3% 10% 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 2;
+}
+
+.sally-avatar-halo {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  width: min(62vw, 580px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px solid rgba(129, 140, 248, .18);
+  background: radial-gradient(circle, rgba(124, 90, 230, .2), rgba(70, 60, 180, .04) 55%, transparent 70%);
+  box-shadow: 0 0 100px rgba(99, 102, 241, .12), inset 0 0 70px rgba(139, 92, 246, .08);
+}
+
+.sally-avatar-halo::before,
+.sally-avatar-halo::after {
+  content: '';
+  position: absolute;
+  border-radius: inherit;
+  border: 1px solid rgba(139, 92, 246, .13);
+}
+
+.sally-avatar-halo::before { inset: 8%; }
+.sally-avatar-halo::after { inset: 17%; }
+.sally-avatar-presence.is-speaking .sally-avatar-halo { animation: sallyHaloSpeak 1.35s ease-in-out infinite; }
+.sally-avatar-presence.is-thinking .sally-avatar-halo { animation: sallyHaloThink 2.4s linear infinite; }
+
+@keyframes sallyHaloSpeak {
+  0%, 100% { transform: translate(-50%, -50%) scale(.98); opacity: .72; }
+  50% { transform: translate(-50%, -50%) scale(1.04); opacity: 1; }
+}
+
+@keyframes sallyHaloThink {
+  0%, 100% { transform: translate(-50%, -50%) rotate(0deg); filter: hue-rotate(0); }
+  50% { transform: translate(-50%, -50%) rotate(4deg); filter: hue-rotate(24deg); }
+}
+
+.sally-avatar-figure {
+  position: relative;
+  z-index: 2;
+  width: min(75vh, 700px);
+  max-width: 72vw;
+  height: min(83vh, 760px);
+  overflow: visible;
+  animation: sallyAvatarBreathe 5s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+@keyframes sallyAvatarBreathe {
+  0%, 100% { transform: translateY(1px) scale(1); }
+  50% { transform: translateY(-3px) scale(1.004); }
+}
+
+.sally-avatar-head { transform-origin: 360px 470px; transition: transform .18s ease-out; }
+.sally-avatar-eyes { transform-origin: center; animation: sallyAvatarBlink 5.4s infinite; }
+
+@keyframes sallyAvatarBlink {
+  0%, 45%, 48%, 100% { transform: scaleY(1); }
+  46%, 47% { transform: scaleY(.08); }
+}
+
+.sally-avatar-status {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(22px, 4vh, 42px);
+  z-index: 5;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 999px;
+  background: rgba(8, 11, 25, .78);
+  backdrop-filter: blur(14px);
+  color: #f1f5f9;
+  font-size: 12px;
+  font-weight: 650;
+  box-shadow: 0 10px 34px rgba(0,0,0,.28);
+}
+
+.sally-avatar-status-dot,
+.sally-avatar-ai-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 10px rgba(52, 211, 153, .8);
+}
+
+[data-state="speaking"] .sally-avatar-status-dot { background: #a78bfa; box-shadow: 0 0 12px #8b5cf6; }
+[data-state="thinking"] .sally-avatar-status-dot,
+[data-state="transcribing"] .sally-avatar-status-dot { background: #fbbf24; box-shadow: 0 0 12px rgba(251,191,36,.75); }
+[data-state="error"] .sally-avatar-status-dot { background: #fb7185; box-shadow: 0 0 12px rgba(251,113,133,.75); }
+
+.sally-avatar-wave { height: 15px; display: flex; align-items: center; gap: 2px; margin-left: 2px; }
+.sally-avatar-wave i { width: 2px; height: 5px; border-radius: 2px; background: #a78bfa; animation: sallyWave .68s ease-in-out infinite alternate; }
+.sally-avatar-wave i:nth-child(2) { animation-delay: -.35s; }
+.sally-avatar-wave i:nth-child(3) { animation-delay: -.15s; }
+.sally-avatar-wave i:nth-child(4) { animation-delay: -.48s; }
+@keyframes sallyWave { to { height: 14px; } }
+
+.sally-avatar-identity {
+  position: absolute;
+  top: 22px;
+  left: 22px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(8,11,25,.7);
+  backdrop-filter: blur(12px);
+  color: #aeb8cd;
+  font-size: 11px;
+}
+.sally-avatar-identity strong { color: #f4f1ff; font-weight: 650; }
+.sally-avatar-ai-dot { background: #a78bfa; box-shadow: 0 0 10px rgba(167,139,250,.8); }
+
+.sally-pip-avatar-mark { width: 100%; height: 100%; display: block; filter: drop-shadow(0 0 7px rgba(139,92,246,.45)); }
+
+.sally-call-notice {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  z-index: 45;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(520px, calc(100% - 40px));
+  padding: 10px 12px;
+  border: 1px solid rgba(251,191,36,.3);
+  border-radius: 12px;
+  background: rgba(25, 20, 12, .9);
+  backdrop-filter: blur(14px);
+  color: #fde68a;
+  font-size: 12px;
+  box-shadow: 0 14px 34px rgba(0,0,0,.3);
+}
+.sally-call-notice-error { border-color: rgba(251,113,133,.38); background: rgba(36,12,23,.92); color: #fecdd3; }
+.sally-call-notice div { display: grid; gap: 2px; flex: 1; }
+.sally-call-notice strong { color: #fff; }
+.sally-call-notice span { line-height: 1.35; }
+.sally-call-notice button { border: 1px solid rgba(255,255,255,.16); border-radius: 8px; background: rgba(255,255,255,.1); color: #fff; padding: 6px 9px; font: inherit; font-weight: 650; cursor: pointer; white-space: nowrap; }
+
+@media (max-width: 760px) {
+  .sally-fs-header { height: 58px; min-height: 58px; padding: 0 12px; }
+  .sally-fs-live-badge, .sally-fs-meta-row, .sally-fs-voice-label, .sally-fs-btn-end span { display: none; }
+  .sally-fs-header-left { gap: 8px; }
+  .sally-fs-voice-picker { margin-left: auto; padding: 5px 8px; max-width: 150px; }
+  .sally-fs-voice-select { max-width: 105px; }
+  .sally-fs-header-right { gap: 5px; }
+  .sally-fs-btn-icon { width: 32px; height: 32px; }
+  .sally-fs-btn-end { width: 34px; height: 34px; padding: 0; justify-content: center; margin-left: 0; }
+  .sally-fs-stage { height: calc(100vh - 126px); }
+  .sally-fs-footer { height: 68px; min-height: 68px; padding: 0 10px; }
+  .sally-fs-dock { padding: 7px; gap: 7px; }
+  .sally-dock-btn { width: 46px; height: 42px; padding: 0; justify-content: center; }
+  .sally-dock-btn span { display: none; }
+  .sally-dock-btn.end { padding: 0; }
+  .sally-user-pip { width: 108px; height: 82px; right: 12px; bottom: 14px; }
+  .sally-fs-captions-hud { bottom: 108px; width: calc(100% - 24px); }
+  .sally-avatar-presence { inset: 8% 0 0; }
+  .sally-avatar-figure { max-width: 105vw; width: min(76vh, 620px); }
+  .sally-avatar-identity { top: 12px; left: 12px; }
+  .sally-fs-drawer { position: absolute; inset: 0 0 0 auto; width: min(88vw, 360px); }
+  .sally-call-notice { top: 58px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sally-avatar-figure, .sally-avatar-eyes, .sally-avatar-halo, .sally-avatar-ambient i, .sally-avatar-wave i { animation: none !important; }
+}

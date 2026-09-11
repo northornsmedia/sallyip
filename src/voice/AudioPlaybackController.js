@@ -51,6 +51,7 @@ export class AudioPlaybackController {
       this.analyser = ctx.createAnalyser();
       this.analyser.fftSize = 256;
       this.analyser.smoothingTimeConstant = 0.3;
+      this.analyser.connect(ctx.destination);
     }
     return this.analyser;
   }
@@ -147,11 +148,12 @@ export class AudioPlaybackController {
   async playAudioBuffer(chunk) {
     const ctx = await this.getAudioContext();
     if (!ctx) return;
+    const analyser = await this.getAnalyserNode();
 
     return new Promise((resolve) => {
       const source = ctx.createBufferSource();
       source.buffer = chunk.audioBuffer;
-      source.connect(ctx.destination);
+      source.connect(analyser || ctx.destination);
       this.currentSource = source;
 
       source.onended = () => {
@@ -169,10 +171,24 @@ export class AudioPlaybackController {
    * Play chunk via HTMLAudioElement (works directly with MP3 blobs)
    */
   async playAudioBlob(chunk) {
+    const ctx = await this.getAudioContext();
+    const analyser = await this.getAnalyserNode();
     return new Promise((resolve) => {
       const url = URL.createObjectURL(chunk.audioBlob);
       const audio = new Audio(url);
       this.currentAudioElement = audio;
+      let mediaSource = null;
+
+      // Route MP3 playback through the shared analyser so the avatar mouth
+      // follows the audio users actually hear, rather than a synthetic timer.
+      if (ctx && analyser) {
+        try {
+          mediaSource = ctx.createMediaElementSource(audio);
+          mediaSource.connect(analyser);
+        } catch (err) {
+          console.warn('[AudioPlaybackController] Could not attach lip-sync analyser:', err.message);
+        }
+      }
 
       const words = (chunk.text || '').split(/\s+/).filter(Boolean);
       let teleprompterTimer = null;
@@ -198,6 +214,10 @@ export class AudioPlaybackController {
         URL.revokeObjectURL(url);
         if (this.currentAudioElement === audio) {
           this.currentAudioElement = null;
+        }
+        if (mediaSource) {
+          try { mediaSource.disconnect(); } catch {}
+          mediaSource = null;
         }
         if (this.onWordWindowUpdate) {
           this.onWordWindowUpdate([]);

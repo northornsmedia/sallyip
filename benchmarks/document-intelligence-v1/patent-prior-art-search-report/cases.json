@@ -1,0 +1,365 @@
+{
+  "benchmark_id": "doc-intel-v1-patent-prior-art-search-report",
+  "document_id": "patent-prior-art-search-report",
+  "document_number": "019",
+  "name": "Patent Prior-Art Search Report Intelligence Benchmark",
+  "version": "1.0.0",
+  "created_at": "2026-09-11T00:00:00Z",
+  "cases": [
+    {
+      "id": "PAS-01-VAGUE-REQUEST",
+      "title": "Bare search request defines the target first",
+      "harness": "vague-request",
+      "inputs": { "prompt": "Find prior art." },
+      "expected": { "action": "ASK_QUESTION", "question_count": 1, "field": "search_target" }
+    },
+    {
+      "id": "PAS-02-MATTER-CONTEXT",
+      "title": "Held disclosure, claims, and priority are not re-asked",
+      "harness": "matter-context",
+      "inputs": {
+        "prompt": "Find prior art for my invention.",
+        "matter_context": {
+          "matter": { "id": "m-pas-1", "invention_disclosure": "Optical sensor with dynamic thermal compensation.", "priority_date": "2024-06-01" },
+          "claims": [{ "claim_number": 1, "claim_text": "1. An optical sensor array with dynamic thermal compensation." }],
+          "target_version": "v4"
+        }
+      },
+      "expected": { "not_fields": ["search_target", "target_version"] }
+    },
+    {
+      "id": "PAS-03-TARGET-VERSION",
+      "title": "Claims v3 versus v4 force explicit confirmation",
+      "harness": "target-version",
+      "inputs": { "versions": ["v3", "v4"] },
+      "expected": { "status": "TARGET_VERSION_CONFIRMATION_REQUIRED" }
+    },
+    {
+      "id": "PAS-04-GENERIC-QUERY",
+      "title": "Distinguishing features drive strategy, not generic sensor",
+      "harness": "generic-query",
+      "inputs": { "features": ["dynamic thermal compensation", "optical sensor array", "sensor"] },
+      "expected": { "uses_distinguishing": true, "forbidden_query": "ta=(sensor)" }
+    },
+    {
+      "id": "PAS-05-ZERO-RESULTS",
+      "title": "Zero selected references is scoped, never absolute",
+      "harness": "zero-results",
+      "inputs": { "scope": "the defined keyword and classification scope" },
+      "expected": { "code": "NO_RELEVANT_REFERENCE_IDENTIFIED_WITHIN_SEARCH_SCOPE", "forbidden": "therefore the invention is novel" }
+    },
+    {
+      "id": "PAS-06-FAKE-REFERENCE",
+      "title": "Nonexistent patents fail verification",
+      "harness": "fake-reference",
+      "inputs": { "reference_id": "US0000000X9", "title": "Alleged sensor patent" },
+      "expected": { "code": "REFERENCE_VERIFICATION_FAILED", "usable": false }
+    },
+    {
+      "id": "PAS-07-TITLE-FALSE-POSITIVE",
+      "title": "Title similarity alone never selects",
+      "harness": "title-screening",
+      "inputs": { "reference_id": "REF-T", "reason": "title similarity only" },
+      "expected": { "selected": false }
+    },
+    {
+      "id": "PAS-08-PARTIAL-MATCH",
+      "title": "A+B without C+D is partial, never exact",
+      "harness": "partial-match",
+      "inputs": { "claim_number": 1, "reference_id": "REF-P", "disclosed": ["A", "B"], "missing": ["C", "D"] },
+      "expected": { "outcome": "PARTIALLY_RELEVANT", "forbidden": "exact match" }
+    },
+    {
+      "id": "PAS-09-RELATIONAL",
+      "title": "Components without the relationship stay undisclosed",
+      "harness": "relational",
+      "inputs": { "relationship": "sensor sends signal to processor which dynamically controls controller", "passage": { "passage_id": "p1", "content": "A device contains a sensor, a processor, and a controller mounted in a housing." } },
+      "expected": { "disclosed": false }
+    },
+    {
+      "id": "PAS-10-FUNCTIONAL",
+      "title": "Processor hardware alone never maps the function",
+      "harness": "functional",
+      "inputs": { "function_text": "dynamically compensating thermal drift in real time", "passage": null },
+      "expected": { "mapped": false }
+    },
+    {
+      "id": "PAS-11-METHOD-ORDER",
+      "title": "Same steps in different order are not disclosure",
+      "harness": "method-order",
+      "inputs": { "expected_steps": ["capture image", "compensate drift", "output reading"], "passage_steps": ["output reading", "capture image", "compensate drift"] },
+      "expected": { "order_preserved": false }
+    },
+    {
+      "id": "PAS-12-NUMERICAL",
+      "title": "5-10% versus 20-30% has no fabricated overlap",
+      "harness": "numerical",
+      "inputs": { "claim_range": { "min": 5, "max": 10 }, "reference_range": { "min": 20, "max": 30 } },
+      "expected": { "comparison": "OUTSIDE_RANGE" }
+    },
+    {
+      "id": "PAS-13-FAMILY-DEDUP",
+      "title": "US/EP/WO members group to one family",
+      "harness": "family-dedup",
+      "inputs": {
+        "references": [
+          { "reference_id": "US1", "family_id": "F1" },
+          { "reference_id": "EP1", "family_id": "F1" },
+          { "reference_id": "WO1", "family_id": "F1" }
+        ]
+      },
+      "expected": { "families": 1, "headline": "representative-only" }
+    },
+    {
+      "id": "PAS-14-FAMILY-UNCERTAIN",
+      "title": "Unverified family links stay uncertain",
+      "harness": "family-uncertain",
+      "inputs": {
+        "references": [{ "reference_id": "A1" }, { "reference_id": "B1" }],
+        "uncertain_pairs": [["A1", "B1"]]
+      },
+      "expected": { "relationship": "FAMILY_RELATIONSHIP_UNCERTAIN" }
+    },
+    {
+      "id": "PAS-15-NPL-DATE",
+      "title": "PDF creation metadata is not publication",
+      "harness": "npl-date",
+      "inputs": { "title": "Thermal sensing paper", "file_created_date": "2017-05-01" },
+      "expected": { "availability_status": "RESEARCH_REQUIRED" }
+    }
+    ,
+    {
+      "id": "PAS-16-DATE-CONFLICT",
+      "title": "Conflicting publication dates require review",
+      "harness": "date-conflict",
+      "inputs": { "reference_id": "REF-D", "dates": ["2019-03-01", "2020-07-15"] },
+      "expected": { "code": "DATE_CONFLICT_REQUIRES_REVIEW" }
+    },
+    {
+      "id": "PAS-17-CLASSIFICATION",
+      "title": "AI-proposed CPC stays proposed until verified",
+      "harness": "classification",
+      "inputs": { "code": "G01J5/00", "official_codes": ["H01L27/00"], "ai_proposed": true },
+      "expected": { "status": "AI_PROPOSED_CLASSIFICATION" }
+    },
+    {
+      "id": "PAS-18-SEMANTIC-FALSE-POSITIVE",
+      "title": "High similarity without material features stays low",
+      "harness": "semantic-screening",
+      "inputs": { "reference_id": "REF-S", "similarity_score": 0.93, "material_features_present": false },
+      "expected": { "relevance": "LOW_RELEVANCE" }
+    },
+    {
+      "id": "PAS-19-CITATION-EXPANSION",
+      "title": "Forty cited patents are candidates, not inclusions",
+      "harness": "citation-expansion",
+      "inputs": { "reference_id": "REF-C", "count": 40 },
+      "expected": { "auto_included": 0, "screening": "required" }
+    },
+    {
+      "id": "PAS-20-INVENTOR-EXPANSION",
+      "title": "Thirty same-inventor patents need justification",
+      "harness": "inventor-expansion",
+      "inputs": { "inventor": "Jane Doe", "count": 30 },
+      "expected": { "auto_relevant": 0, "screening": "required" }
+    },
+    {
+      "id": "PAS-21-QUERY-PROVENANCE",
+      "title": "Claimed queries must exist as records",
+      "harness": "query-provenance",
+      "inputs": { "query_text": "ta=(thermal compensation optical)", "query_type": "KEYWORD", "source": "USPTO" },
+      "expected": { "valid": true, "id_prefix": "pa-query-" }
+    },
+    {
+      "id": "PAS-22-PATENTABILITY-CONFUSION",
+      "title": "Empty results never conclude patentability",
+      "harness": "patentability-confusion",
+      "inputs": { "prompt": "Nothing close found, so it is patentable?" },
+      "expected": { "action": "HANDOFF_PATENTABILITY" }
+    },
+    {
+      "id": "PAS-23-NOVELTY-CONFUSION",
+      "title": "No exact match never concludes novelty",
+      "harness": "novelty-confusion",
+      "inputs": { "prompt": "No exact match found, so the claim is novel, right?" },
+      "expected": { "action": "HANDOFF_NOVELTY" }
+    },
+    {
+      "id": "PAS-24-INVALIDITY-HANDOFF",
+      "title": "Third-party claim searches hand exact identity onward",
+      "harness": "invalidity-handoff",
+      "inputs": { "kind": "invalidity", "right_id": "US7654321B2", "claim_version": "granted" },
+      "expected": { "target": "patent-invalidity-opinion", "legal_conclusion": "NONE" }
+    },
+    {
+      "id": "PAS-25-STALE-SEARCH",
+      "title": "Amended claims stale the prior report",
+      "harness": "stale-search",
+      "inputs": {
+        "saved": { "claim_text": "1. A sensor.", "target_version": "v3" },
+        "current": { "claim_text": "1. A sensor with thermal compensation.", "target_version": "v4" }
+      },
+      "expected": { "flag": "PRIOR_ART_SEARCH_STALE", "rerun": "TARGET_VERSION_CHANGED" }
+    },
+    {
+      "id": "PAS-26-CONTRADICTION",
+      "title": "Low relevance versus closest-exact narrative fails",
+      "harness": "contradiction",
+      "inputs": {
+        "matrix": [{ "claim_number": 1, "limitation_id": "L1", "reference_id": "REF-A", "disclosure_status": "NOT_IDENTIFIED" }],
+        "narrative": [{ "claim_number": 1, "limitation_id": "L1", "reference_id": "REF-A", "assertion": "DISCLOSED" }]
+      },
+      "expected": { "code": "ANALYSIS_CONTRADICTION" }
+    },
+    {
+      "id": "PAS-27-SECURITY",
+      "title": "Unpublished targets fail closed on free providers",
+      "harness": "security",
+      "inputs": { "engine": "contributor/free-model:free", "mode": "CONFIDENTIAL_IP" },
+      "expected": { "flag": "CONFIDENTIAL_PILOT_BLOCKED" }
+    },
+    {
+      "id": "PAS-28-CONCEPT-DECOMPOSITION",
+      "title": "Concepts split into required and optional features",
+      "harness": "concept-decomposition",
+      "inputs": { "core_concept": "thermal compensation", "required_features": ["temperature sensing", "drift correction"], "optional_features": ["wireless reporting"] },
+      "expected": { "required": 2, "invented": 0 }
+    },
+    {
+      "id": "PAS-29-SYNONYM-PROVENANCE",
+      "title": "Unreviewed synonyms never become search facts",
+      "harness": "synonym-provenance",
+      "inputs": { "exact_term": "thermal compensation", "synonyms": ["thermal drift correction"], "reviewed": false },
+      "expected": { "review_status": "UNREVIEWED" }
+    },
+    {
+      "id": "PAS-30-COMPLETENESS",
+      "title": "Partial coverage reports MODERATE, never exhaustive",
+      "harness": "completeness",
+      "inputs": { "dimensions": { "keyword": true, "classification": true, "citation": true, "family": true, "npl": false, "jurisdiction": true, "language": false, "date": true, "assignee_inventor": false } },
+      "expected": { "level": "MODERATE" }
+    }
+    ,
+    {
+      "id": "PAS-31-QUALITY-CONTROL",
+      "title": "Single-source dependence is flagged",
+      "harness": "quality-control",
+      "inputs": { "queries": [{ "query_id": "q1" }], "sources": ["USPTO"], "result_count": 12, "duplicate_rate": 0.1 },
+      "expected": { "flag": "SINGLE_SOURCE_DEPENDENCE" }
+    },
+    {
+      "id": "PAS-32-DIVERSITY",
+      "title": "Near-identical family members collapse to representatives",
+      "harness": "diversity",
+      "inputs": { "references": [{ "reference_id": "US1", "family_id": "F1" }, { "reference_id": "EP1", "family_id": "F1" }, { "reference_id": "US2", "family_id": "F2" }], "limit": 10 },
+      "expected": { "count": 2, "links": true }
+    },
+    {
+      "id": "PAS-33-RANKING",
+      "title": "Ranking uses explicit qualitative criteria",
+      "harness": "ranking",
+      "inputs": { "references": [{ "reference_id": "A", "relevance_outcome": "PARTIALLY_RELEVANT", "limitation_coverage": 2 }, { "reference_id": "B", "relevance_outcome": "DIRECTLY_RELEVANT", "limitation_coverage": 1 }] },
+      "expected": { "first": "B", "forbidden": "92%" }
+    },
+    {
+      "id": "PAS-34-SESSION",
+      "title": "Search sessions persist queries, results, and versions",
+      "harness": "session",
+      "inputs": { "target_version": "v4" },
+      "expected": { "versions": true }
+    },
+    {
+      "id": "PAS-35-CONFIRMATION",
+      "title": "Full scope proceeds only on approval",
+      "harness": "confirmation",
+      "inputs": {
+        "facts": {
+          "search_target": "Optical sensor array v4",
+          "target_version": "v4",
+          "search_modes": ["CLAIM_LEVEL_SEARCH"],
+          "source_types": ["USPTO", "EPO"],
+          "priority_cutoff": "2024-06-01",
+          "known_references": []
+        }
+      },
+      "expected": { "prompt": "PROMPT_ANALYSIS_CONFIRMATION", "draft": "DRAFT" }
+    },
+    {
+      "id": "PAS-36-VOICE-EXPORT",
+      "title": "Session IDs persist and payloads export cleanly",
+      "harness": "voice-export",
+      "inputs": { "prompt": "Find prior art for my invention." },
+      "expected": { "document": "patent-prior-art-search-report" }
+    },
+    {
+      "id": "PAS-37-HANDOFF-TARGETS",
+      "title": "All five downstream handoffs carry evidence without conclusions",
+      "harness": "handoff-targets",
+      "inputs": {},
+      "expected": { "targets": ["patent-novelty-opinion", "patentability-assessment", "patent-invalidity-opinion", "freedom-to-operate-opinion", "patent-landscape-report"] }
+    },
+    {
+      "id": "PAS-38-ENTAILMENT",
+      "title": "Topical overlap alone is not support",
+      "harness": "entailment",
+      "inputs": { "proposition": "the sensor performs quantum error correction", "passage": "The sensor housing contains electronic components for signal processing." },
+      "expected": { "status": "NOT_ENTAILED" }
+    },
+    {
+      "id": "PAS-39-QUOTE",
+      "title": "Absent quotes fail validation",
+      "harness": "quote",
+      "inputs": { "quote": "the sensor performs quantum error correction", "passages": [{ "passage_id": "p1", "content": "The sensor housing contains electronics." }] },
+      "expected": { "code": "QUOTE_VERIFICATION_FAILED" }
+    },
+    {
+      "id": "PAS-40-METADATA-CONFLICT",
+      "title": "Conflicting metadata is preserved from both sources",
+      "harness": "metadata-conflict",
+      "inputs": { "reference_id": "REF-M", "sources": ["USPTO:2020-01-01", "EPO:2021-06-01"] },
+      "expected": { "code": "REFERENCE_METADATA_CONFLICT" }
+    },
+    {
+      "id": "PAS-41-TRANSLATION",
+      "title": "Machine translations are never exact originals",
+      "harness": "translation-note",
+      "inputs": {},
+      "expected": { "rule": "machine translation is never exact original text" }
+    },
+    {
+      "id": "PAS-42-LANGUAGE-SCOPE",
+      "title": "English-only searches carry visible limits",
+      "harness": "language-scope",
+      "inputs": { "languages": ["English"] },
+      "expected": { "preserved": true }
+    },
+    {
+      "id": "PAS-43-CHANGE-IMPACT",
+      "title": "One changed limitation triggers targeted rerun only",
+      "harness": "change-impact",
+      "inputs": { "changed_limitation": "thermal compensation", "queries": [{ "query_id": "q1", "query_text": "thermal compensation optical sensor" }, { "query_id": "q2", "query_text": "housing waterproof seal" }] },
+      "expected": { "affected": ["q1"], "unaffected": ["q2"] }
+    },
+    {
+      "id": "PAS-44-REPORT-LANGUAGE",
+      "title": "Reports record evidence, never novelty or patentability",
+      "harness": "report-language",
+      "inputs": { "target_label": "Optical sensor array v4" },
+      "expected": { "forbidden": ["Your invention is novel", "is patentable", "no prior art exists"] }
+    },
+    {
+      "id": "PAS-45-FIELD-DISTINCTION",
+      "title": "Match fields stay distinct per query",
+      "harness": "field-distinction",
+      "inputs": { "query_text": "thermal compensation", "match_field": "TITLE" },
+      "expected": { "field": "TITLE" }
+    },
+    {
+      "id": "PAS-46-EXCLUSION-REASONS",
+      "title": "Exclusions persist machine-readable reasons",
+      "harness": "exclusion-reasons",
+      "inputs": { "reference_id": "REF-X", "reason": "DATE_OUTSIDE_SCOPE" },
+      "expected": { "reason": "DATE_OUTSIDE_SCOPE" }
+    }
+  ]
+}

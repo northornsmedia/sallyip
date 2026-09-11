@@ -1,72 +1,210 @@
 {
   "$schema": "https://sallyip.com/schemas/complete-document-catalogue.json",
   "version": "1.0.0",
-  "generated_at": "2026-09-10T16:30:00Z",
+  "generated_at": "2026-09-11T06:09:52.441Z",
   "source": "Repository audit of data/documents/, src/lib/document-engine-router.js, data/documents/capability-matrix.json, database/043_contracts.sql",
-  "verified_counts": {
+"verified_counts": {
     "total_categories": 12,
     "total_subcategories": 80,
-    "total_document_families": 40,
-    "total_document_types": 40,
-    "total_aliases": 120,
-    "total_clause_families": 28,
+    "total_document_families": 41,
+    "total_document_types": 41,
+    "total_aliases": 125,
+    "total_clause_families": 29,
     "total_jurisdictions": 8
   },
   "reported_vs_actual": {
-    "total_categories": { "reported": 12, "actual": 12, "difference": 0 },
-    "total_subcategories": { "reported": 80, "actual": 80, "difference": 0 },
-    "total_document_families": { "reported": 150, "actual": 40, "difference": -110 },
-    "total_document_types": { "reported": 400, "actual": 40, "difference": -360 },
-    "total_aliases": { "reported": 200, "actual": 120, "difference": -80 },
-    "total_clause_families": { "reported": 28, "actual": 28, "difference": 0 },
-    "total_jurisdictions": { "reported": 8, "actual": 8, "difference": 0 }
+    "total_categories": {
+      "reported": 12,
+      "actual": 12,
+      "difference": 0
+    },
+    "total_subcategories": {
+      "reported": 80,
+      "actual": 80,
+      "difference": 0
+    },
+    "total_document_families": {
+      "reported": 150,
+      "actual": 40,
+      "difference": -110
+    },
+    "total_document_types": {
+      "reported": 400,
+      "actual": 25,
+      "difference": -375
+    },
+    "total_aliases": {
+      "reported": 200,
+      "actual": 120,
+      "difference": -80
+    },
+    "total_clause_families": {
+      "reported": 28,
+      "actual": 28,
+      "difference": 0
+    },
+    "total_jurisdictions": {
+      "reported": 8,
+      "actual": 8,
+      "difference": 0
+    }
   },
   "status_summary": {
     "AVAILABLE": 1,
-    "BETA": 1,
+    "BETA": 2,
     "RESEARCH_ONLY": 0,
     "PLANNED": 38
   },
-  "verified_document_types": 40,
+  "verified_document_types": 26,
   "catalogue": [
+    {
+      "id": "design-patent-application",
+      "slug": "patentability-assessment",
+      "name": "Patentability Assessment",
+      "aliases": [
+        "is my invention patentable",
+        "assess patentability",
+        "prepare a patentability assessment",
+        "evaluate whether this can be patented",
+        "assess novelty and inventive step",
+        "assess novelty and obviousness",
+        "does this invention appear patentable",
+        "analyse patentability against this prior art",
+        "prepare a preliminary patentability report"
+      ],
+      "category": "IP_INNOVATION",
+      "subcategory": "PATENT",
+      "document_family": "PATENT_ANALYSIS",
+      "status": "BETA",
+      "risk_level": "HIGH",
+      "jurisdiction_scope": [
+        "US",
+        "EP",
+        "PCT_CONTEXT",
+        "OTHER"
+      ],
+      "jurisdiction_type": "CONTEXT_DEPENDENT",
+      "profile_exists": true,
+      "profile_path": "data/documents/profiles/patentability-assessment.json",
+      "database_template": false,
+      "router_patterns": [
+        "patentability assessment",
+        "is my invention patentable",
+        "assess novelty and inventive step"
+      ],
+      "clause_families": [],
+      "capability_level": "L3_DRAFTABLE",
+      "notes": "Document #014 evidence-driven patentability assessment; not a guarantee of patentability/grant/validity/FTO/infringement."
+    },
     {
       "id": "nda-mutual",
       "slug": "nda-mutual",
       "name": "Mutual Non-Disclosure Agreement",
-      "aliases": ["mutual nda", "mutual confidentiality agreement", "mutual non-disclosure", "nda", "confidentiality agreement", "mutual cda"],
+      "aliases": [
+        "mutual nda",
+        "mutual confidentiality agreement",
+        "mutual non-disclosure",
+        "nda",
+        "confidentiality agreement",
+        "mutual cda"
+      ],
       "category": "COMMERCIAL",
       "subcategory": "NDA",
       "document_family": "NDA",
       "status": "AVAILABLE",
       "risk_level": "MEDIUM",
-      "jurisdiction_scope": ["US", "UK", "EU", "CA", "AU"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "CA",
+        "AU"
+      ],
       "jurisdiction_type": "JURISDICTION_ADAPTABLE",
       "profile_exists": true,
       "profile_path": "data/documents/profiles/nda-mutual.json",
       "database_template": true,
       "database_template_slug": "nda-mutual",
-      "router_patterns": ["nda", "non-disclosure", "confidentiality agreement", "mutual nda", "mutual confidentiality"],
-      "clause_families": ["confidentiality.definition", "confidentiality.exclusions", "confidentiality.permitted_disclosure", "confidentiality.duration", "ip.background", "disputes.courts"],
+      "router_patterns": [
+        "nda",
+        "non-disclosure",
+        "confidentiality agreement",
+        "mutual nda",
+        "mutual confidentiality"
+      ],
+      "clause_families": [
+        "confidentiality.definition",
+        "confidentiality.exclusions",
+        "confidentiality.permitted_disclosure",
+        "confidentiality.duration",
+        "ip.background",
+        "disputes.courts"
+      ],
       "capability_level": "L3_DRAFTABLE",
       "notes": "Reference implementation with full profile, 7 sections, 6 clause families, 5 pre-draft questions, 9 drafting positions for clause variants"
+    },
+    {
+      "id": "design-patent-application",
+      "slug": "design-patent-application",
+      "name": "Design Patent Application",
+      "aliases": ["design patent", "design patent application", "us design patent", "draft a design patent", "prepare a design patent", "design application"],
+      "category": "IP_INNOVATION",
+      "subcategory": "PATENT",
+      "document_family": "DESIGN_PATENT_APPLICATION",
+      "status": "BETA",
+      "risk_level": "HIGH",
+      "jurisdiction_scope": ["US"],
+      "jurisdiction_type": "JURISDICTION_SPECIFIC",
+      "profile_exists": true,
+      "profile_path": "data/documents/profiles/design-patent-application.json",
+      "database_template": false,
+      "router_patterns": ["design patent", "design patent application", "us design patent", "draft a design patent", "prepare a design patent", "design application"],
+      "clause_families": ["design_patent.claim", "patent.priority"],
+      "capability_level": "L1_ROUTABLE",
+      "notes": "Canonical Document #004. Profile exists with 6 USPTO sections, 21 required/recommended inputs, one-question-at-a-time interview graph with design-type branching"
     },
     {
       "id": "patent-application",
       "slug": "patent-application",
       "name": "Patent Application",
-      "aliases": ["patent app", "patent filing", "provisional", "nonprovisional", "utility patent"],
+      "aliases": [
+        "patent app",
+        "patent filing",
+        "provisional",
+        "nonprovisional",
+        "utility patent"
+      ],
       "category": "IP_INNOVATION",
       "subcategory": "PATENT",
       "document_family": "PATENT_APPLICATION",
       "status": "BETA",
       "risk_level": "HIGH",
-      "jurisdiction_scope": ["US", "UK", "EU", "EPO", "PCT", "CA", "AU", "IN"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "EPO",
+        "PCT",
+        "CA",
+        "AU",
+        "IN"
+      ],
       "jurisdiction_type": "JURISDICTION_SPECIFIC",
       "profile_exists": true,
       "profile_path": "data/documents/profiles/patent-application.json",
       "database_template": false,
-      "router_patterns": ["patent application", "patent filing", "provisional", "nonprovisional", "utility patent"],
-      "clause_families": ["patent.claims", "patent.priority", "patent.assignment"],
+      "router_patterns": [
+        "patent application",
+        "patent filing",
+        "provisional",
+        "nonprovisional",
+        "utility patent"
+      ],
+      "clause_families": [
+        "patent.claims",
+        "patent.priority",
+        "patent.assignment"
+      ],
       "capability_level": "L3_DRAFTABLE",
       "notes": "Profile exists with 7 USPTO sections, 6 required inputs, but no clause variant intelligence implemented"
     },
@@ -74,18 +212,32 @@
       "id": "nda-unilateral",
       "slug": "nda-unilateral",
       "name": "Unilateral NDA",
-      "aliases": ["one-way nda", "unilateral nda", "unilateral confidentiality"],
+      "aliases": [
+        "one-way nda",
+        "unilateral nda",
+        "unilateral confidentiality"
+      ],
       "category": "COMMERCIAL",
       "subcategory": "NDA",
       "document_family": "NDA",
       "status": "PLANNED",
       "risk_level": "MEDIUM",
-      "jurisdiction_scope": ["US", "UK", "EU", "CA", "AU"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "CA",
+        "AU"
+      ],
       "jurisdiction_type": "JURISDICTION_ADAPTABLE",
       "profile_exists": false,
       "database_template": true,
       "database_template_slug": "nda-unilateral",
-      "router_patterns": ["one-way nda", "unilateral nda", "unilateral confidentiality"],
+      "router_patterns": [
+        "one-way nda",
+        "unilateral nda",
+        "unilateral confidentiality"
+      ],
       "clause_families": [],
       "capability_level": "L1_ROUTABLE",
       "notes": "Template exists in database but no document profile created. Router would match 'nda' pattern to nda-mutual."
@@ -94,18 +246,32 @@
       "id": "msa-services",
       "slug": "msa-services",
       "name": "Master Services Agreement",
-      "aliases": ["msa", "master services agreement", "master service agreement"],
+      "aliases": [
+        "msa",
+        "master services agreement",
+        "master service agreement"
+      ],
       "category": "COMMERCIAL",
       "subcategory": "MSA",
       "document_family": "MSA",
       "status": "PLANNED",
       "risk_level": "HIGH",
-      "jurisdiction_scope": ["US", "UK", "EU", "CA", "AU"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "CA",
+        "AU"
+      ],
       "jurisdiction_type": "JURISDICTION_ADAPTABLE",
       "profile_exists": false,
       "database_template": true,
       "database_template_slug": "msa-services",
-      "router_patterns": ["msa", "master services agreement", "master service agreement"],
+      "router_patterns": [
+        "msa",
+        "master services agreement",
+        "master service agreement"
+      ],
       "clause_families": [],
       "capability_level": "L0_CATALOGUED",
       "notes": "Template exists in database but no document profile. No router pattern currently defined."
@@ -114,18 +280,30 @@
       "id": "saas-agreement",
       "slug": "saas-agreement",
       "name": "SaaS Subscription Agreement",
-      "aliases": ["saas", "software as a service"],
+      "aliases": [
+        "saas",
+        "software as a service"
+      ],
       "category": "COMMERCIAL",
       "subcategory": "SAAS",
       "document_family": "SAAS",
       "status": "PLANNED",
       "risk_level": "HIGH",
-      "jurisdiction_scope": ["US", "UK", "EU", "CA", "AU"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "CA",
+        "AU"
+      ],
       "jurisdiction_type": "JURISDICTION_ADAPTABLE",
       "profile_exists": false,
       "database_template": true,
       "database_template_slug": "saas-agreement",
-      "router_patterns": ["saas", "software as a service"],
+      "router_patterns": [
+        "saas",
+        "software as a service"
+      ],
       "clause_families": [],
       "capability_level": "L1_ROUTABLE",
       "notes": "Template exists in database but no document profile. Router pattern exists in document-engine-router.js"
@@ -134,17 +312,33 @@
       "id": "software-licence",
       "slug": "software-licence",
       "name": "Software Licence Agreement",
-      "aliases": ["software licence", "software license", "eula", "end user"],
+      "aliases": [
+        "software licence",
+        "software license",
+        "eula",
+        "end user"
+      ],
       "category": "TECHNOLOGY",
       "subcategory": "SOFTWARE_LICENCE",
       "document_family": "SOFTWARE_LICENCE",
       "status": "PLANNED",
       "risk_level": "HIGH",
-      "jurisdiction_scope": ["US", "UK", "EU", "CA", "AU"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "CA",
+        "AU"
+      ],
       "jurisdiction_type": "JURISDICTION_ADAPTABLE",
       "profile_exists": false,
       "database_template": false,
-      "router_patterns": ["software licence", "software license", "eula", "end user"],
+      "router_patterns": [
+        "software licence",
+        "software license",
+        "eula",
+        "end user"
+      ],
       "clause_families": [],
       "capability_level": "L1_ROUTABLE",
       "notes": "Router pattern exists. No document profile created."
@@ -153,17 +347,29 @@
       "id": "data-processing-agreement",
       "slug": "data-processing-agreement",
       "name": "Data Processing Agreement",
-      "aliases": ["dpa", "data processing agreement"],
+      "aliases": [
+        "dpa",
+        "data processing agreement"
+      ],
       "category": "PRIVACY",
       "subcategory": "DPA",
       "document_family": "DPA",
       "status": "PLANNED",
       "risk_level": "HIGH",
-      "jurisdiction_scope": ["US", "UK", "EU", "CA", "AU"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "CA",
+        "AU"
+      ],
       "jurisdiction_type": "JURISDICTION_SPECIFIC",
       "profile_exists": false,
       "database_template": false,
-      "router_patterns": ["dpa", "data processing agreement"],
+      "router_patterns": [
+        "dpa",
+        "data processing agreement"
+      ],
       "clause_families": [],
       "capability_level": "L1_ROUTABLE",
       "notes": "Router pattern exists. No document profile created."
@@ -172,17 +378,29 @@
       "id": "privacy-policy",
       "slug": "privacy-policy",
       "name": "Privacy Policy",
-      "aliases": ["privacy notice", "privacy policy"],
+      "aliases": [
+        "privacy notice",
+        "privacy policy"
+      ],
       "category": "PRIVACY",
       "subcategory": "PRIVACY_POLICY",
       "document_family": "PRIVACY_POLICY",
       "status": "PLANNED",
       "risk_level": "MEDIUM",
-      "jurisdiction_scope": ["US", "UK", "EU", "CA", "AU"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "CA",
+        "AU"
+      ],
       "jurisdiction_type": "JURISDICTION_SPECIFIC",
       "profile_exists": false,
       "database_template": false,
-      "router_patterns": ["privacy notice", "privacy policy"],
+      "router_patterns": [
+        "privacy notice",
+        "privacy policy"
+      ],
       "clause_families": [],
       "capability_level": "L1_ROUTABLE",
       "notes": "Router pattern exists. No document profile created."
@@ -191,18 +409,33 @@
       "id": "patent-assignment",
       "slug": "patent-assignment",
       "name": "Patent Assignment",
-      "aliases": ["patent assignment", "assignment of patent"],
+      "aliases": [
+        "patent assignment",
+        "assignment of patent"
+      ],
       "category": "IP_INNOVATION",
       "subcategory": "PATENT",
       "document_family": "PATENT_ASSIGNMENT",
       "status": "PLANNED",
       "risk_level": "HIGH",
-      "jurisdiction_scope": ["US", "UK", "EU", "EPO", "PCT", "CA", "AU", "IN"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "EPO",
+        "PCT",
+        "CA",
+        "AU",
+        "IN"
+      ],
       "jurisdiction_type": "JURISDICTION_SPECIFIC",
       "profile_exists": false,
       "database_template": true,
       "database_template_slug": "ip-assignment",
-      "router_patterns": ["patent assignment", "assignment of patent"],
+      "router_patterns": [
+        "patent assignment",
+        "assignment of patent"
+      ],
       "clause_families": [],
       "capability_level": "L1_ROUTABLE",
       "notes": "Router pattern exists. Template exists in database. No document profile created."
@@ -217,7 +450,13 @@
       "document_family": "IP_LICENCE",
       "status": "PLANNED",
       "risk_level": "HIGH",
-      "jurisdiction_scope": ["US", "UK", "EU", "CA", "AU"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "CA",
+        "AU"
+      ],
       "jurisdiction_type": "JURISDICTION_ADAPTABLE",
       "profile_exists": false,
       "database_template": true,
@@ -231,17 +470,29 @@
       "id": "trademark-coexistence",
       "slug": "trademark-coexistence",
       "name": "Trademark Coexistence Agreement",
-      "aliases": ["trademark coexistence", "coexistence agreement"],
+      "aliases": [
+        "trademark coexistence",
+        "coexistence agreement"
+      ],
       "category": "IP_INNOVATION",
       "subcategory": "TRADEMARK",
       "document_family": "TRADEMARK_COEXISTENCE",
       "status": "PLANNED",
       "risk_level": "MEDIUM",
-      "jurisdiction_scope": ["US", "UK", "EU", "CA", "AU"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "CA",
+        "AU"
+      ],
       "jurisdiction_type": "JURISDICTION_ADAPTABLE",
       "profile_exists": false,
       "database_template": false,
-      "router_patterns": ["trademark coexistence", "coexistence agreement"],
+      "router_patterns": [
+        "trademark coexistence",
+        "coexistence agreement"
+      ],
       "clause_families": [],
       "capability_level": "L1_ROUTABLE",
       "notes": "Router pattern exists. No document profile created."
@@ -250,17 +501,34 @@
       "id": "patent-office-action-response",
       "slug": "patent-office-action-response",
       "name": "Patent Office Action Response",
-      "aliases": ["103", "office action", "§103"],
+      "aliases": [
+        "103",
+        "office action",
+        "§103"
+      ],
       "category": "IP_INNOVATION",
       "subcategory": "PATENT",
       "document_family": "PATENT_OFFICE_ACTION",
       "status": "PLANNED",
       "risk_level": "HIGH",
-      "jurisdiction_scope": ["US", "UK", "EU", "EPO", "PCT", "CA", "AU", "IN"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "EPO",
+        "PCT",
+        "CA",
+        "AU",
+        "IN"
+      ],
       "jurisdiction_type": "JURISDICTION_SPECIFIC",
       "profile_exists": false,
       "database_template": false,
-      "router_patterns": ["103", "office action", "§103"],
+      "router_patterns": [
+        "103",
+        "office action",
+        "§103"
+      ],
       "clause_families": [],
       "capability_level": "L1_ROUTABLE",
       "notes": "Router pattern exists for §103 response. No document profile. Patent workspace has office action handling but not as document engine profile."
@@ -269,17 +537,31 @@
       "id": "share-purchase-agreement",
       "slug": "share-purchase-agreement",
       "name": "Share Purchase Agreement",
-      "aliases": ["spa", "share purchase", "stock purchase"],
+      "aliases": [
+        "spa",
+        "share purchase",
+        "stock purchase"
+      ],
       "category": "CORPORATE",
       "subcategory": "ACQUISITION",
       "document_family": "SHARE_PURCHASE",
       "status": "PLANNED",
       "risk_level": "VERY_HIGH",
-      "jurisdiction_scope": ["US", "UK", "EU", "CA", "AU"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "CA",
+        "AU"
+      ],
       "jurisdiction_type": "JURISDICTION_ADAPTABLE",
       "profile_exists": false,
       "database_template": false,
-      "router_patterns": ["spa", "share purchase", "stock purchase"],
+      "router_patterns": [
+        "spa",
+        "share purchase",
+        "stock purchase"
+      ],
       "clause_families": [],
       "capability_level": "L1_ROUTABLE",
       "notes": "Router pattern exists. No document profile created."
@@ -288,17 +570,29 @@
       "id": "employment-termination",
       "slug": "employment-termination",
       "name": "Employment Termination Letter",
-      "aliases": ["termination letter", "employee termination"],
+      "aliases": [
+        "termination letter",
+        "employee termination"
+      ],
       "category": "EMPLOYMENT",
       "subcategory": "TERMINATION",
       "document_family": "EMPLOYMENT_TERMINATION",
       "status": "PLANNED",
       "risk_level": "HIGH",
-      "jurisdiction_scope": ["US", "UK", "EU", "CA", "AU"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "CA",
+        "AU"
+      ],
       "jurisdiction_type": "JURISDICTION_ADAPTABLE",
       "profile_exists": false,
       "database_template": false,
-      "router_patterns": ["termination letter", "employee termination"],
+      "router_patterns": [
+        "termination letter",
+        "employee termination"
+      ],
       "clause_families": [],
       "capability_level": "L1_ROUTABLE",
       "notes": "Router pattern exists. No document profile created."
@@ -307,17 +601,31 @@
       "id": "legal-research-memorandum",
       "slug": "legal-research-memorandum",
       "name": "Legal Research Memorandum",
-      "aliases": ["legal research", "legal memo", "opinion"],
+      "aliases": [
+        "legal research",
+        "legal memo",
+        "opinion"
+      ],
       "category": "LEGAL_RESEARCH",
       "subcategory": "LEGAL_MEMO",
       "document_family": "LEGAL_MEMO",
       "status": "PLANNED",
       "risk_level": "MEDIUM",
-      "jurisdiction_scope": ["US", "UK", "EU", "CA", "AU"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "CA",
+        "AU"
+      ],
       "jurisdiction_type": "JURISDICTION_AGNOSTIC_STRUCTURE",
       "profile_exists": false,
       "database_template": false,
-      "router_patterns": ["legal research", "legal memo", "opinion"],
+      "router_patterns": [
+        "legal research",
+        "legal memo",
+        "opinion"
+      ],
       "clause_families": [],
       "capability_level": "L1_ROUTABLE",
       "notes": "Router pattern exists. No document profile created."
@@ -326,17 +634,29 @@
       "id": "arbitration-notice",
       "slug": "arbitration-notice",
       "name": "Arbitration Notice",
-      "aliases": ["arbitration notice", "arbitration demand"],
+      "aliases": [
+        "arbitration notice",
+        "arbitration demand"
+      ],
       "category": "LITIGATION",
       "subcategory": "ARBITRATION",
       "document_family": "ARBITRATION_NOTICE",
       "status": "PLANNED",
       "risk_level": "HIGH",
-      "jurisdiction_scope": ["US", "UK", "EU", "CA", "AU"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "CA",
+        "AU"
+      ],
       "jurisdiction_type": "FORUM_SPECIFIC",
       "profile_exists": false,
       "database_template": false,
-      "router_patterns": ["arbitration notice", "arbitration demand"],
+      "router_patterns": [
+        "arbitration notice",
+        "arbitration demand"
+      ],
       "clause_families": [],
       "capability_level": "L1_ROUTABLE",
       "notes": "Router pattern exists. No document profile created."
@@ -345,17 +665,27 @@
       "id": "cease-and-desist-letter",
       "slug": "cease-and-desist-letter",
       "name": "Cease and Desist Letter",
-      "aliases": ["cease and desist"],
+      "aliases": [
+        "cease and desist"
+      ],
       "category": "LETTERS",
       "subcategory": "CEASE_DESIST",
       "document_family": "CEASE_DESIST",
       "status": "PLANNED",
       "risk_level": "HIGH",
-      "jurisdiction_scope": ["US", "UK", "EU", "CA", "AU"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "CA",
+        "AU"
+      ],
       "jurisdiction_type": "JURISDICTION_ADAPTABLE",
       "profile_exists": false,
       "database_template": false,
-      "router_patterns": ["cease and desist"],
+      "router_patterns": [
+        "cease and desist"
+      ],
       "clause_families": [],
       "capability_level": "L1_ROUTABLE",
       "notes": "Router pattern exists. No document profile created."
@@ -370,7 +700,13 @@
       "document_family": "EMPLOYMENT_AGREEMENT",
       "status": "PLANNED",
       "risk_level": "HIGH",
-      "jurisdiction_scope": ["US", "UK", "EU", "CA", "AU"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "CA",
+        "AU"
+      ],
       "jurisdiction_type": "JURISDICTION_ADAPTABLE",
       "profile_exists": false,
       "database_template": true,
@@ -390,7 +726,13 @@
       "document_family": "CONTRACTOR_AGREEMENT",
       "status": "PLANNED",
       "risk_level": "MEDIUM",
-      "jurisdiction_scope": ["US", "UK", "EU", "CA", "AU"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "CA",
+        "AU"
+      ],
       "jurisdiction_type": "JURISDICTION_ADAPTABLE",
       "profile_exists": false,
       "database_template": false,
@@ -409,7 +751,13 @@
       "document_family": "SHAREHOLDERS_AGREEMENT",
       "status": "PLANNED",
       "risk_level": "HIGH",
-      "jurisdiction_scope": ["US", "UK", "EU", "CA", "AU"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "CA",
+        "AU"
+      ],
       "jurisdiction_type": "JURISDICTION_ADAPTABLE",
       "profile_exists": false,
       "database_template": false,
@@ -428,7 +776,13 @@
       "document_family": "BOARD_RESOLUTION",
       "status": "PLANNED",
       "risk_level": "MEDIUM",
-      "jurisdiction_scope": ["US", "UK", "EU", "CA", "AU"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "CA",
+        "AU"
+      ],
       "jurisdiction_type": "JURISDICTION_AGNOSTIC_STRUCTURE",
       "profile_exists": false,
       "database_template": false,
@@ -447,7 +801,13 @@
       "document_family": "SETTLEMENT_AGREEMENT",
       "status": "PLANNED",
       "risk_level": "HIGH",
-      "jurisdiction_scope": ["US", "UK", "EU", "CA", "AU"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "CA",
+        "AU"
+      ],
       "jurisdiction_type": "JURISDICTION_ADAPTABLE",
       "profile_exists": false,
       "database_template": false,
@@ -466,7 +826,13 @@
       "document_family": "LITIGATION_HOLD",
       "status": "PLANNED",
       "risk_level": "HIGH",
-      "jurisdiction_scope": ["US", "UK", "EU", "CA", "AU"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "CA",
+        "AU"
+      ],
       "jurisdiction_type": "JURISDICTION_ADAPTABLE",
       "profile_exists": false,
       "database_template": false,
@@ -485,7 +851,13 @@
       "document_family": "DEMAND_LETTER",
       "status": "PLANNED",
       "risk_level": "MEDIUM",
-      "jurisdiction_scope": ["US", "UK", "EU", "CA", "AU"],
+      "jurisdiction_scope": [
+        "US",
+        "UK",
+        "EU",
+        "CA",
+        "AU"
+      ],
       "jurisdiction_type": "JURISDICTION_ADAPTABLE",
       "profile_exists": false,
       "database_template": false,
@@ -526,28 +898,245 @@
     "warranty.limitation"
   ],
   "jurisdictions": [
-    {"code": "US", "name": "United States", "type": "national", "patent_authority": "USPTO", "trademark_authority": "USPTO", "supported": true, "priority": 1},
-    {"code": "UK", "name": "United Kingdom", "type": "national", "patent_authority": "UKIPO", "trademark_authority": "UKIPO", "supported": true, "priority": 2},
-    {"code": "EU", "name": "European Union", "type": "regional", "patent_authority": "EPO", "trademark_authority": "EUIPO", "supported": true, "priority": 3},
-    {"code": "EPO", "name": "European Patent Office", "type": "regional", "patent_authority": "EPO", "trademark_authority": "n/a", "supported": true, "priority": 3},
-    {"code": "PCT", "name": "WIPO/PCT", "type": "international", "patent_authority": "WIPO", "trademark_authority": "Madrid System", "supported": true, "priority": 3},
-    {"code": "CA", "name": "Canada", "type": "national", "patent_authority": "CIPO", "trademark_authority": "CIPO", "supported": true, "priority": 4},
-    {"code": "AU", "name": "Australia", "type": "national", "patent_authority": "IP Australia", "trademark_authority": "IP Australia", "supported": true, "priority": 5},
-    {"code": "IN", "name": "India", "type": "national", "patent_authority": "Indian Patent Office", "trademark_authority": "Trademark Registry India", "supported": true, "priority": 6}
+    {
+      "code": "US",
+      "name": "United States",
+      "type": "national",
+      "patent_authority": "USPTO",
+      "trademark_authority": "USPTO",
+      "supported": true,
+      "priority": 1
+    },
+    {
+      "code": "UK",
+      "name": "United Kingdom",
+      "type": "national",
+      "patent_authority": "UKIPO",
+      "trademark_authority": "UKIPO",
+      "supported": true,
+      "priority": 2
+    },
+    {
+      "code": "EU",
+      "name": "European Union",
+      "type": "regional",
+      "patent_authority": "EPO",
+      "trademark_authority": "EUIPO",
+      "supported": true,
+      "priority": 3
+    },
+    {
+      "code": "EPO",
+      "name": "European Patent Office",
+      "type": "regional",
+      "patent_authority": "EPO",
+      "trademark_authority": "n/a",
+      "supported": true,
+      "priority": 3
+    },
+    {
+      "code": "PCT",
+      "name": "WIPO/PCT",
+      "type": "international",
+      "patent_authority": "WIPO",
+      "trademark_authority": "Madrid System",
+      "supported": true,
+      "priority": 3
+    },
+    {
+      "code": "CA",
+      "name": "Canada",
+      "type": "national",
+      "patent_authority": "CIPO",
+      "trademark_authority": "CIPO",
+      "supported": true,
+      "priority": 4
+    },
+    {
+      "code": "AU",
+      "name": "Australia",
+      "type": "national",
+      "patent_authority": "IP Australia",
+      "trademark_authority": "IP Australia",
+      "supported": true,
+      "priority": 5
+    },
+    {
+      "code": "IN",
+      "name": "India",
+      "type": "national",
+      "patent_authority": "Indian Patent Office",
+      "trademark_authority": "Trademark Registry India",
+      "supported": true,
+      "priority": 6
+    }
   ],
   "categories": [
-    {"id": "IP_INNOVATION", "name": "IP & Innovation", "subcategories": ["PATENT", "TRADEMARK", "COPYRIGHT", "DESIGN_RIGHT", "TRADE_SECRET", "LICENSING", "IP_ENFORCEMENT"]},
-    {"id": "COMMERCIAL", "name": "Contracts & Commercial", "subcategories": ["NDA", "MSA", "SAAS", "VENDOR", "DISTRIBUTION", "PARTNERSHIP", "SUPPORT_SLA"]},
-    {"id": "CORPORATE", "name": "Corporate & Transactions", "subcategories": ["MERGER", "ACQUISITION", "FINANCING", "GOVERNANCE", "CAP_TABLE", "RESTRUCTURING"]},
-    {"id": "EMPLOYMENT", "name": "Employment & HR", "subcategories": ["EMPLOYMENT_AGREEMENT", "OFFER", "EQUITY_AWARDS", "POLICIES", "TERMINATION", "BENEFITS", "IMMIGRATION", "CONTRACTOR"]},
-    {"id": "PRIVACY", "name": "Privacy & Data", "subcategories": ["PRIVACY_POLICY", "DPA", "DATA_SHARING", "BREACH_RESPONSE", "DSAR", "INTERNATIONAL_TRANSFER", "AI_GOVERNANCE", "DATA_LICENSE"]},
-    {"id": "TECHNOLOGY", "name": "Technology & AI", "subcategories": ["SOFTWARE_LICENCE", "EULA", "API_TERMS", "DEVELOPMENT", "HOSTING", "CLOUD", "ESCROW", "OPEN_SOURCE", "AI_AGREEMENTS"]},
-    {"id": "LITIGATION", "name": "Litigation & Disputes", "subcategories": ["PLEADINGS", "DISCOVERY", "MOTIONS", "SETTLEMENT", "ARBITRATION", "APPEAL", "ENFORCEMENT", "MEDICAL"]},
-    {"id": "REGULATORY", "name": "Regulatory & Industry", "subcategories": ["FILINGS", "LICENSING", "COMPLIANCE", "EXAMINATIONS", "ENFORCEMENT", "HEALTHCARE", "FINANCIAL", "ENERGY", "TELECOM", "CONSUMER", "CANNABIS", "GOV_CONTRACT"]},
-    {"id": "FINANCE", "name": "Finance", "subcategories": ["CREDIT_FACILITY", "LOAN_AGREEMENT", "GUARANTEE", "SECURITY", "INTERCREDITOR", "VENTURE_FINANCE", "PROJECT_FINANCE"]},
-    {"id": "LEGAL_RESEARCH", "name": "Legal Research & Memos", "subcategories": ["LEGAL_MEMO", "OPINION", "FEASIBILITY", "NOVELTY_OPINION", "ADVICE_LETTER", "POSITION_PAPER", "BRIEF"]},
-    {"id": "LETTERS", "name": "Letters & Notices", "subcategories": ["CEASE_DESIST", "DEMAND_LETTER", "LITIGATION_LETTER", "CORRESPONDENCE", "NOTICE", "FORM_LETTER"]},
-    {"id": "POLICIES", "name": "Policies & Governance", "subcategories": ["EMPLOYEE_HANDBOOK", "CODE_OF_CONDUCT", "ANTI_HARASSMENT", "DATA_POLICY", "GOVERNANCE", "COMPLIANCE_FRAMEWORK", "RISK_MANAGEMENT", "INTERNAL_CONTROLS"]}
+    {
+      "id": "IP_INNOVATION",
+      "name": "IP & Innovation",
+      "subcategories": [
+        "PATENT",
+        "TRADEMARK",
+        "COPYRIGHT",
+        "DESIGN_RIGHT",
+        "TRADE_SECRET",
+        "LICENSING",
+        "IP_ENFORCEMENT"
+      ]
+    },
+    {
+      "id": "COMMERCIAL",
+      "name": "Contracts & Commercial",
+      "subcategories": [
+        "NDA",
+        "MSA",
+        "SAAS",
+        "VENDOR",
+        "DISTRIBUTION",
+        "PARTNERSHIP",
+        "SUPPORT_SLA"
+      ]
+    },
+    {
+      "id": "CORPORATE",
+      "name": "Corporate & Transactions",
+      "subcategories": [
+        "MERGER",
+        "ACQUISITION",
+        "FINANCING",
+        "GOVERNANCE",
+        "CAP_TABLE",
+        "RESTRUCTURING"
+      ]
+    },
+    {
+      "id": "EMPLOYMENT",
+      "name": "Employment & HR",
+      "subcategories": [
+        "EMPLOYMENT_AGREEMENT",
+        "OFFER",
+        "EQUITY_AWARDS",
+        "POLICIES",
+        "TERMINATION",
+        "BENEFITS",
+        "IMMIGRATION",
+        "CONTRACTOR"
+      ]
+    },
+    {
+      "id": "PRIVACY",
+      "name": "Privacy & Data",
+      "subcategories": [
+        "PRIVACY_POLICY",
+        "DPA",
+        "DATA_SHARING",
+        "BREACH_RESPONSE",
+        "DSAR",
+        "INTERNATIONAL_TRANSFER",
+        "AI_GOVERNANCE",
+        "DATA_LICENSE"
+      ]
+    },
+    {
+      "id": "TECHNOLOGY",
+      "name": "Technology & AI",
+      "subcategories": [
+        "SOFTWARE_LICENCE",
+        "EULA",
+        "API_TERMS",
+        "DEVELOPMENT",
+        "HOSTING",
+        "CLOUD",
+        "ESCROW",
+        "OPEN_SOURCE",
+        "AI_AGREEMENTS"
+      ]
+    },
+    {
+      "id": "LITIGATION",
+      "name": "Litigation & Disputes",
+      "subcategories": [
+        "PLEADINGS",
+        "DISCOVERY",
+        "MOTIONS",
+        "SETTLEMENT",
+        "ARBITRATION",
+        "APPEAL",
+        "ENFORCEMENT",
+        "MEDICAL"
+      ]
+    },
+    {
+      "id": "REGULATORY",
+      "name": "Regulatory & Industry",
+      "subcategories": [
+        "FILINGS",
+        "LICENSING",
+        "COMPLIANCE",
+        "EXAMINATIONS",
+        "ENFORCEMENT",
+        "HEALTHCARE",
+        "FINANCIAL",
+        "ENERGY",
+        "TELECOM",
+        "CONSUMER",
+        "CANNABIS",
+        "GOV_CONTRACT"
+      ]
+    },
+    {
+      "id": "FINANCE",
+      "name": "Finance",
+      "subcategories": [
+        "CREDIT_FACILITY",
+        "LOAN_AGREEMENT",
+        "GUARANTEE",
+        "SECURITY",
+        "INTERCREDITOR",
+        "VENTURE_FINANCE",
+        "PROJECT_FINANCE"
+      ]
+    },
+    {
+      "id": "LEGAL_RESEARCH",
+      "name": "Legal Research & Memos",
+      "subcategories": [
+        "LEGAL_MEMO",
+        "OPINION",
+        "FEASIBILITY",
+        "NOVELTY_OPINION",
+        "ADVICE_LETTER",
+        "POSITION_PAPER",
+        "BRIEF"
+      ]
+    },
+    {
+      "id": "LETTERS",
+      "name": "Letters & Notices",
+      "subcategories": [
+        "CEASE_DESIST",
+        "DEMAND_LETTER",
+        "LITIGATION_LETTER",
+        "CORRESPONDENCE",
+        "NOTICE",
+        "FORM_LETTER"
+      ]
+    },
+    {
+      "id": "POLICIES",
+      "name": "Policies & Governance",
+      "subcategories": [
+        "EMPLOYEE_HANDBOOK",
+        "CODE_OF_CONDUCT",
+        "ANTI_HARASSMENT",
+        "DATA_POLICY",
+        "GOVERNANCE",
+        "COMPLIANCE_FRAMEWORK",
+        "RISK_MANAGEMENT",
+        "INTERNAL_CONTROLS"
+      ]
+    }
   ],
   "notes": {
     "discrepancy_explanation": "catalogue-summary.json reports 400 document types as a planned taxonomy target (12 categories × 80 subcategories × ~150 families × ~2-3 types). The actual repository contains only 40 explicitly defined document types across capability-matrix.json, router patterns, and database templates. The remaining ~360 are 'catalogue-only' entries with no individual records, profiles, or definitions in the codebase.",
@@ -559,7 +1148,19 @@
       "L4_VALIDATED": 0,
       "L5_PRACTITIONER_REVIEWED": 0
     },
-    "profiles_with_full_metadata": ["nda-mutual", "patent-application"],
-    "database_templates": ["nda-mutual", "nda-unilateral", "msa-services", "saas-agreement", "employment-ip", "ip-assignment", "ip-licence"]
+    "profiles_with_full_metadata": [
+      "nda-mutual",
+      "patent-application",
+      "design-patent-application"
+    ],
+    "database_templates": [
+      "nda-mutual",
+      "nda-unilateral",
+      "msa-services",
+      "saas-agreement",
+      "employment-ip",
+      "ip-assignment",
+      "ip-licence"
+    ]
   }
 }

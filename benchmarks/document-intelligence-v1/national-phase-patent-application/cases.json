@@ -5,7 +5,7 @@
   "name": "National Phase Patent Application Benchmark Suite v1",
   "version": "1.0.0",
   "benchmark_type": "SYNTHETIC_EVALUATION",
-  "total_cases": 18,
+  "total_cases": 22,
   "cases": [
     {
       "id": "CASE-01-US-NATIONAL-PHASE",
@@ -281,6 +281,72 @@
         "warning_level": "PAST_DUE_REVIEW_REQUIRED",
         "late_entry_flag": "LATE_ENTRY_OR_REINSTATEMENT_REVIEW_REQUIRED",
         "not_declared_legally_impossible": true
+      }
+    },
+    {
+      "id": "CASE-19-CONVERSATIONAL-ONE-QUESTION-AT-A-TIME",
+      "title": "Conversational One-Question-at-a-Time Turn-Taking Flow",
+      "inputs": {
+        "user_messages": [
+          "Draft a National Phase Patent Application",
+          "PCT/US2023/012345",
+          "USPTO",
+          "JAADUGAR"
+        ]
+      },
+      "expected": {
+        "one_question_per_turn": true,
+        "stopped_after_question": true,
+        "premature_draft": false,
+        "next_question": "inventors"
+      }
+    },
+    {
+      "id": "CASE-20-PCT-SOURCE-DOCUMENT-GATE",
+      "title": "Substantive Drafting Blocked Without Underlying International Disclosure",
+      "inputs": {
+        "pct_application_number": "PCT/US2023/012345",
+        "target_jurisdiction": "US",
+        "wo_number": null,
+        "pct_disclosure": null
+      },
+      "expected": {
+        "readiness": "INTERVIEW",
+        "state": "PCT_SOURCE_DOCUMENT_REQUIRED",
+        "drafting_blocked": true
+      }
+    },
+    {
+      "id": "CASE-21-MULTI-FACT-VOLUNTARY-EXTRACTION",
+      "title": "Voluntary Multi-Fact Extraction From Single Natural Response",
+      "inputs": {
+        "user_message": "JAADUGAR. Inventor is Aman Patel and applicant is A Ltd."
+      },
+      "expected": {
+        "extracted_facts": {
+          "title": "JAADUGAR",
+          "inventors": "Aman Patel",
+          "applicants": "A Ltd"
+        },
+        "skipped_questions": ["title", "inventors", "applicants"],
+        "next_question": "wo_number"
+      }
+    },
+    {
+      "id": "CASE-22-USER-REQUEST-VS-SYSTEM-READINESS",
+      "title": "User Command 'Draft It' Does Not Bypass Unresolved Source Gates",
+      "inputs": {
+        "user_command": "Just draft everything now",
+        "resolved_facts": {
+          "pct_number": "PCT/US2023/012345",
+          "target_jurisdiction": "US"
+        }
+      },
+      "expected": {
+        "user_requested_draft": true,
+        "system_ready_to_draft": false,
+        "draft_generated": false,
+        "held_at_gate": "PCT_SOURCE_DOCUMENT_REQUIRED"
       }
     }
   ]

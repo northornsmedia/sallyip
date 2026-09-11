@@ -1,0 +1,356 @@
+{
+  "id": "patent-specification",
+  "slug": "patent-specification",
+  "name": "Patent Specification",
+  "document_number": "009",
+  "aliases": [
+    "patent specification",
+    "draft a patent specification",
+    "prepare the specification",
+    "write the detailed patent specification",
+    "prepare a full patent description",
+    "draft the description for my patent",
+    "turn this invention disclosure into a patent specification",
+    "prepare the patent description",
+    "draft the specification around these claims",
+    "draft patent description",
+    "patent spec"
+  ],
+  "category": "IP_INNOVATION",
+  "subcategory": "PATENT",
+  "family": "PATENT_SPECIFICATION",
+  "document_family": "PATENT_SPECIFICATION",
+  "practice_areas": ["patent_prosecution", "patent_drafting"],
+  "description": "The substantive technical specification component of a patent application — the detailed description, drawings, and embodiments that teach how to make and use the invention. This document is NOT a filing route by itself. It forms the specification portion used within jurisdiction-specific patent applications (US, PCT, EP, etc.).",
+  "status": "BETA",
+  "capability_level": "L3_DRAFTABLE",
+  "risk_level": "HIGH",
+  "review_required": true,
+  "verification_required": true,
+  "jurisdiction": "MULTI_JURISDICTION",
+  "jurisdiction_type": "CONTEXT_DEPENDENT",
+  "jurisdiction_classification": "CONTEXT_DEPENDENT",
+  "jurisdiction_scope": ["US", "PCT", "EP", "OTHER", "UNDECIDED"],
+  "governing_law_required": false,
+  "forum_required": false,
+  "party_roles": ["inventor", "applicant", "assignee"],
+  "interview_mode": "ONE_QUESTION_AT_A_TIME",
+  "drafting_status_default": "INFORMATION_GATHERING",
+  "readiness_levels": ["NOT_READY", "PARTIALLY_READY", "READY_FOR_FIRST_DRAFT"],
+  "provenance_states": [
+    "USER_PROVIDED",
+    "MATTER_CONTEXT",
+    "SOURCE_DOCUMENT",
+    "SOURCE_IMAGE",
+    "CLAIM_DERIVED",
+    "AI_DRAFTED",
+    "USER_EDITED",
+    "VERIFIED",
+    "UNVERIFIED",
+    "PLACEHOLDER"
+  ],
+  "required_inputs": [
+    {
+      "id": "title",
+      "label": "Working Invention Title",
+      "type": "text",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Short, technically descriptive title avoiding laudatory terms"
+    },
+    {
+      "id": "technical_field",
+      "label": "Technical Field",
+      "type": "text",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Technical field to which the invention relates"
+    },
+    {
+      "id": "problem_being_solved",
+      "label": "Problem Being Solved",
+      "type": "textarea",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "The specific technical problem the invention addresses"
+    },
+    {
+      "id": "core_inventive_concept",
+      "label": "Core Inventive Concept",
+      "type": "textarea",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Step-by-step technical explanation of how the invention works"
+    },
+    {
+      "id": "components_or_steps",
+      "label": "Major Components or Method Steps",
+      "type": "textarea",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Key structural, functional, or algorithmic elements"
+    }
+  ],
+  "optional_inputs": [
+    {
+      "id": "jurisdiction_context",
+      "label": "Intended Filing Jurisdiction or Context",
+      "type": "select",
+      "input_class": "RECOMMENDED",
+      "options": ["US", "PCT", "EP", "OTHER", "UNDECIDED"],
+      "default": "UNDECIDED",
+      "description": "Target jurisdiction for terminology adaptation"
+    },
+    {
+      "id": "invention_type",
+      "label": "Invention Type",
+      "type": "select",
+      "input_class": "RECOMMENDED",
+      "options": [
+        "SYSTEM",
+        "METHOD",
+        "DEVICE",
+        "APPARATUS",
+        "SOFTWARE",
+        "AI_ML",
+        "COMPUTER_IMPLEMENTED",
+        "MECHANICAL",
+        "ELECTRONICS",
+        "CHEMICAL",
+        "COMPOSITION",
+        "PHARMACEUTICAL",
+        "BIOTECH",
+        "MANUFACTURING",
+        "MATERIALS",
+        "OTHER"
+      ],
+      "description": "Determines technical depth and branching"
+    },
+    {
+      "id": "drafting_mode",
+      "label": "Drafting Mode",
+      "type": "select",
+      "input_class": "RECOMMENDED",
+      "options": [
+        "FULL_SPECIFICATION",
+        "DESCRIPTION_ONLY",
+        "DETAILED_DESCRIPTION_ONLY",
+        "BACKGROUND_ONLY",
+        "SUMMARY_ONLY",
+        "DRAWING_DESCRIPTIONS_ONLY",
+        "EMBODIMENT_EXPANSION",
+        "SPECIFICATION_FROM_CLAIMS",
+        "SPECIFICATION_FROM_INVENTION_DISCLOSURE",
+        "SPECIFICATION_REVIEW",
+        "SPECIFICATION_REVISION"
+      ],
+      "default": "FULL_SPECIFICATION",
+      "description": "What portion of the specification to draft"
+    },
+    {
+      "id": "existing_claims",
+      "label": "Existing Claims (if any)",
+      "type": "textarea",
+      "input_class": "OPTIONAL",
+      "description": "Claims already drafted that the specification must support"
+    },
+    {
+      "id": "invention_disclosure",
+      "label": "Invention Disclosure Source",
+      "type": "textarea",
+      "input_class": "OPTIONAL",
+      "description": "Existing invention disclosure or technical documentation"
+    },
+    {
+      "id": "drawings",
+      "label": "Drawings & Figures Plan",
+      "type": "array",
+      "input_class": "OPTIONAL",
+      "description": "Figure descriptions and reference numerals"
+    },
+    {
+      "id": "alternative_embodiments",
+      "label": "Alternative Embodiments / Variations",
+      "type": "textarea",
+      "input_class": "OPTIONAL",
+      "description": "Known alternative implementations, materials, or configurations"
+    },
+    {
+      "id": "examples_use_cases",
+      "label": "Examples / Use Cases",
+      "type": "textarea",
+      "input_class": "OPTIONAL",
+      "description": "Concrete examples showing how the invention operates"
+    },
+    {
+      "id": "experimental_data",
+      "label": "Experimental Data / Results",
+      "type": "textarea",
+      "input_class": "OPTIONAL",
+      "description": "Measured results, test data, or performance metrics (if available)"
+    },
+    {
+      "id": "prior_art",
+      "label": "Known Prior Art References",
+      "type": "array",
+      "input_class": "OPTIONAL",
+      "description": "References for contextual background (not admissions)"
+    },
+    {
+      "id": "inventors",
+      "label": "Inventors",
+      "type": "array",
+      "input_class": "OPTIONAL",
+      "description": "Natural persons who contributed to the inventive concept"
+    },
+    {
+      "id": "applicant",
+      "label": "Applicant / Assignee",
+      "type": "text",
+      "input_class": "OPTIONAL"
+    },
+    {
+      "id": "priority_application",
+      "label": "Priority Application Details",
+      "type": "textarea",
+      "input_class": "OPTIONAL",
+      "description": "Priority application number, filing date, and relationship"
+    }
+  ],
+  "matter_inputs": [
+    { "fact_type": "title", "entity_types": ["patent", "invention"], "confidence_threshold": 0.8 },
+    { "fact_type": "inventor", "entity_types": ["person"], "confidence_threshold": 0.8 },
+    { "fact_type": "applicant", "entity_types": ["organization", "client"], "confidence_threshold": 0.8 },
+    { "fact_type": "jurisdiction", "entity_types": ["country", "jurisdiction"], "confidence_threshold": 0.9 },
+    { "fact_type": "invention_type", "entity_types": ["patent"], "confidence_threshold": 0.7 },
+    { "fact_type": "claims", "entity_types": ["patent"], "confidence_threshold": 0.8 },
+    { "fact_type": "drawings", "entity_types": ["patent"], "confidence_threshold": 0.7 }
+  ],
+  "sections": [
+    {
+      "id": "title",
+      "heading": "Title of the Invention",
+      "order": 1,
+      "required": true,
+      "clause_families": [],
+      "show_if": "true"
+    },
+    {
+      "id": "technical_field",
+      "heading": "Technical Field",
+      "order": 2,
+      "required": true,
+      "clause_families": [],
+      "show_if": "true"
+    },
+    {
+      "id": "background",
+      "heading": "Background",
+      "order": 3,
+      "required": true,
+      "clause_families": [],
+      "show_if": "true"
+    },
+    {
+      "id": "summary",
+      "heading": "Summary of the Invention",
+      "order": 4,
+      "required": true,
+      "clause_families": [],
+      "show_if": "true"
+    },
+    {
+      "id": "brief_description_drawings",
+      "heading": "Brief Description of the Drawings",
+      "order": 5,
+      "required": false,
+      "clause_families": [],
+      "show_if": "answers.drawings && answers.drawings.length > 0"
+    },
+    {
+      "id": "detailed_description",
+      "heading": "Detailed Description",
+      "order": 6,
+      "required": true,
+      "clause_families": [],
+      "show_if": "true"
+    },
+    {
+      "id": "embodiments",
+      "heading": "Embodiments",
+      "order": 7,
+      "required": false,
+      "clause_families": [],
+      "show_if": "answers.alternative_embodiments || answers.drafting_mode === 'FULL_SPECIFICATION'"
+    },
+    {
+      "id": "examples",
+      "heading": "Examples",
+      "order": 8,
+      "required": false,
+      "clause_families": [],
+      "show_if": "answers.examples_use_cases || answers.experimental_data"
+    },
+    {
+      "id": "industrial_applicability",
+      "heading": "Industrial Applicability",
+      "order": 9,
+      "required": false,
+      "clause_families": [],
+      "show_if": "answers.jurisdiction_context === 'PCT' || answers.jurisdiction_context === 'EP'"
+    },
+    {
+      "id": "claims",
+      "heading": "Claims (if included in requested output)",
+      "order": 10,
+      "required": false,
+      "clause_families": ["patent.claims"],
+      "show_if": "answers.drafting_mode === 'FULL_SPECIFICATION' && answers.existing_claims"
+    },
+    {
+      "id": "abstract",
+      "heading": "Abstract (if included in requested output)",
+      "order": 11,
+      "required": false,
+      "clause_families": [],
+      "show_if": "answers.drafting_mode === 'FULL_SPECIFICATION'"
+    }
+  ],
+  "clause_families": ["patent.claims", "patent.priority", "patent.assignment"],
+  "authority_required": [
+    "35 U.S.C. §§ 101, 102, 103, 111, 112",
+    "37 C.F.R. § 1.77",
+    "MPEP Chapter 600",
+    "MPEP Chapter 2100",
+    "PCT Rules 4, 5, 6, 8",
+    "EPC Articles 78, 83, 84",
+    "EPC Rules 42, 43, 44"
+  ],
+  "claim_support_rules": {
+    "require_antecedent_basis": true,
+    "require_written_description_mapping": true,
+    "disallow_unsupported_limitations": true,
+    "track_support_matrix": true
+  },
+  "review_flags": [
+    "DISCLOSURE_TIMING_REVIEW_REQUIRED",
+    "INVENTORSHIP_REVIEW_REQUIRED",
+    "UNSUPPORTED_LIMITATION_FLAGGED",
+    "SUBJECT_MATTER_101_RISK",
+    "CONFIDENTIAL_MATTER_UNPUBLISHED",
+    "NEW_MATTER_REVIEW_REQUIRED",
+    "SPECIALIST_REVIEW_REQUIRED",
+    "TERMINOLOGY_CONFLICT_DETECTED",
+    "DRAWING_CONSISTENCY_REVIEW_REQUIRED"
+  ],
+  "output_formats": ["docx", "pdf", "md"],
+  "related_documents": [
+    "utility-patent-application",
+    "provisional-patent-application",
+    "non-provisional-patent-application",
+    "pct-international-patent-application",
+    "national-phase-patent-application",
+    "european-patent-application",
+    "patent-claims-set",
+    "patent-abstract",
+    "invention-disclosure-form"
+  ],
+  "source_status": "CANONICAL_DOCUMENT_TRAINING_009",
+  "version": "1.0.0",
+  "last_reviewed": "2026-09-11"
+}

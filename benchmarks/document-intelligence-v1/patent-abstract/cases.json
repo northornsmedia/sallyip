@@ -1,0 +1,277 @@
+{
+  "benchmark_id": "doc-intel-v1-patent-abstract",
+  "document_id": "patent-abstract",
+  "document_number": "011",
+  "name": "Patent Abstract Intelligence Benchmark",
+  "version": "1.0.0",
+  "created_at": "2026-09-11T00:00:00Z",
+  "cases": [
+    {
+      "id": "CASE-01-SOFTWARE",
+      "title": "Software Transaction Ordering",
+      "invention_type": "SOFTWARE",
+      "inputs": {
+        "title": "Distributed Transaction Ordering Protocol",
+        "problem": "A software system needs deterministic transaction ordering without a single leader becoming a bottleneck.",
+        "solution": "Nodes exchange threshold signatures over peer-to-peer channels and commit transactions in DAG order.",
+        "components": "Gossip communication module, DAG ledger buffer, threshold signature verifier, and state committer."
+      },
+      "expected": {
+        "branched_type": "SOFTWARE",
+        "readiness": "READY_FOR_FIRST_DRAFT"
+      }
+    },
+    {
+      "id": "CASE-02-MECHANICAL",
+      "title": "Dual-Axis Robotic Gripper",
+      "invention_type": "MECHANICAL",
+      "inputs": {
+        "title": "Adaptive Compliant Gripper Assembly",
+        "problem": "Rigid robotic grippers overload motors when grasping irregular mechanical workpieces.",
+        "solution": "Tendon-driven fingers move through differential gearing with torsional spring compliance.",
+        "components": "Mounting flange, planetary differential gear train, three articulated finger segments, and elastomer grip pads."
+      },
+      "expected": {
+        "branched_type": "MECHANICAL",
+        "readiness": "READY_FOR_FIRST_DRAFT"
+      }
+    },
+    {
+      "id": "CASE-03-AI-ML",
+      "title": "Sparse Attention Sensor Model",
+      "invention_type": "AI_ML",
+      "inputs": {
+        "title": "Dynamic Sparse Attention Neural Network",
+        "problem": "Dense attention over high-frequency sensor streams consumes excessive memory and computation.",
+        "solution": "A routing neural network assigns sensor tokens to top matching latent clusters before sparse attention.",
+        "components": "Input encoder, routing neural network, sparse cross-attention layers, and linear projection head."
+      },
+      "expected": {
+        "branched_type": "AI_ML",
+        "readiness": "READY_FOR_FIRST_DRAFT"
+      }
+    },
+    {
+      "id": "CASE-04-EXISTING-MATTER",
+      "title": "Matter Context Prevents Redundant Questions",
+      "matter_context": {
+        "matter": {
+          "title": "SmartLens Automated Inspection",
+          "client_name": "VisionTech Inc.",
+          "jurisdictions": ["US"]
+        },
+        "facts": [
+          { "fact_type": "inventor", "value": "Jane Smith", "confidence": 0.95 },
+          { "fact_type": "technical_problem", "value": "Microscopic wafer defects escape conventional optical inspection and reduce semiconductor yield.", "confidence": 0.9 },
+          { "fact_type": "core_solution", "value": "Multi-spectral cameras acquire defect-sensitive images while a processor generates control signals for inspection handling.", "confidence": 0.9 },
+          { "fact_type": "principal_components", "value": "Sensor, processor, control-signal generator, and actuator.", "confidence": 0.9 }
+        ]
+      },
+      "prompt": "Draft the patent abstract for this matter.",
+      "expected": {
+        "action": "PROMPT_DRAFT_CONFIRMATION",
+        "summary_includes": "Source material",
+        "skipped_fields": ["title", "inventors", "applicant", "jurisdiction"]
+      }
+    },
+    {
+      "id": "CASE-05-SOURCE-VERSIONS",
+      "title": "Specification and Claim Versions Are Tracked",
+      "matter_context": {
+        "matter": { "title": "Versioned Inspection System", "client_name": "VisionTech Inc.", "jurisdictions": ["US"] },
+        "source_documents": [
+          { "id": "SPEC-2026-001", "type": "SPECIFICATION", "version": "v4", "text": "The inspection system comprises a sensor, processor, control-signal generator, and actuator. The processor sends control signals to the actuator after detecting wafer defects." },
+          { "id": "CLAIMS-2026-001", "type": "CLAIMS", "version": "v2", "text": "1. An inspection system comprising a sensor, a processor, means for generating a control signal, and an actuator responsive to the control signal." }
+        ]
+      },
+      "expected": {
+        "specification_id": "SPEC-2026-001",
+        "specification_version": "v4",
+        "claims_id": "CLAIMS-2026-001",
+        "claims_version": "v2"
+      }
+    },
+    {
+      "id": "CASE-06-INSUFFICIENT-CONTEXT",
+      "title": "One Useful Question When Context Is Missing",
+      "prompt": "Draft a patent abstract.",
+      "expected": {
+        "action": "ASK_QUESTION",
+        "questions_length": 1,
+        "field": "technical_problem"
+      }
+    },
+    {
+      "id": "CASE-07-INVESTOR-SUMMARY",
+      "title": "Investor Summary Is Not A Patent Abstract",
+      "prompt": "Summarise this patent for an investor.",
+      "expected": {
+        "not_family": "patent-abstract",
+        "clarification_required": true
+      }
+    },
+    {
+      "id": "CASE-08-FROM-SPECIFICATION",
+      "title": "Supported Architecture Only",
+      "inputs": {
+        "title": "Wafer Inspection System",
+        "problem": "Microscopic wafer defects escape conventional optical inspection.",
+        "solution": "A processor analyzes sensor images and generates a control signal for an actuator.",
+        "components": "Sensor, processor, control-signal generator, and actuator."
+      },
+      "specification_text": "The system comprises a sensor, a processor, a control-signal generator, and an actuator. The processor analyzes sensor images and sends a control signal to the actuator.",
+      "expected": {
+        "includes": ["sensor", "processor", "control", "actuator"],
+        "excludes": ["cloud server", "AI model", "wireless network"]
+      }
+    },
+    {
+      "id": "CASE-09-CLAIMS-ONLY",
+      "title": "Claims Without Specification Are Support-Limited",
+      "inputs": {
+        "title": "Claim-Anchored Inspection System",
+        "problem": "Defects are difficult to detect reliably during handling.",
+        "solution": "Sensor measurements control actuator operation through processor-generated signals.",
+        "components": "Sensor, processor, control-signal generator, and actuator."
+      },
+      "claims_text": "1. An inspection system comprising a sensor, a processor, means for generating a control signal, and an actuator responsive to the control signal.",
+      "expected": {
+        "flag": "SPECIFICATION_CONTEXT_LIMITED"
+      }
+    },
+    {
+      "id": "CASE-10-OPTIONAL-FEATURE",
+      "title": "Optional Camera Must Not Become Mandatory",
+      "specification_text": "The inspection system may optionally include a camera for operator viewing. The required inspection path uses a sensor, processor, and actuator.",
+      "existing_abstract": "The system includes a camera, a sensor, a processor, and an actuator. The processor controls the actuator.",
+      "expected": {
+        "flag": "ABSTRACT_OPTIONAL_FEATURE_AS_MANDATORY"
+      }
+    },
+    {
+      "id": "CASE-11-UNSUPPORTED-BROADENING",
+      "title": "Optical Sensor Cannot Become Any Sensor",
+      "specification_text": "The inspection system uses an optical sensor to detect wafer defects.",
+      "existing_abstract": "The inspection system uses any sensor to detect wafer defects.",
+      "expected": {
+        "flag": "ABSTRACT_UNSUPPORTED_BROADENING"
+      }
+    },
+    {
+      "id": "CASE-12-OVER-NARROWING",
+      "title": "Local-Only Wording Narrows Supported Alternatives",
+      "specification_text": "Processing may be performed locally or remotely. In one embodiment, a processor generates control signals.",
+      "existing_abstract": "Processing is performed only locally by the processor.",
+      "expected": {
+        "flag": "ABSTRACT_OVER_NARROWING_REVIEW_REQUIRED"
+      }
+    },
+    {
+      "id": "CASE-13-UNSUPPORTED-EFFECT",
+      "title": "Vague Improvement Is Not Evidence",
+      "inputs": {
+        "title": "Inspection System",
+        "problem": "Defects are difficult to detect reliably.",
+        "solution": "Sensor measurements control actuator operation through processor-generated signals.",
+        "components": "Sensor, processor, control-signal generator, and actuator.",
+        "effect": "It works better."
+      },
+      "expected": {
+        "effect_status": "UNSUPPORTED",
+        "excludes": ["40%", "significantly improves accuracy"]
+      }
+    },
+    {
+      "id": "CASE-14-MARKETING-LANGUAGE",
+      "title": "Promotional Language Is Removed",
+      "existing_abstract": "Our revolutionary, industry-leading system uses a sensor and processor. The processor controls an actuator.",
+      "specification_text": "The system uses a sensor and processor. The processor controls an actuator.",
+      "expected": {
+        "excludes": ["revolutionary", "industry-leading"],
+        "includes": ["sensor", "processor", "actuator"]
+      }
+    },
+    {
+      "id": "CASE-15-LEGAL-CONCLUSION",
+      "title": "Patentability Conclusions Do Not Belong In The Abstract",
+      "existing_abstract": "The system uses a sensor and processor. The invention is novel and non-obvious.",
+      "specification_text": "The system uses a sensor and processor.",
+      "expected": {
+        "excludes": ["novel", "non-obvious"]
+      }
+    },
+    {
+      "id": "CASE-16-TERMINOLOGY",
+      "title": "Processor Cannot Silently Replace Controller",
+      "specification_text": "The controller receives sensor measurements and controls the actuator. The controller generates control signals.",
+      "claims_text": "1. A system comprising a sensor, a controller, and an actuator controlled by the controller.",
+      "existing_abstract": "The processor receives sensor measurements and controls the actuator.",
+      "expected": {
+        "flag": "TERM_CONFLICT"
+      }
+    },
+    {
+      "id": "CASE-17-NEW-MATTER",
+      "title": "LiDAR Without Source Support Is Blocked",
+      "specification_text": "The system comprises a camera and an image processor configured to detect wafer defects.",
+      "existing_abstract": "The system comprises a camera, an image processor, and LiDAR.",
+      "expected": {
+        "flag": "ABSTRACT_NEW_MATTER_DETECTED"
+      }
+    },
+    {
+      "id": "CASE-18-CLAIM-CHANGE",
+      "title": "Stale Abstract After Claim Change",
+      "old_claims": { "id": "CLAIMS-2026-009", "version": "v1", "text": "1. An inspection system comprising one sensor and a processor." },
+      "new_claims": { "id": "CLAIMS-2026-009", "version": "v2", "text": "1. An inspection system comprising a plurality of sensors and a processor." },
+      "expected": {
+        "flag": "ABSTRACT_REVIEW_REQUIRED"
+      }
+    },
+    {
+      "id": "CASE-19-WORD-COUNT",
+      "title": "Deterministic Word Count",
+      "abstract_text": "A wafer inspection system addresses missed microscopic defects. The solution comprises a sensor, processor, control-signal generator, and actuator.",
+      "expected": {
+        "deterministic": true
+      }
+    },
+    {
+      "id": "CASE-20-SHORTENING",
+      "title": "Shortening Preserves Core Architecture",
+      "existing_abstract": "A wafer inspection system addresses missed microscopic defects. The solution comprises a sensor, processor, control-signal generator, and actuator. An optional wireless module may provide remote viewing in some embodiments. Our revolutionary system dramatically improves inspection.",
+      "specification_text": "The system comprises a sensor, processor, control-signal generator, and actuator. An optional wireless module may provide remote viewing.",
+      "expected": {
+        "shorter": true,
+        "includes": ["sensor", "processor", "control", "actuator"],
+        "excludes": ["revolutionary"]
+      }
+    },
+    {
+      "id": "CASE-21-VERSIONING",
+      "title": "Rewrite And Shortening Create Recoverable Versions",
+      "inputs": {
+        "title": "Wafer Inspection System",
+        "problem": "Microscopic wafer defects escape conventional optical inspection.",
+        "solution": "A processor analyzes sensor images and generates a control signal for an actuator.",
+        "components": "Sensor, processor, control-signal generator, and actuator."
+      },
+      "expected": {
+        "versions": ["v1", "v2", "v3"]
+      }
+    },
+    {
+      "id": "CASE-22-LOCKING",
+      "title": "Locked Abstract Is Preserved",
+      "inputs": {
+        "title": "Wafer Inspection System",
+        "problem": "Microscopic wafer defects escape conventional optical inspection.",
+        "solution": "A processor analyzes sensor images and generates a control signal for an actuator.",
+        "components": "Sensor, processor, control-signal generator, and actuator."
+      },
+      "expected": {
+        "flag": "ABSTRACT_LOCKED_PRESERVED"
+      }
+    }
+  ]
+}

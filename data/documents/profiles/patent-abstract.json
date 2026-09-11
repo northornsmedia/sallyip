@@ -1,0 +1,225 @@
+{
+  "id": "patent-abstract",
+  "slug": "patent-abstract",
+  "name": "Patent Abstract",
+  "document_number": "011",
+  "aliases": [
+    "patent abstract",
+    "draft a patent abstract",
+    "prepare the patent abstract",
+    "write the abstract",
+    "rewrite this patent abstract",
+    "review my patent abstract",
+    "make the abstract more concise",
+    "shorten this invention into an abstract",
+    "draft an abstract from the specification",
+    "draft an abstract from the claims",
+    "prepare a PCT abstract",
+    "prepare an EP patent abstract",
+    "abstract of the disclosure"
+  ],
+  "category": "IP_INNOVATION",
+  "subcategory": "PATENT",
+  "document_family": "PATENT_ABSTRACT",
+  "family": "PATENT_ABSTRACT",
+  "practice_areas": ["patent_prosecution", "patent_drafting"],
+  "description": "A concise, technically accurate abstract associated with a patent application, specification, or claim set. This workflow produces or reviews only the formal patent abstract; it is not a complete application, patentability opinion, filing package, or substitute for the specification or claims.",
+  "status": "BETA",
+  "capability_level": "L3_DRAFTABLE",
+  "risk_level": "MEDIUM",
+  "jurisdiction": "MULTI_JURISDICTION",
+  "jurisdiction_type": "CONTEXT_DEPENDENT",
+  "jurisdiction_classification": "CONTEXT_DEPENDENT",
+  "jurisdiction_scope": ["US", "PCT", "EPO"],
+  "jurisdiction_notes": "The applicable filing context is determined from the matter and user request. Jurisdiction-specific abstract form or length requirements are applied only when the corresponding rule has actually been verified and supplied to this workflow. Unverified limits must not be asserted as filing requirements.",
+  "governing_law_required": false,
+  "forum_required": false,
+  "party_roles": [],
+  "review_required": true,
+  "verification_required": true,
+  "interview_mode": "ONE_QUESTION_AT_A_TIME",
+  "drafting_status_default": "INFORMATION_GATHERING",
+  "readiness_levels": ["NOT_READY", "PARTIALLY_READY", "READY_FOR_FIRST_DRAFT"],
+  "provenance_states": [
+    "USER_PROVIDED",
+    "MATTER_CONTEXT",
+    "SPECIFICATION_SOURCE",
+    "CLAIM_SOURCE",
+    "DISCLOSURE_SOURCE",
+    "FIGURE_SOURCE",
+    "AI_DRAFTED",
+    "USER_EDITED",
+    "VERIFIED",
+    "UNVERIFIED",
+    "PLACEHOLDER"
+  ],
+  "required_inputs": [
+    {
+      "id": "technical_problem",
+      "label": "Core Technical Problem or Purpose",
+      "type": "textarea",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Concise source-supported technical problem addressed by the invention"
+    },
+    {
+      "id": "core_solution",
+      "label": "Core Technical Solution",
+      "type": "textarea",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Central solution without secondary embodiments or optional variants"
+    },
+    {
+      "id": "principal_components",
+      "label": "Principal Components or Method Steps",
+      "type": "textarea",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Main components or steps and their principal technical relationship"
+    },
+    {
+      "id": "title",
+      "label": "Patent Title",
+      "type": "text",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Title used for title-abstract consistency checking"
+    }
+  ],
+  "optional_inputs": [
+    {
+      "id": "invention_type",
+      "label": "Invention Type",
+      "type": "select",
+      "input_class": "RECOMMENDED",
+      "options": [
+        "SYSTEM",
+        "METHOD",
+        "DEVICE",
+        "APPARATUS",
+        "SOFTWARE",
+        "AI_ML",
+        "MECHANICAL",
+        "ELECTRONICS",
+        "CHEMICAL",
+        "COMPOSITION",
+        "PHARMACEUTICAL",
+        "BIOTECH",
+        "MANUFACTURING",
+        "OTHER"
+      ]
+    },
+    {
+      "id": "technical_effect",
+      "label": "Supported Technical Effect",
+      "type": "textarea",
+      "input_class": "OPTIONAL",
+      "description": "Only a technical result actually supported by the source material"
+    },
+    {
+      "id": "specification_text",
+      "label": "Source Specification Text",
+      "type": "textarea",
+      "input_class": "OPTIONAL"
+    },
+    {
+      "id": "claims_text",
+      "label": "Source Claim Text",
+      "type": "textarea",
+      "input_class": "OPTIONAL"
+    },
+    {
+      "id": "invention_disclosure",
+      "label": "Source Invention Disclosure",
+      "type": "textarea",
+      "input_class": "OPTIONAL"
+    },
+    {
+      "id": "existing_abstract",
+      "label": "Existing Abstract for Review or Revision",
+      "type": "textarea",
+      "input_class": "OPTIONAL"
+    },
+    {
+      "id": "jurisdiction_context",
+      "label": "Filing or Review Jurisdiction Context",
+      "type": "select",
+      "input_class": "OPTIONAL",
+      "options": ["US", "PCT", "EP", "NATIONAL_PHASE_SPECIFIC", "OTHER", "UNDECIDED"]
+    }
+  ],
+  "matter_inputs": [
+    { "fact_type": "title", "entity_types": ["patent", "invention"], "confidence_threshold": 0.8 },
+    { "fact_type": "technical_problem", "entity_types": ["patent", "invention"], "confidence_threshold": 0.7 },
+    { "fact_type": "technical_solution", "entity_types": ["patent", "invention"], "confidence_threshold": 0.7 },
+    { "fact_type": "specification", "entity_types": ["patent", "document"], "confidence_threshold": 0.7 },
+    { "fact_type": "claims", "entity_types": ["patent", "document"], "confidence_threshold": 0.7 },
+    { "fact_type": "invention_disclosure", "entity_types": ["patent", "document"], "confidence_threshold": 0.7 }
+  ],
+  "sections": [
+    {
+      "id": "abstract",
+      "order": 1,
+      "heading": "Abstract",
+      "required": true,
+      "clause_families": []
+    },
+    {
+      "id": "abstract_support_map",
+      "order": 2,
+      "heading": "Abstract Proposition Support Map",
+      "required": true,
+      "clause_families": []
+    },
+    {
+      "id": "abstract_consistency_review",
+      "order": 3,
+      "heading": "Claim, Specification, and Terminology Consistency Review",
+      "required": true,
+      "clause_families": []
+    },
+    {
+      "id": "abstract_source_record",
+      "order": 4,
+      "heading": "Source Versions, Word Count, and Abstract Version Record",
+      "required": true,
+      "clause_families": []
+    }
+  ],
+  "claim_support_rules": {
+    "require_source_support": true,
+    "require_terminology_consistency": true,
+    "disallow_unsupported_broadening": true,
+    "disallow_accidental_narrowing": true,
+    "disallow_unsupported_quantitative_effects": true,
+    "track_support_matrix": true
+  },
+  "authority_required": [
+    "35 U.S.C. § 112",
+    "MPEP § 608.01(b)"
+  ],
+  "review_flags": [
+    "ABSTRACT_REVIEW_REQUIRED",
+    "ABSTRACT_NEW_MATTER_DETECTED",
+    "ABSTRACT_UNSUPPORTED_BROADENING",
+    "ABSTRACT_OVER_NARROWING_REVIEW_REQUIRED",
+    "ABSTRACT_CLAIM_CONFLICT",
+    "ABSTRACT_SPECIFICATION_CONFLICT",
+    "TITLE_ABSTRACT_CONSISTENCY_REVIEW_REQUIRED",
+    "SPECIFICATION_CONTEXT_LIMITED",
+    "ABSTRACT_WORD_LIMIT_REVIEW_REQUIRED",
+    "ABSTRACT_LOCKED_PRESERVED",
+    "CONFIDENTIAL_MATTER_UNPUBLISHED",
+    "CONFIDENTIAL_PILOT_BLOCKED"
+  ],
+  "output_formats": ["docx", "pdf", "md"],
+  "related_documents": [
+    "utility-patent-application",
+    "provisional-patent-application",
+    "non-provisional-patent-application",
+    "pct-international-patent-application",
+    "national-phase-patent-application",
+    "european-patent-application",
+    "invention-disclosure-form"
+  ],
+  "source_status": "CANONICAL_DOCUMENT_TRAINING_011",
+  "version": "1.0.0",
+  "last_reviewed": "2026-09-11"
+}

@@ -1,0 +1,153 @@
+{
+  "id": "patent-drawings-instructions",
+  "slug": "patent-drawings-instructions",
+  "name": "Patent Drawings Instructions",
+  "document_number": "012",
+  "aliases": [
+    "prepare patent drawing instructions",
+    "write instructions for patent figures",
+    "tell the illustrator what to draw",
+    "prepare figure instructions",
+    "prepare drawing brief for my patent",
+    "create a patent illustration brief",
+    "prepare instructions for Figures 1 to 8",
+    "map the specification into drawings",
+    "what drawings do I need for this patent?"
+  ],
+  "category": "IP_INNOVATION",
+  "subcategory": "PATENT",
+  "document_family": "PATENT_DRAWINGS",
+  "family": "PATENT_DRAWINGS",
+  "practice_areas": ["patent_prosecution", "patent_drafting", "patent_drawings"],
+  "description": "A canonical instruction package for utility/technical patent figures: which figures are needed, what each figure must show, reference numerals, relationships/flows, consistency requirements, and illustrator/attorney outputs. This workflow produces instructions only. It is not the final patent drawings, a CAD file, an illustration, a filing-compliant drawing set, or a substitute for a professional patent illustrator where required.",
+  "status": "BETA",
+  "capability_level": "L3_DRAFTABLE",
+  "risk_level": "MEDIUM",
+  "jurisdiction_type": "CONTEXT_DEPENDENT",
+  "primary_jurisdiction": "MULTI_JURISDICTION",
+  "jurisdiction_classification": "CONTEXT_DEPENDENT",
+  "jurisdiction_scope": ["US", "PCT", "EP"],
+  "jurisdiction_context_values": ["US", "PCT", "EP", "NATIONAL_PHASE_SPECIFIC", "DESIGN_PATENT", "OTHER", "UNDECIDED"],
+  "jurisdiction_notes": "This workflow is primarily for utility/technical patent drawing instructions. Formal drawing-sheet, margin, line-quality, numbering, text, colour, photograph, shading, and electronic-format requirements must be supplied only from verified jurisdiction-specific authority; this profile does not encode them. Formal ornamental design-patent figure requirements belong to the Design Patent Application workflow.",
+  "governing_law_required": false,
+  "forum_required": false,
+  "party_roles": ["inventor", "applicant", "assignee"],
+  "review_required": true,
+  "verification_required": true,
+  "interview_mode": "ONE_QUESTION_AT_A_TIME",
+  "drafting_status_default": "INFORMATION_GATHERING",
+  "readiness_levels": ["NOT_READY", "PARTIALLY_READY", "READY_FOR_INSTRUCTIONS"],
+  "provenance_states": [
+    "USER_PROVIDED",
+    "MATTER_CONTEXT",
+    "SPECIFICATION_SOURCE",
+    "CLAIM_SOURCE",
+    "SOURCE_IMAGE",
+    "SOURCE_SKETCH",
+    "AI_PROPOSED",
+    "USER_EDITED",
+    "VERIFIED",
+    "UNVERIFIED",
+    "PLACEHOLDER"
+  ],
+  "required_inputs": [
+    {
+      "id": "invention_title",
+      "label": "Working Invention Title",
+      "type": "text",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "description": "Short technical working title used to keep figure terminology consistent"
+    },
+    {
+      "id": "invention_type",
+      "label": "Invention Type",
+      "type": "select",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "options": ["SYSTEM", "METHOD", "DEVICE", "APPARATUS", "MECHANICAL", "ELECTRONICS", "SOFTWARE", "AI_ML", "NETWORK", "PROCESS", "MANUFACTURING", "CHEMICAL", "BIOTECH", "MEDICAL_DEVICE", "MATERIALS", "OTHER"]
+    },
+    {
+      "id": "workflow_mode",
+      "label": "Drawing Instruction Workflow Mode",
+      "type": "select",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "options": ["NEW_DRAWING_INSTRUCTIONS", "DRAWINGS_FROM_SPECIFICATION", "DRAWINGS_FROM_CLAIMS", "DRAWINGS_FROM_INVENTION_DISCLOSURE", "DRAWINGS_FROM_EXISTING_SKETCHES", "DRAWINGS_FROM_PRODUCT_IMAGES", "DRAWING_SET_REVIEW", "FIGURE_GAP_ANALYSIS", "REFERENCE_NUMERAL_REVIEW", "FIGURE_DESCRIPTION_GENERATION", "DRAWING_UPDATE_INSTRUCTIONS", "JURISDICTION_ADAPTATION"]
+    },
+    {
+      "id": "jurisdiction_context",
+      "label": "Filing/Jurisdiction Context",
+      "type": "select",
+      "input_class": "REQUIRED_BEFORE_DRAFT",
+      "options": ["US", "PCT", "EP", "NATIONAL_PHASE_SPECIFIC", "DESIGN_PATENT", "OTHER", "UNDECIDED"]
+    }
+  ],
+  "optional_inputs": [
+    {
+      "id": "technical_source_summary",
+      "label": "Technical Source Summary",
+      "type": "textarea",
+      "input_class": "RECOMMENDED",
+      "description": "Supported components, steps, relationships, views, sketches, images, claims, or specification material already available"
+    },
+    {
+      "id": "existing_figures",
+      "label": "Existing Figures, Sketches, or Images",
+      "type": "array",
+      "input_class": "OPTIONAL"
+    },
+    {
+      "id": "reference_numerals",
+      "label": "Existing Reference Numerals",
+      "type": "array",
+      "input_class": "OPTIONAL"
+    },
+    {
+      "id": "claims_text",
+      "label": "Claims Text or Claimed Features",
+      "type": "textarea",
+      "input_class": "OPTIONAL"
+    },
+    {
+      "id": "specification_text",
+      "label": "Specification Text or Described Components",
+      "type": "textarea",
+      "input_class": "OPTIONAL"
+    }
+  ],
+  "matter_inputs": [
+    { "fact_type": "invention_title", "entity_types": ["patent", "invention"], "confidence_threshold": 0.8 },
+    { "fact_type": "specification", "entity_types": ["patent", "specification", "document"], "confidence_threshold": 0.7 },
+    { "fact_type": "claims", "entity_types": ["patent", "claims", "document"], "confidence_threshold": 0.7 },
+    { "fact_type": "drawing", "entity_types": ["drawing", "figure", "image", "sketch"], "confidence_threshold": 0.7 },
+    { "fact_type": "jurisdiction", "entity_types": ["country", "jurisdiction"], "confidence_threshold": 0.9 }
+  ],
+  "sections": [
+    { "id": "drawing_overview", "order": 1, "heading": "Drawing Overview and Instructions-vs-Drawings Distinction", "required": true, "clause_families": [] },
+    { "id": "reference_numeral_index", "order": 2, "heading": "Reference Numeral Index", "required": true, "clause_families": [] },
+    { "id": "figure_instructions", "order": 3, "heading": "Figure-by-Figure Illustrator Instructions", "required": true, "clause_families": [] },
+    { "id": "cross_view_consistency", "order": 4, "heading": "Cross-View and Terminology Consistency Notes", "required": true, "clause_families": [] },
+    { "id": "source_support", "order": 5, "heading": "Source Support Map", "required": true, "clause_families": [] },
+    { "id": "open_questions", "order": 6, "heading": "Open Technical Questions", "required": false, "clause_families": [] },
+    { "id": "do_not_invent", "order": 7, "heading": "Do-Not-Invent and Geometry Safety Notes", "required": true, "clause_families": [] },
+    { "id": "jurisdiction_formality_notes", "order": 8, "heading": "Jurisdiction and Formality Notes", "required": false, "clause_families": [] },
+    { "id": "attorney_qa", "order": 9, "heading": "Attorney and Internal QA Mapping", "required": true, "clause_families": [] }
+  ],
+  "authority_required": [
+    "35 U.S.C. Â§ 112",
+    "37 C.F.R. Â§ 1.77(b)(8)",
+    "37 C.F.R. Â§ 1.121(d)",
+    "MPEP Chapter 600"
+  ],
+  "review_flags": [
+    "DRAWING_REVIEW_REQUIRED",
+    "FIGURE_SPEC_NUMERAL_CONFLICT",
+    "IMAGE_SPEC_CONFLICT",
+    "CROSS_SECTION_DETAIL_REQUIRED",
+    "SPECIALIST_DRAWING_REVIEW_REQUIRED",
+    "FORMAL_RULE_VERIFICATION_REQUIRED",
+    "CONFIDENTIAL_MATTER_UNPUBLISHED"
+  ],
+  "output_formats": ["docx", "pdf", "md"],
+  "source_status": "CANONICAL_DOCUMENT_TRAINING_012",
+  "version": "1.0.0",
+  "last_reviewed": "2026-09-11"
+}

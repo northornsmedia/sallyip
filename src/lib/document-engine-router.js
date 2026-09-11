@@ -1,6 +1,8 @@
-import { loadCatalogue, loadDocumentProfile, resolveDocumentFamily, buildDocumentOutline, generatePreDraftQuestions, assembleDocument } from './document-engine.js'
+﻿import { loadCatalogue, loadDocumentProfile, resolveDocumentFamily, buildDocumentOutline, generatePreDraftQuestions, assembleDocument } from './document-engine.js'
 import { resolveJurisdiction } from './jurisdiction-registry.js'
 import { evaluatePatentInterviewStep } from './patent-interview-graph.js'
+import { evaluateDesignPatentInterviewStep } from './design-patent-interview-graph.js'
+import { assembleDesignPatentSpecification } from './design-patent-drafting-service.js'
 import { evaluateProvisionalInterviewStep } from './provisional-patent-interview-graph.js'
 import { evaluatePlantInterviewStep, isPlantVarietyRightsRequest } from './plant-interview-graph.js'
 import { assemblePlantSpecification } from './plant-drafting-service.js'
@@ -10,11 +12,22 @@ import { evaluateNationalPhaseInterviewStep, isNoPriorPctRequest } from './natio
 import { assembleNationalPhaseFiling } from './national-phase-drafting-service.js'
 import { evaluateEpInterviewStep, isEpRegionalPhaseFromPctRequest } from './european-patent-interview-graph.js'
 import { assembleEpSpecification } from './european-patent-drafting-service.js'
+import { evaluatePatentAbstractInterviewStep } from './patent-abstract-interview-graph.js'
+import { evaluatePatentSpecificationInterviewStep } from './patent-specification-interview-graph.js'
+import { assemblePatentSpecification } from './patent-specification-drafting-service.js'
 import { evaluateInventionDisclosureInterviewStep } from './invention-disclosure-interview-graph.js'
 import { assembleInventionDisclosure } from './invention-disclosure-service.js'
 import { evaluatePatentNoveltyInterviewStep } from './patent-novelty-opinion-interview-graph.js'
+import { evaluatePatentabilityInterviewStep } from './patentability-assessment-interview-graph.js'
 import { evaluateFtoInterviewStep } from './freedom-to-operate-interview-graph.js'
 import { assembleFtoOpinion, createFtoScope } from './fto-opinion-service.js'
+import { evaluatePatentInvalidityInterviewStep } from './patent-invalidity-interview-graph.js'
+import { evaluatePatentLandscapeInterviewStep } from './patent-landscape-interview-graph.js'
+import { evaluatePriorArtSearchInterviewStep } from './prior-art-search-interview-graph.js'
+import { evaluateClaimChartInterviewStep, isInfringementQuestion, isSupportQuestion } from './patent-claim-chart-interview-graph.js'
+import { isFtoBlockingQuestion as isLandscapeFtoBlockingQuestion, isPatentabilityFromWhitespace as isLandscapePatentabilityQuestion } from './patent-landscape-interview-graph.js'
+import { evaluateDrawingInstructionsStep, isActualDrawingGenerationRequest } from './patent-drawings-interview-graph.js'
+import { isFormalDesignDrawingRequest, isPatentDrawingInstructionRequest, assembleDrawingInstructionPackage } from './patent-drawings-model.js'
 
 export async function routeConversationalIntent(userInput, matterContext = {}) {
   // Disambiguate users asking for national phase without a prior PCT application
@@ -81,7 +94,7 @@ export async function routeConversationalIntent(userInput, matterContext = {}) {
       action: 'CLARIFICATION_REQUIRED',
       document_family: 'plant-patent-application',
       message:
-        `Under US and international IP law, a **US Plant Patent** (USPTO, 35 U.S.C. § 161) covers asexually reproduced distinct plant varieties in the United States.\n\n` +
+        `Under US and international IP law, a **US Plant Patent** (USPTO, 35 U.S.C. Â§ 161) covers asexually reproduced distinct plant varieties in the United States.\n\n` +
         `European Community Plant Variety Rights (CPVR via CPVO) and US Plant Variety Protection (PVPA via USDA for seed/tubers) are separate sui generis systems.\n\n` +
         `Would you like to continue drafting a **US Plant Patent Application**, or do you need assistance with an international Plant Variety Rights filing?`,
       flags: ['PLANT_VARIETY_RIGHTS_DISTINCTION_REQUIRED'],
@@ -89,7 +102,69 @@ export async function routeConversationalIntent(userInput, matterContext = {}) {
     }
   }
 
-  const documentFamily = resolveDocumentFamily(userInput)
+  // Document #012 guard: formal ornamental design-figure requests belong to the Design Patent workflow.
+  if (isFormalDesignDrawingRequest(userInput)) {
+    const designProfile = await loadDocumentProfile('design-patent-application')
+    return {
+      action: 'CLARIFICATION_REQUIRED',
+      document_family: 'design-patent-application',
+      profile: designProfile,
+      message: 'This looks like a formal ornamental design-figure request. I am routing it to the Design Patent Application workflow rather than utility Patent Drawings Instructions.',
+      flags: ['DESIGN_PATENT_DRAWING_ROUTE'],
+      suggestions: ['Draft a Design Patent Application', 'Prepare Patent Drawing Instructions']
+    }
+  }
+
+  // Document #012 guard: actual rendering is separate from instructions.
+  if (isActualDrawingGenerationRequest(userInput) && !isPatentDrawingInstructionRequest(userInput)) {
+    return {
+      action: 'CLARIFICATION_REQUIRED',
+      document_family: 'patent-drawings-instructions',
+      message: 'Actual patent-drawing rendering is a separate stage from drawing instructions. I can prepare the instruction package first; human/approved rendering and drawing review must follow.',
+      flags: ['ACTUAL_IMAGE_GENERATION_SEPARATE'],
+      suggestions: ['Prepare Patent Drawing Instructions', 'Draft the Patent Specification']
+    }
+  }
+  // Document #017 guard: opposition/revocation/reexamination filings are contentious-procedure work, never auto-drafted here.
+  if (/\b(opposition|revocation|reexamination|re-examination|ipr|pgr)\b.*\b(filing|file|draft|prepare|petition|request)\b|\b(prepare|draft|file)\b.*\b(opposition|revocation|reexamination|re-examination|ipr|pgr)\b/i.test(userInput)) {
+    return {
+      action: 'CLARIFICATION_REQUIRED',
+      document_family: 'patent-invalidity-opinion',
+      message: 'Drafting opposition, revocation, or reexamination filings is a separate contentious procedure outside this invalidity-assessment workflow. I can prepare the evidence-linked invalidity assessment first and hand its claims, grounds, evidence, and verification state to that filing workflow. Would you like to start with the invalidity assessment?',
+      flags: ['CONTENTIOUS_FILING_SEPARATE'],
+      suggestions: ['Prepare a Patent Invalidity Opinion', 'Draft the Patent Specification']
+    }
+  }
+
+  // Document #018 session guard: blocking/patentability questions asked inside an active landscape hand off without verdicts.
+  const landscapeSession = matterContext.draftSession || matterContext.session || {}
+  const landscapeActive = landscapeSession.documentId === 'patent-landscape-report' || Boolean(landscapeSession.facts?.technology_scope)
+  const forcedLandscapeFamily = landscapeActive && (isLandscapeFtoBlockingQuestion(userInput) || isLandscapePatentabilityQuestion(userInput)) ? 'patent-landscape-report' : null
+  // Document #020 guards: infringement questions belong to the infringement workflow (#021 when it exists);
+  // specification-support questions reuse the canonical chart infrastructure in support mode.
+  if (isInfringementQuestion(userInput)) {
+    return {
+      action: 'CLARIFICATION_REQUIRED',
+      document_family: 'patent-infringement-analysis',
+      message: 'Whether a product infringes a claim is an infringement determination for the infringement workflow (Document #021 will extend the canonical claim-chart infrastructure for this). I can build the underlying evidence-only Patent Claim Chart now as its input, without deciding infringement. Would you like me to start that chart?',
+      flags: ['INFRINGEMENT_DETERMINATION_SEPARATE'],
+      suggestions: ['Create a Patent Claim Chart', 'Draft a Patent Specification']
+    }
+  }
+  if (isSupportQuestion(userInput)) {
+    const supportProfile = await loadDocumentProfile('patent-claim-chart')
+    return {
+      action: 'CLARIFICATION_REQUIRED',
+      document_family: 'patent-claim-chart',
+      profile: supportProfile,
+      message: 'Specification support is mapped with the same canonical claim-chart infrastructure: each limitation maps to specification passages, figures, and embodiments with a support status, without automatically deciding section 112 or added-matter conclusions. Shall I start that support chart?',
+      flags: ['SUPPORT_CHART_MODE'],
+      chart_purpose: 'CLAIM_SUPPORT_REVIEW',
+      suggestions: ['Create a Patent Claim Chart', 'Draft a Patent Specification']
+    }
+  }
+
+  const documentFamily = forcedLandscapeFamily || resolveDocumentFamily(userInput)
   const detectedJurisdiction = resolveJurisdiction(userInput)
   const profile = documentFamily ? await loadDocumentProfile(documentFamily) : null
 
@@ -143,6 +218,183 @@ export async function routeConversationalIntent(userInput, matterContext = {}) {
     }
   }
 
+  // Canonical Document #014: evidence-gated Patentability Assessment.
+  if (profile.slug === 'patentability-assessment') {
+    const interviewResult = evaluatePatentabilityInterviewStep({
+      session: matterContext.draftSession || matterContext.session || {},
+      latestMessage: userInput,
+      matterContext
+    })
+    return {
+      ...interviewResult,
+      document_family: 'patentability-assessment',
+      profile,
+      question: interviewResult.single_question,
+      questions: interviewResult.single_question ? [interviewResult.single_question] : [],
+      known_facts: interviewResult.facts || interviewResult.session?.facts || {}
+    }
+  }
+
+  // Canonical Document #020: Patent Claim Chart.
+  if (profile.slug === 'patent-claim-chart') {
+    const interviewResult = evaluateClaimChartInterviewStep({
+      session: matterContext.draftSession || matterContext.session || {},
+      latestMessage: userInput,
+      matterContext
+    })
+    if (interviewResult.action === 'DRAFT') {
+      return {
+        action: 'DRAFT',
+        document_family: 'patent-claim-chart',
+        profile,
+        draft_plan: interviewResult.draft_plan,
+        jurisdiction: interviewResult.facts?.jurisdiction_context || 'UNDECIDED',
+        session: interviewResult.session,
+        facts: interviewResult.facts,
+        readiness: interviewResult.readiness,
+      }
+    }
+    if (interviewResult.action === 'PROMPT_ANALYSIS_CONFIRMATION') {
+      return {
+        action: 'PROMPT_ANALYSIS_CONFIRMATION',
+        document_family: 'patent-claim-chart',
+        profile,
+        message: interviewResult.message,
+        pre_analysis_summary: interviewResult.pre_chart_summary,
+        readiness: interviewResult.readiness,
+        session: interviewResult.session,
+        facts: interviewResult.facts || {},
+      }
+    }
+    return {
+      ...interviewResult,
+      document_family: 'patent-claim-chart',
+      profile,
+      question: interviewResult.single_question,
+      questions: interviewResult.single_question ? [interviewResult.single_question] : [],
+      known_facts: interviewResult.facts || interviewResult.session?.facts || {}
+    }
+  }
+  // Canonical Document #019: Patent Prior-Art Search Report.
+  if (profile.slug === 'patent-prior-art-search-report') {
+    const interviewResult = evaluatePriorArtSearchInterviewStep({
+      session: matterContext.draftSession || matterContext.session || {},
+      latestMessage: userInput,
+      matterContext
+    })
+    if (interviewResult.action === 'DRAFT') {
+      return {
+        action: 'DRAFT',
+        document_family: 'patent-prior-art-search-report',
+        profile,
+        draft_plan: interviewResult.draft_plan,
+        jurisdiction: interviewResult.facts?.jurisdiction_context || 'UNDECIDED',
+        session: interviewResult.session,
+        facts: interviewResult.facts,
+        readiness: interviewResult.readiness,
+      }
+    }
+    if (interviewResult.action === 'PROMPT_ANALYSIS_CONFIRMATION') {
+      return {
+        action: 'PROMPT_ANALYSIS_CONFIRMATION',
+        document_family: 'patent-prior-art-search-report',
+        profile,
+        message: interviewResult.message,
+        pre_analysis_summary: interviewResult.pre_analysis_summary,
+        readiness: interviewResult.readiness,
+        session: interviewResult.session,
+        facts: interviewResult.facts || {},
+      }
+    }
+    return {
+      ...interviewResult,
+      document_family: 'patent-prior-art-search-report',
+      profile,
+      question: interviewResult.single_question,
+      questions: interviewResult.single_question ? [interviewResult.single_question] : [],
+      known_facts: interviewResult.facts || interviewResult.session?.facts || {}
+    }
+  }
+  // Canonical Document #018: Patent Landscape Report.
+  if (profile.slug === 'patent-landscape-report') {
+    const interviewResult = evaluatePatentLandscapeInterviewStep({
+      session: matterContext.draftSession || matterContext.session || {},
+      latestMessage: userInput,
+      matterContext
+    })
+    if (interviewResult.action === 'DRAFT') {
+      return {
+        action: 'DRAFT',
+        document_family: 'patent-landscape-report',
+        profile,
+        draft_plan: interviewResult.draft_plan,
+        jurisdiction: 'MULTI_JURISDICTION',
+        session: interviewResult.session,
+        facts: interviewResult.facts,
+        readiness: interviewResult.readiness,
+      }
+    }
+    if (interviewResult.action === 'PROMPT_ANALYSIS_CONFIRMATION') {
+      return {
+        action: 'PROMPT_ANALYSIS_CONFIRMATION',
+        document_family: 'patent-landscape-report',
+        profile,
+        message: interviewResult.message,
+        pre_analysis_summary: interviewResult.pre_analysis_summary,
+        readiness: interviewResult.readiness,
+        session: interviewResult.session,
+        facts: interviewResult.facts || {},
+      }
+    }
+    return {
+      ...interviewResult,
+      document_family: 'patent-landscape-report',
+      profile,
+      question: interviewResult.single_question,
+      questions: interviewResult.single_question ? [interviewResult.single_question] : [],
+      known_facts: interviewResult.facts || interviewResult.session?.facts || {}
+    }
+  }
+  // Canonical Document #017: evidence-gated Patent Invalidity Opinion.
+  if (profile.slug === 'patent-invalidity-opinion') {
+    const interviewResult = evaluatePatentInvalidityInterviewStep({
+      session: matterContext.draftSession || matterContext.session || {},
+      latestMessage: userInput,
+      matterContext
+    })
+    if (interviewResult.action === 'DRAFT') {
+      return {
+        action: 'DRAFT',
+        document_family: 'patent-invalidity-opinion',
+        profile,
+        draft_plan: interviewResult.draft_plan,
+        jurisdiction: interviewResult.facts?.jurisdiction || 'UNDECIDED',
+        session: interviewResult.session,
+        facts: interviewResult.facts,
+        readiness: interviewResult.readiness,
+      }
+    }
+    if (interviewResult.action === 'PROMPT_ANALYSIS_CONFIRMATION') {
+      return {
+        action: 'PROMPT_ANALYSIS_CONFIRMATION',
+        document_family: 'patent-invalidity-opinion',
+        profile,
+        message: interviewResult.message,
+        pre_analysis_summary: interviewResult.pre_analysis_summary,
+        readiness: interviewResult.readiness,
+        session: interviewResult.session,
+        facts: interviewResult.facts || {},
+      }
+    }
+    return {
+      ...interviewResult,
+      document_family: 'patent-invalidity-opinion',
+      profile,
+      question: interviewResult.single_question,
+      questions: interviewResult.single_question ? [interviewResult.single_question] : [],
+      known_facts: interviewResult.facts || interviewResult.session?.facts || {}
+    }
+  }
   // Canonical Document #015: evidence-gated Patent Novelty Opinion.
   if (profile.slug === 'patent-novelty-opinion') {
     const interviewResult = evaluatePatentNoveltyInterviewStep({
@@ -160,6 +412,87 @@ export async function routeConversationalIntent(userInput, matterContext = {}) {
     }
   }
 
+  // Canonical Document #012: Patent Drawings Instructions interview graph.
+  if (profile.slug === 'patent-drawings-instructions') {
+    const session = matterContext.draftSession || matterContext.session || {}
+    const interviewResult = evaluateDrawingInstructionsStep({
+      session,
+      messages: matterContext.messages || [],
+      latestMessage: userInput,
+      matterContext
+    })
+
+    if (interviewResult.action === 'CLARIFICATION_REQUIRED') {
+      return {
+        action: 'CLARIFICATION_REQUIRED',
+        document_family: interviewResult.document_family || 'patent-drawings-instructions',
+        profile,
+        message: interviewResult.message,
+        flags: interviewResult.flags || [],
+        session: interviewResult.session
+      }
+    }
+
+    if (interviewResult.action === 'DRAFT') {
+      const instruction_package = interviewResult.instruction_package || assembleDrawingInstructionPackage({
+        matter: { title: interviewResult.facts?.invention_title },
+        facts: interviewResult.facts,
+        figures: interviewResult.figure_plan || [],
+        numeralRegistry: interviewResult.numeral_registry || [],
+        claimFigureMap: interviewResult.claim_map || [],
+        specificationFigureMap: interviewResult.specification_map || [],
+        gaps: interviewResult.gaps || [],
+        numeralConflicts: (interviewResult.conflicts || []).filter((conflict) => /NUMERAL|UNDEFINED|ORPHAN/.test(conflict.code || '')),
+        terminologyConflicts: (interviewResult.conflicts || []).filter((conflict) => (conflict.code || '') === 'TERM_CONFLICT'),
+        jurisdictionContext: interviewResult.jurisdiction || 'UNDECIDED',
+        workflowMode: interviewResult.facts?.workflow_mode || 'NEW_DRAWING_INSTRUCTIONS',
+      })
+      const draftPlan = {
+        content: instruction_package,
+        profile: profile.slug,
+        sections: profile.sections?.length || 9,
+        jurisdiction: interviewResult.jurisdiction || 'UNDECIDED',
+        status: 'READY_TO_ASSEMBLE',
+        figure_plan: interviewResult.figure_plan || [],
+        numeral_registry: interviewResult.numeral_registry || [],
+      }
+      return {
+        action: 'DRAFT',
+        document_family: 'patent-drawings-instructions',
+        profile,
+        draft_plan: draftPlan,
+        jurisdiction: interviewResult.jurisdiction || 'UNDECIDED',
+        session: interviewResult.session,
+        facts: interviewResult.facts
+      }
+    }
+
+    if (interviewResult.action === 'PROMPT_DRAFT_CONFIRMATION') {
+      return {
+        action: 'PROMPT_DRAFT_CONFIRMATION',
+        document_family: 'patent-drawings-instructions',
+        profile,
+        message: interviewResult.message,
+        readiness: interviewResult.readiness,
+        session: interviewResult.session,
+        facts: interviewResult.session?.facts || {},
+        flags: interviewResult.session?.flags || []
+      }
+    }
+
+    return {
+      action: 'ASK_QUESTION',
+      document_family: 'patent-drawings-instructions',
+      profile,
+      question: interviewResult.single_question,
+      questions: [interviewResult.single_question], // Strictly ONE question at a time
+      drafting_status: interviewResult.drafting_status,
+      readiness: interviewResult.readiness,
+      session: interviewResult.session,
+      known_facts: interviewResult.session?.facts || {},
+      jurisdiction: interviewResult.session?.facts?.jurisdiction_context || 'UNDECIDED'
+    }
+  }
   // Canonical Document #005: Plant Patent Application interview graph
   if (profile.slug === 'plant-patent-application') {
     const session = matterContext.draftSession || matterContext.session || {}
@@ -449,7 +782,83 @@ export async function routeConversationalIntent(userInput, matterContext = {}) {
     }
   }
 
-  // Canonical Document #013: Invention Disclosure Form interview graph
+  // Canonical Document #011: Patent Abstract interview graph
+  if (profile.slug === 'patent-abstract') {
+    const session = matterContext.draftSession || matterContext.session || {}
+    const interviewResult = evaluatePatentAbstractInterviewStep({
+      session,
+      messages: matterContext.messages || [],
+      latestMessage: userInput,
+      matterContext,
+      attachments: matterContext.attachments || []
+    })
+
+    if (interviewResult.action === 'CLARIFICATION_REQUIRED') {
+      return {
+        action: 'CLARIFICATION_REQUIRED',
+        document_family: interviewResult.document_family,
+        profile,
+        message: interviewResult.message,
+        flags: interviewResult.flags || [],
+        session: interviewResult.session
+      }
+    }
+
+    if (interviewResult.action === 'DRAFT') {
+      const abstractDraft = interviewResult.draft || {}
+      const jurisdiction = abstractDraft.jurisdiction
+        || interviewResult.session?.facts?.jurisdiction_context
+        || detectedJurisdiction
+        || 'UNDECIDED'
+      const draftPlan = {
+        content: abstractDraft.abstractText || '',
+        profile: profile.slug,
+        sections: profile.sections?.length || 4,
+        jurisdiction,
+        status: 'READY_TO_ASSEMBLE',
+        abstract: abstractDraft
+      }
+      return {
+        action: 'DRAFT',
+        document_family: 'patent-abstract',
+        profile,
+        draft_plan: draftPlan,
+        jurisdiction,
+        session: interviewResult.session,
+        facts: interviewResult.facts || interviewResult.session?.facts || {}
+      }
+    }
+
+    if (interviewResult.action === 'PROMPT_DRAFT_CONFIRMATION') {
+      return {
+        action: 'PROMPT_DRAFT_CONFIRMATION',
+        document_family: 'patent-abstract',
+        profile,
+        message: interviewResult.message,
+        readiness: interviewResult.readiness,
+        session: interviewResult.session,
+        facts: interviewResult.session?.facts || {},
+        flags: interviewResult.session?.flags || [],
+        jurisdiction: interviewResult.session?.facts?.jurisdiction_context || detectedJurisdiction || 'UNDECIDED'
+      }
+    }
+
+    return {
+      action: 'ASK_QUESTION',
+      document_family: 'patent-abstract',
+      profile,
+      question: interviewResult.single_question,
+      single_question: interviewResult.single_question,
+      questions: [interviewResult.single_question], // Strictly ONE question at a time
+      drafting_status: interviewResult.drafting_status,
+      readiness: interviewResult.readiness,
+      session: interviewResult.session,
+      known_facts: interviewResult.session?.facts || {},
+      jurisdiction: interviewResult.session?.facts?.jurisdiction_context || detectedJurisdiction || 'UNDECIDED'
+    }
+  }
+
+// Canonical Document #013: Invention Disclosure Form interview graph
   if (profile.slug === 'invention-disclosure-form') {
     const session = matterContext.draftSession || matterContext.session || {}
     const interviewResult = evaluateInventionDisclosureInterviewStep({
@@ -508,6 +917,82 @@ export async function routeConversationalIntent(userInput, matterContext = {}) {
       session: interviewResult.session,
       known_facts: interviewResult.session?.facts || {},
       jurisdiction: 'MULTI_JURISDICTION'
+    }
+  }
+
+  // Canonical Document #009: Patent Specification interview graph
+  if (profile.slug === 'patent-specification') {
+    const session = matterContext.draftSession || matterContext.session || {}
+    const interviewResult = evaluatePatentSpecificationInterviewStep({
+      session,
+      messages: matterContext.messages || [],
+      latestMessage: userInput,
+      matterContext,
+      attachments: matterContext.attachments || []
+    })
+
+    if (interviewResult.action === 'CLARIFICATION_REQUIRED') {
+      return {
+        action: 'CLARIFICATION_REQUIRED',
+        document_family: 'patent-specification',
+        profile,
+        message: interviewResult.message,
+        flags: interviewResult.flags || [],
+        session: interviewResult.session
+      }
+    }
+
+    if (interviewResult.action === 'DRAFT') {
+      const specDraft = assemblePatentSpecification(interviewResult.facts, session.sections || {}, session.locks || {})
+      const draftPlan = {
+        content: specDraft.specification,
+        profile: profile.slug,
+        sections: profile.sections?.length || 11,
+        jurisdiction: interviewResult.jurisdiction || 'UNDECIDED',
+        status: 'READY_TO_ASSEMBLE',
+        claimSupportMap: specDraft.claimSupportMap,
+        terminologyModel: specDraft.terminologyModel,
+        figureRegistry: specDraft.figureRegistry,
+        basisMap: specDraft.basisMap
+      }
+      return {
+        action: 'DRAFT',
+        document_family: 'patent-specification',
+        profile,
+        draft_plan: draftPlan,
+        jurisdiction: interviewResult.jurisdiction || 'UNDECIDED',
+        session: interviewResult.session,
+        facts: interviewResult.facts
+      }
+    }
+
+    if (interviewResult.action === 'PROMPT_DRAFT_CONFIRMATION') {
+      return {
+        action: 'PROMPT_DRAFT_CONFIRMATION',
+        document_family: 'patent-specification',
+        profile,
+        message: interviewResult.message,
+        readiness: interviewResult.readiness,
+        session: interviewResult.session,
+        facts: interviewResult.session?.facts || {},
+        flags: interviewResult.session?.flags || [],
+        jurisdiction: interviewResult.session?.facts?.jurisdiction_context || 'UNDECIDED'
+      }
+    }
+
+    return {
+      action: 'ASK_QUESTION',
+      document_family: 'patent-specification',
+      profile,
+      question: interviewResult.single_question,
+      single_question: interviewResult.single_question,
+      questions: [interviewResult.single_question], // Strictly ONE question at a time
+      message: interviewResult.message,
+      drafting_status: interviewResult.drafting_status,
+      readiness: interviewResult.readiness,
+      session: interviewResult.session,
+      known_facts: interviewResult.session?.facts || {},
+      jurisdiction: interviewResult.session?.facts?.jurisdiction_context || 'UNDECIDED'
     }
   }
 
@@ -572,7 +1057,17 @@ export async function routeConversationalIntent(userInput, matterContext = {}) {
     })
 
     if (interviewResult.action === 'DRAFT') {
-      const draftPlan = assembleDocument(profile, interviewResult.facts, detectedJurisdiction || 'US')
+      const draftContent = assembleDesignPatentSpecification(interviewResult.facts, session.sections || {})
+      const draftPlan = {
+        content: draftContent.content,
+        sections: draftContent.sections,
+        profile: profile.slug,
+        sections_count: profile.sections?.length || 6,
+        jurisdiction: 'US',
+        status: 'READY_TO_ASSEMBLE',
+        claim: draftContent.sections.claim,
+        cfr_references: draftContent.cfr_references,
+      }
       return {
         action: 'DRAFT',
         document_family: 'design-patent-application',
@@ -841,3 +1336,13 @@ export async function validateDocumentRequest(request) {
   if (request.jurisdiction && !resolveJurisdiction(request.jurisdiction)) errors.push('invalid jurisdiction')
   return { valid: errors.length === 0, errors }
 }
+
+
+
+
+
+
+
+
+
+

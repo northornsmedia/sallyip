@@ -35,24 +35,46 @@ import {
 // ============================================================
 // 1. ROUTING TESTS
 // ============================================================
-test('routing: recognizes natural drafting intents as utility-patent-application', () => {
-  const draftingPhrases = [
+test('routing: recognizes natural drafting intents for utility-patent-application', () => {
+  const utilityPhrases = [
     'draft a utility patent application',
     'prepare a utility patent application',
     'write my patent application',
     'draft my patent',
     'prepare a US patent application',
-    'prepare a nonprovisional patent application',
-    'draft a non-provisional patent',
     'help me patent my invention',
   ]
 
-  for (const phrase of draftingPhrases) {
+  for (const phrase of utilityPhrases) {
     const family = resolveDocumentFamily(phrase)
     assert.equal(
       family,
       'utility-patent-application',
       `Expected "${phrase}" to route to utility-patent-application, got "${family}"`
+    )
+  }
+})
+
+test('routing: recognizes non-provisional phrasing as non-provisional-patent-application', () => {
+  const nonprovisionalPhrases = [
+    'prepare a nonprovisional patent application',
+    'draft a non-provisional patent',
+    'prepare a non-provisional patent application',
+    'file a non-provisional patent',
+    'us nonprovisional application',
+    '35 usc 111a',
+    'section 111a patent application',
+    'full patent application',
+    'utility nonprovisional',
+    'convert provisional to nonprovisional',
+  ]
+
+  for (const phrase of nonprovisionalPhrases) {
+    const family = resolveDocumentFamily(phrase)
+    assert.equal(
+      family,
+      'non-provisional-patent-application',
+      `Expected "${phrase}" to route to non-provisional-patent-application, got "${family}"`
     )
   }
 })

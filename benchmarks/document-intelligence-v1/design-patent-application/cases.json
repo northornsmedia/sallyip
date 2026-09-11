@@ -1,0 +1,250 @@
+{
+  "benchmark_id": "doc-intel-v1-design-patent-application",
+  "document_id": "design-patent-application",
+  "document_number": "004",
+  "name": "Design Patent Application Intelligence Benchmark",
+  "version": "1.0.0",
+  "created_at": "2026-09-11T11:41:00Z",
+  "cases": [
+    {
+      "id": "CASE-01-PHYSICAL-PRODUCT",
+      "title": "Physical Product Design — Smart Speaker",
+      "design_type": "PHYSICAL_PRODUCT",
+      "inputs": {
+        "article_name": "Smart Speaker",
+        "design_title": "Smart Speaker",
+        "design_description": "A compact, cylindrical smart speaker with a perforated grille front face and matte black finish.",
+        "ornamental_features": "Cylindrical shape, perforated grille pattern, matte black finish",
+        "claimed_portion": "ENTIRE_ARTICLE",
+        "available_views": ["PERSPECTIVE", "FRONT", "REAR", "LEFT", "RIGHT"],
+        "line_treatment": "SOLID_CLAIMED_BROKEN_UNCLAIMED"
+      },
+      "expected": {
+        "design_type": "PHYSICAL_PRODUCT",
+        "readiness": "READY_FOR_FIRST_DRAFT",
+        "claim_type": "entire_article",
+        "required_sections": ["title", "cross_references", "figure_descriptions", "claim", "design_description"],
+        "line_treatment": "SOLID_CLAIMED_BROKEN_UNCLAIMED"
+      }
+    },
+    {
+      "id": "CASE-02-PARTIAL-PRODUCT",
+      "title": "Partial Product Design — Smartphone Camera Module",
+      "design_type": "PARTIAL_PRODUCT",
+      "inputs": {
+        "article_name": "Smartphone",
+        "design_title": "Smartphone Camera Module",
+        "design_description": "A rectangular camera module with rounded corners and dual lens arrangement on the rear face of a mobile phone.",
+        "ornamental_features": "Rectangular housing with rounded corners, dual lens circular arrangement",
+        "claimed_portion": "PORTION_OF_ARTICLE",
+        "available_views": ["PERSPECTIVE", "FRONT", "REAR"],
+        "line_treatment": "SOLID_CLAIMED_BROKEN_UNCLAIMED",
+        "unclaimed_features": "Screen, buttons, and housing surrounding the camera module"
+      },
+      "expected": {
+        "design_type": "PARTIAL_PRODUCT",
+        "readiness": "READY_FOR_FIRST_DRAFT",
+        "claim_type": "portion_of_article",
+        "required_sections": ["title", "figure_descriptions", "claim", "design_description"],
+        "unclaimed_features_shown": true
+      }
+    },
+    {
+      "id": "CASE-03-GUI-DESIGN",
+      "title": "Graphical User Interface Design — Mobile App",
+      "design_type": "GUI",
+      "inputs": {
+        "article_name": "Mobile Application",
+        "design_title": "Mobile Application Dashboard Interface",
+        "design_description": "A graphical user interface displayed on a mobile phone screen showing a dashboard layout with tab bar navigation.",
+        "ornamental_features": "Dashboard layout with tab bar, card-based information display, and color scheme",
+        "claimed_portion": "ENTIRE_ARTICLE",
+        "available_views": ["FRONT"],
+        "gui_display_article": "mobile phone screen",
+        "gui_static_animated": "STATIC"
+      },
+      "expected": {
+        "design_type": "GUI",
+        "readiness": "READY_FOR_FIRST_DRAFT",
+        "claim_type": "GUI",
+        "gui_details_required": true,
+        "display_article": "mobile phone screen"
+      }
+    },
+    {
+      "id": "CASE-04-ICON-DESIGN",
+      "title": "Icon Design — Application Icon",
+      "design_type": "ICON",
+      "inputs": {
+        "article_name": "Application Icon",
+        "design_title": "Application Icon",
+        "design_description": "A circular icon featuring a stylized letter 'S' in a gradient blue background with white text.",
+        "ornamental_features": "Circular shape, gradient blue background, stylized letter S",
+        "claimed_portion": "ENTIRE_ARTICLE",
+        "available_views": ["FRONT"]
+      },
+      "expected": {
+        "design_type": "ICON",
+        "readiness": "READY_FOR_FIRST_DRAFT",
+        "claim_type": "ICON"
+      }
+    },
+    {
+      "id": "CASE-05-SURFACE-ORNAMENTATION",
+      "title": "Surface Ornamentation — Decorative Textile",
+      "design_type": "SURFACE_ORNAMENTATION",
+      "inputs": {
+        "article_name": "Textile Fabric",
+        "design_title": "Decorative Textile Pattern",
+        "design_description": "A repeating geometric pattern featuring interlocking hexagons in teal and gold on a white background.",
+        "ornamental_features": "Repeating geometric hexagon pattern in teal and gold",
+        "claimed_portion": "ENTIRE_ARTICLE",
+        "available_views": ["TOP", "FRONT"]
+      },
+      "expected": {
+        "design_type": "SURFACE_ORNAMENTATION",
+        "readiness": "READY_FOR_FIRST_DRAFT",
+        "claim_type": "SURFACE_ORNAMENTATION"
+      }
+    },
+    {
+      "id": "CASE-06-PACKAGING",
+      "title": "Packaging Design — Beverage Container",
+      "design_type": "PACKAGING",
+      "inputs": {
+        "article_name": "Beverage Container",
+        "design_title": "Beverage Container",
+        "design_description": "A cylindrical can with a tapered bottom and a wraparound label featuring mountain scenery in blue and green.",
+        "ornamental_features": "Cylindrical shape with tapered bottom, wraparound mountain scenery label",
+        "claimed_portion": "ENTIRE_ARTICLE",
+        "available_views": ["PERSPECTIVE", "FRONT", "REAR"]
+      },
+      "expected": {
+        "design_type": "PACKAGING",
+        "readiness": "READY_FOR_FIRST_DRAFT",
+        "claim_type": "PACKAGING"
+      }
+    },
+    {
+      "id": "CASE-07-COLOUR-CLAIMED",
+      "title": "Design with Colour Significance Claim",
+      "design_type": "PHYSICAL_PRODUCT",
+      "inputs": {
+        "article_name": "Chair",
+        "design_title": "Ergonomic Chair",
+        "design_description": "A mesh-back ergonomic office chair with adjustable armrests and a curved seat shell.",
+        "ornamental_features": "Curved mesh back shell, flowing armrest design",
+        "claimed_portion": "ENTIRE_ARTICLE",
+        "available_views": ["PERSPECTIVE", "FRONT", "REAR", "LEFT", "RIGHT", "TOP"],
+        "colour_significance": "CLAIMED"
+      },
+      "expected": {
+        "design_type": "PHYSICAL_PRODUCT",
+        "readiness": "READY_FOR_FIRST_DRAFT",
+        "colour_claimed": true,
+        "required_sections_includes_colour": true
+      }
+    },
+    {
+      "id": "CASE-08-MULTIPLE-EMBODIMENTS",
+      "title": "Multiple Embodiments — Container Variants",
+      "design_type": "PHYSICAL_PRODUCT",
+      "inputs": {
+        "article_name": "Container",
+        "design_title": "Container",
+        "design_description": "A stackable storage container with interlocking sidewalls and a hinged lid.",
+        "ornamental_features": "Interlocking sidewalls, hinged lid, stackable form factor",
+        "claimed_portion": "ENTIRE_ARTICLE",
+        "available_views": ["PERSPECTIVE", "FRONT", "TOP"],
+        "multiple_embodiments": true,
+        "embodiments_detail": "Variant A: rectangular container with flat lid. Variant B: cylindrical container with domed lid."
+      },
+      "expected": {
+        "design_type": "PHYSICAL_PRODUCT",
+        "readiness": "READY_FOR_FIRST_DRAFT",
+        "multiple_embodiments_flag": true,
+        "unity_review_required": true
+      }
+    },
+    {
+      "id": "CASE-09-MATTER-CONTEXT",
+      "title": "Matter Context Pre-Population",
+      "matter_context": {
+        "matter": {
+          "title": "SmartWatch Design Filing",
+          "client_name": "TechCorp Ltd.",
+          "jurisdictions": ["US"]
+        },
+        "facts": [
+          { "fact_type": "design_type", "value": "WEARABLE", "confidence": 0.9 },
+          { "fact_type": "inventor", "value": "Jane Smith", "confidence": 0.95 }
+        ]
+      },
+      "prompt": "Draft the design patent application for this matter.",
+      "expected": {
+        "skipped_fields": ["applicant", "jurisdiction"],
+        "prefilled_facts": ["applicant", "design_type", "inventors"],
+        "first_question_field": "article_name"
+      }
+    },
+    {
+      "id": "CASE-10-FUNCTIONALITY-RISK",
+      "title": "Functional Feature Overlap Detection",
+      "design_type": "PHYSICAL_PRODUCT",
+      "inputs": {
+        "article_name": "Engine Component",
+        "design_title": "Engine Component",
+        "design_description": "A turbocharger housing with curved vanes designed to optimize airflow and reduce turbulence for maximum compressor efficiency.",
+        "ornamental_features": "Curved vanes, aerodynamic housing shape",
+        "claimed_portion": "ENTIRE_ARTICLE",
+        "available_views": ["PERSPECTIVE", "FRONT", "REAR"],
+        "functionality_check": true
+      },
+      "expected": {
+        "design_type": "PHYSICAL_PRODUCT",
+        "readiness": "PARTIALLY_READY",
+        "functionality_review_flag": true,
+        "review_flags": ["FUNCTIONALITY_REVIEW_REQUIRED"]
+      }
+    },
+    {
+      "id": "CASE-11-DRAWING-CONSISTENCY",
+      "title": "Drawing Consistency Check",
+      "design_type": "PHYSICAL_PRODUCT",
+      "inputs": {
+        "article_name": "Lamp",
+        "design_title": "Decorative Lamp",
+        "design_description": "A floor lamp with a curved adjustable arm and a round shade.",
+        "ornamental_features": "Curved adjustable arm, round shade",
+        "claimed_portion": "ENTIRE_ARTICLE",
+        "available_views": ["PERSPECTIVE", "FRONT", "LEFT", "RIGHT"],
+        "figure_description": "FIG. 1 is a perspective view of the lamp; FIG. 2 is a front view showing the arm curvature."
+      },
+      "expected": {
+        "design_type": "PHYSICAL_PRODUCT",
+        "readiness": "READY_FOR_FIRST_DRAFT",
+        "drawing_consistency": true
+      }
+    },
+    {
+      "id": "CASE-12-TRANSPARENCY",
+      "title": "Transparent Portion Design",
+      "design_type": "PHYSICAL_PRODUCT",
+      "inputs": {
+        "article_name": "Display Unit",
+        "design_title": "Display Unit",
+        "design_description": "A transparent display housing with a frosted front panel and internal LED lighting.",
+        "ornamental_features": "Transparent housing, frosted front panel, integrated LED lighting",
+        "claimed_portion": "ENTIRE_ARTICLE",
+        "available_views": ["PERSPECTIVE", "FRONT"],
+        "transparency_translucency": true,
+        "colour_significance": "NOT_APPLICABLE"
+      },
+      "expected": {
+        "design_type": "PHYSICAL_PRODUCT",
+        "readiness": "READY_FOR_FIRST_DRAFT",
+        "transparency_handling": true
+      }
+    }
+  ]
+}

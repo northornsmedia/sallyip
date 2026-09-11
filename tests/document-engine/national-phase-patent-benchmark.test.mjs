@@ -15,7 +15,7 @@ import {
   REVIEW_FLAGS,
 } from '../../src/lib/national-phase-interview-graph.js'
 
-test('benchmark: all 18 synthetic National Phase benchmark cases execute and pass', async () => {
+test('benchmark: all synthetic National Phase benchmark cases execute and pass', async () => {
   const benchmarkPath = path.resolve(
     process.cwd(),
     'benchmarks',
@@ -26,7 +26,7 @@ test('benchmark: all 18 synthetic National Phase benchmark cases execute and pas
 
   const content = fs.readFileSync(benchmarkPath, 'utf8')
   const data = JSON.parse(content)
-  assert.equal(data.cases.length, 18, 'Benchmark must contain exactly 18 cases')
+  assert.ok(data.cases.length >= 18, 'Benchmark must contain at least 18 cases')
 
   for (const tc of data.cases) {
     if (tc.id === 'CASE-01-US-NATIONAL-PHASE') {

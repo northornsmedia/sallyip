@@ -1,0 +1,216 @@
+{
+  "$schema": "https://sallyip.com/schemas/document-benchmark-v1.json",
+  "benchmark_suite_id": "conversational-document-interview",
+  "name": "SallyIP Conversational Legal Document Interview Engine Benchmark Suite v1",
+  "version": "1.0.0",
+  "benchmark_type": "SYNTHETIC_EVALUATION",
+  "total_cases": 20,
+  "cases": [
+    {
+      "id": "CASE-01-ONE-QUESTION-COMPLIANCE",
+      "title": "Strict One-Question-at-a-Time Turn-Taking Compliance",
+      "dimension": "QUESTION_ONE_AT_A_TIME_COMPLIANCE",
+      "turns": [
+        { "user": "Draft a National Phase Patent Application", "expected_asked": "pct_number", "max_questions": 1 },
+        { "user": "PCT/US2023/012345", "expected_recorded": "pct_number", "expected_asked": "target_jurisdiction", "max_questions": 1 },
+        { "user": "USPTO", "expected_recorded": "target_jurisdiction", "expected_asked": "title", "max_questions": 1 },
+        { "user": "JAADUGAR", "expected_recorded": "title", "expected_asked": "inventors", "max_questions": 1 }
+      ],
+      "expected": { "compliance_rate": 1.0, "max_material_questions_per_turn": 1 }
+    },
+    {
+      "id": "CASE-02-MATTER-CONTEXT-REUSE",
+      "title": "Reusing Verified Matter Context Facts Without Re-asking",
+      "dimension": "MATTER_CONTEXT_REUSE",
+      "matter_context": {
+        "pct_number": "PCT/US2023/012345",
+        "target_jurisdiction": "US",
+        "title": "JAADUGAR"
+      },
+      "user_start": "Draft a National Phase Patent Application",
+      "expected_asked": "inventors",
+      "expected_skipped": ["pct_number", "target_jurisdiction", "title"]
+    },
+    {
+      "id": "CASE-03-SOURCE-FIRST-RESOLUTION",
+      "title": "Authoritative PCT Source Record Resolution",
+      "dimension": "SOURCE_FIRST_RESOLUTION",
+      "source_record": {
+        "title": "JAADUGAR QUANTUM CONTROLLER",
+        "inventors": [{ "name": "Aman Patel" }],
+        "applicants": [{ "name": "A Ltd" }],
+        "wo_number": "WO 2023/135791 A1"
+      },
+      "user_inputs": ["PCT/US2023/012345", "USPTO"],
+      "expected_resolved_from_source": ["title", "inventors", "applicants", "wo_number"],
+      "expected_asked": "operative_claims_basis"
+    },
+    {
+      "id": "CASE-04-RETRIEVAL-FAILURE-FALLBACK",
+      "title": "Source Retrieval Failure Safe Fallback Without Hallucination",
+      "dimension": "RETRIEVAL_FAILURE_HANDLING",
+      "source_retrieval_status": "SOURCE_RETRIEVAL_FAILED",
+      "user_inputs": ["PCT/US2023/099999", "USPTO"],
+      "expected_action": "PROMPT_USER_FOR_TITLE_OR_DISCLOSURE",
+      "expected_fabrication": false
+    },
+    {
+      "id": "CASE-05-ANSWER-VALIDATION",
+      "title": "Input Validation Rejection of Invalid PCT Number Format",
+      "dimension": "ANSWER_VALIDATION",
+      "user_input": "12345",
+      "expected_validation": false,
+      "expected_reprompt_contains": "That doesn't appear to be a PCT international application number",
+      "stored_fact": null
+    },
+    {
+      "id": "CASE-06-MULTI-FACT-EXTRACTION",
+      "title": "Voluntary Multi-Fact Extraction From Single Natural Turn",
+      "dimension": "MULTI_FACT_EXTRACTION_ACCURACY",
+      "user_turn": "JAADUGAR. Inventor is Aman Patel and applicant is A Ltd.",
+      "expected_extracted": {
+        "title": "JAADUGAR",
+        "inventors": "Aman Patel",
+        "applicants": "A Ltd"
+      },
+      "expected_skipped_questions": ["title", "inventors", "applicants"],
+      "next_asked": "wo_number"
+    },
+    {
+      "id": "CASE-07-CORRECTION-HANDLING",
+      "title": "Dynamic User Correction With Audit Trail Preservation",
+      "dimension": "CORRECTION_HANDLING",
+      "initial_fact": { "applicants": "A Ltd" },
+      "correction_input": "Actually the applicant is B Ltd.",
+      "expected_updated_value": "B Ltd",
+      "expected_audit_reason": "USER_CORRECTION",
+      "expected_acknowledgment": "✓ Updated: Applicant — B Ltd."
+    },
+    {
+      "id": "CASE-08-UNKNOWN-HANDLING",
+      "title": "Handling 'I Don't Know' on Required Disclosure Gate",
+      "dimension": "UNKNOWN_HANDLING",
+      "field": "wo_number",
+      "user_input": "I don't know",
+      "expected_action": "EXPLAIN_DISCLOSURE_GATE_AND_REQUEST_UPLOAD",
+      "circular_loop_detected": false
+    },
+    {
+      "id": "CASE-09-SKIP-HANDLING",
+      "title": "Handling 'Skip' on Optional Fields Gracefully",
+      "dimension": "SKIP_HANDLING",
+      "field": "attorney_docket_number",
+      "user_input": "skip",
+      "expected_status": "NOT_APPLICABLE",
+      "expected_loop": false
+    },
+    {
+      "id": "CASE-10-CONDITIONAL-BRANCHING",
+      "title": "Operative Claims Branching (As Published vs Preliminary Amendment)",
+      "dimension": "CONDITIONAL_BRANCH_ACCURACY",
+      "user_input": "As published without amendments",
+      "expected_branch": "PCT_AS_PUBLISHED",
+      "skip_amendment_spec_question": true
+    },
+    {
+      "id": "CASE-11-QUESTION-DEDUPLICATION",
+      "title": "Deduplication of Already Answered Questions",
+      "dimension": "DUPLICATE_QUESTION_RATE",
+      "resolved_facts": ["pct_number", "target_jurisdiction", "title", "inventors"],
+      "asked_questions": ["pct_number", "target_jurisdiction", "title", "inventors"],
+      "duplicate_questions_asked": 0
+    },
+    {
+      "id": "CASE-12-SESSION-RESUMPTION",
+      "title": "Session Resumption After Conversation Interruption",
+      "dimension": "SESSION_RESUMPTION",
+      "persisted_state": {
+        "pct_number": "PCT/US2023/012345",
+        "target_jurisdiction": "US",
+        "title": "JAADUGAR",
+        "lastAsked": "title"
+      },
+      "resumption_prompt": "Let's continue my National Phase application",
+      "expected_next_question": "inventors",
+      "restarted_from_pct": false
+    },
+    {
+      "id": "CASE-13-SOURCE-CONFLICT-DETECTION",
+      "title": "Detecting Conflict Between User Fact and Verified Official Source",
+      "dimension": "SOURCE_CONFLICT_DETECTION",
+      "official_record": { "title": "MAGIC CONTROL SYSTEM" },
+      "user_input": "JAADUGAR",
+      "expected_flag": "SOURCE_USER_CONFLICT",
+      "expected_action": "PROMPT_CLARIFICATION"
+    },
+    {
+      "id": "CASE-14-DRAFT-READINESS",
+      "title": "Full Readiness Gate Only When All Dependencies Satisfied",
+      "dimension": "DRAFT_READINESS_ACCURACY",
+      "resolved_facts": {
+        "pct_number": "PCT/US2023/012345",
+        "target_jurisdiction": "US",
+        "title": "JAADUGAR",
+        "inventors": "Aman Patel",
+        "applicants": "A Ltd",
+        "wo_number": "WO 2023/135791 A1",
+        "operative_claims_basis": "PCT Claims as Published (Article 21 PCT)"
+      },
+      "expected_readiness": "READY_TO_DRAFT",
+      "ready_to_draft_boolean": true
+    },
+    {
+      "id": "CASE-15-PREMATURE-DRAFT-PREVENTION",
+      "title": "Strict Prevention of Premature Drafting on User Command",
+      "dimension": "PREMATURE_DRAFT_BLOCK_RATE",
+      "user_command": "Just draft everything now",
+      "resolved_facts": {
+        "pct_number": "PCT/US2023/012345",
+        "target_jurisdiction": "US"
+      },
+      "user_requested_draft": true,
+      "system_ready_to_draft": false,
+      "draft_executed": false,
+      "expected_reprompt": "I still need the underlying PCT disclosure before I can safely prepare the substantive national-stage application"
+    },
+    {
+      "id": "CASE-16-TECHNICAL-FABRICATION-BLOCK",
+      "title": "Zero Technical Element Invention Without Source Disclosure",
+      "dimension": "UNSUPPORTED_FACT_BLOCK_RATE",
+      "prohibited_elements": ["chassis [10]", "sensor [20]", "supercapacitor", "1 kHz", "closed-loop controller"],
+      "generated_output_inspection": "ZERO_PROHIBITED_ELEMENTS_PRESENT"
+    },
+    {
+      "id": "CASE-17-BIBLIOGRAPHIC-FABRICATION-BLOCK",
+      "title": "Zero Bibliographic Name or Date Fabrication",
+      "dimension": "BIBLIOGRAPHIC_FABRICATION_BLOCK",
+      "prohibited_facts": ["Jane Doe", "John Smith", "100 Innovation Way", "$900.00", "Deposit Account No. 12-3456"],
+      "generated_output_inspection": "ZERO_FABRICATED_BIBLIOGRAPHIC_FACTS"
+    },
+    {
+      "id": "CASE-18-CROSS-TASK-ISOLATION",
+      "title": "Complete Isolation Between Prior NDA Chat and Patent Session",
+      "dimension": "CROSS_TASK_CONTAMINATION_BLOCK_RATE",
+      "prior_conversation": "Draft a mutual NDA between A Ltd and B Ltd as a Word document",
+      "active_task": "Draft a National Phase Patent Application",
+      "contaminated_facts_in_patent_session": 0,
+      "nda_text_in_patent_transmittal": false
+    },
+    {
+      "id": "CASE-19-VOICE-STATE-CONSISTENCY",
+      "title": "Voice Utterance Updating the Shared Session State",
+      "dimension": "VOICE_STATE_CONSISTENCY",
+      "voice_input": "Jaadugar",
+      "active_field": "title",
+      "persisted_fact_value": "JAADUGAR",
+      "separate_voice_questionnaire_created": false
+    },
+    {
+      "id": "CASE-20-OPERATIVE-DOCUMENT-SET-RESOLVED",
+      "title": "Operative Document Set Grounded in Article 21 / 19 / 34",
+      "dimension": "OPERATIVE_DOCUMENT_SET_INTEGRITY",
+      "pct_basis": "Article 21 published international application",
+      "unsupported_generic_templates": false
+    }
+  ]
+}

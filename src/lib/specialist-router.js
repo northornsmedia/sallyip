@@ -34,6 +34,16 @@ const rules = [
     ],
   },
   {
+    task: "PATENT_NATIONAL_PHASE",
+    test: /\b(national phase|national stage|rule 159|35 u\.s\.c\. §?\s*371|pct entry|regional phase)\b/i,
+    agents: [
+      "Sally Patents",
+      "Sally Drafting",
+      "Sally Patent Prosecution",
+      "Sally Verification",
+    ],
+  },
+  {
     task: "PATENT_RESEARCH",
     test: /\b(patent|prior art|novelty|prosecution|office action|claim\s+\d+)\b/i,
     agents: [
@@ -92,14 +102,17 @@ const rules = [
 ];
 
 const jurisdictions = [
-  ["EPO", /\b(epo|epc|article 54|european patent office|problem.solution|comvik)\b/i],
+  ["EPO", /\b(epo|epc|article 54|european patent office|problem.solution|comvik|rule 159)\b/i],
   ["UPC", /\b(upc|unified patent court)\b/i],
   ["EU", /\b(eu|euipo|european union)\b/i],
   ["United Kingdom", /\b(uk|united kingdom|england|wales|ukipo)\b/i],
   ["Germany", /\b(germany|german|de\b)/i],
-  ["United States", /\b(us|usa|united states|uspto)\b/i],
-  ["India", /\b(india|indian|ip india)\b/i],
+  ["United States", /\b(us|usa|united states|uspto|35 u\.s\.c\.)\b/i],
+  ["India", /\b(india|indian|ip india|ipo)\b/i],
   ["Australia", /\b(australia|australian|ipaustralia)\b/i],
+  ["Japan", /\b(japan|japanese|jpo)\b/i],
+  ["China", /\b(china|chinese|cnipa)\b/i],
+  ["Canada", /\b(canada|canadian|cipo)\b/i],
 ];
 
 export function routeSpecialists(

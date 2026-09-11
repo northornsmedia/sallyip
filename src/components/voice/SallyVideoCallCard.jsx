@@ -28,7 +28,8 @@ import {
 } from 'lucide-react';
 import { VOICE_STATES } from '../../voice/types.js';
 import { VoiceSessionController } from '../../voice/VoiceSessionController.js';
-import { SallyRealHumanVideo } from './SallyRealHumanVideo.jsx';
+import { SallyAvatarMark } from './SallyAnimatedAvatar.jsx';
+import { SallyDigitalHumanCanvas } from './SallyDigitalHumanCanvas.jsx';
 import { VOICE_OPTIONS } from './VoiceOverlay.jsx';
 import '../voice-chat-widget.css';
 
@@ -52,6 +53,8 @@ export function SallyVideoCallCard({
   const [cameraStream, setCameraStream] = useState(null);
   const [copiedTranscript, setCopiedTranscript] = useState(false);
   const [analyserNode, setAnalyserNode] = useState(null);
+  const [sessionError, setSessionError] = useState('');
+  const [cameraError, setCameraError] = useState('');
   const [selectedVoice, setSelectedVoice] = useState(() => {
     return (
       (typeof window !== 'undefined'
@@ -64,6 +67,12 @@ export function SallyVideoCallCard({
   const timerRef = useRef(null);
   const videoContainerRef = useRef(null);
   const userVideoRef = useRef(null);
+
+  useEffect(() => {
+    if (!isOpen || typeof document === 'undefined') return undefined;
+    document.body.classList.add('sally-video-call-active');
+    return () => document.body.classList.remove('sally-video-call-active');
+  }, [isOpen]);
 
   // Initialize and manage voice session controller
   useEffect(() => {
@@ -82,6 +91,8 @@ export function SallyVideoCallCard({
       setSallySpokenWords([]);
       setConversationHistory([]);
       setAnalyserNode(null);
+      setSessionError('');
+      setCameraError('');
       if (timerRef.current) clearInterval(timerRef.current);
       return;
     }
@@ -136,11 +147,13 @@ export function SallyVideoCallCard({
 
     // Start audio & capture
     controller.unlockAudio();
+    setSessionError('');
     controller.start().catch((err) => {
       console.warn('[SallyVideoCallCard] Session start warning:', err);
+      setSessionError(err?.message || 'Sally could not access your microphone.');
     });
 
-    // Obtain AnalyserNode for 3D digital human lip sync
+    // Obtain AnalyserNode for audio reactivity
     controller.getAnalyserNode().then((node) => {
       if (node) setAnalyserNode(node);
     });
@@ -165,6 +178,7 @@ export function SallyVideoCallCard({
       navigator.mediaDevices
         ?.getUserMedia({ video: { width: 320, height: 240, facingMode: 'user' }, audio: false })
         .then((stream) => {
+          setCameraError('');
           setCameraStream(stream);
           if (userVideoRef.current) {
             userVideoRef.current.srcObject = stream;
@@ -172,6 +186,7 @@ export function SallyVideoCallCard({
         })
         .catch((err) => {
           console.warn('[SallyVideoCall] Camera access denied or not available:', err);
+          setCameraError('Camera access was blocked. You can continue with voice only.');
           setShowUserCamera(false);
         });
     } else if (!showUserCamera && cameraStream) {
@@ -198,8 +213,10 @@ export function SallyVideoCallCard({
   };
 
   const handleToggleMute = () => {
-    setIsMuted(!isMuted);
-    if (!isMuted) {
+    const nextMuted = !isMuted;
+    setIsMuted(nextMuted);
+    controllerRef.current?.micController?.setMuted(nextMuted);
+    if (nextMuted) {
       if (controllerRef.current?.speechRecognition) {
         try {
           controllerRef.current.speechRecognition.stop();
@@ -208,6 +225,18 @@ export function SallyVideoCallCard({
     } else {
       controllerRef.current?.ensureSpeechRecognitionRunning();
     }
+  };
+
+  const handleRetryMicrophone = () => {
+    const controller = controllerRef.current;
+    if (!controller) return;
+    setSessionError('');
+    controller.start().then(() => {
+      setIsMuted(false);
+      controller.micController?.setMuted(false);
+    }).catch((err) => {
+      setSessionError(err?.message || 'Microphone access is still unavailable.');
+    });
   };
 
   const handleToggleFullscreen = () => {
@@ -261,16 +290,7 @@ export function SallyVideoCallCard({
     return (
       <div className="sally-pip-call-pill">
         <div className="sally-pip-avatar-ring">
-          <img
-            src="/images/sally_human_avatar.jpg"
-            alt="Sally IP"
-            style={{
-              width: '100%',
-              height: '100%',
-              borderRadius: '50%',
-              objectFit: 'cover',
-            }}
-          />
+          <SallyAvatarMark className="sally-pip-avatar-mark" />
           <span
             className={`sally-pip-dot ${
               sessionState === VOICE_STATES.SPEAKING ? 'speaking' : 'listening'
@@ -342,11 +362,11 @@ export function SallyVideoCallCard({
           <div className="sally-fs-title-col">
             <div className="sally-fs-title-row">
               <span className="sally-fs-title-text">Sally IP</span>
-              <span className="sally-fs-title-pill">Real Human</span>
+              <span className="sally-fs-title-pill">Live 3D Human</span>
             </div>
             <div className="sally-fs-meta-row">
               <ShieldCheck size={12} color="#34d399" />
-              <span>256-bit AES P2P Encrypted</span>
+              <span>Secure browser session</span>
               <span>•</span>
               <span className="sally-fs-timer">{formatDuration(duration)}</span>
             </div>
@@ -418,19 +438,36 @@ export function SallyVideoCallCard({
 
       {/* MAIN STAGE & SIDEBAR */}
       <div className="sally-fs-stage">
-        {/* HERO REAL HUMAN VIDEO VIEWPORT */}
+        {/* LIVE ANIMATED DIGITAL AVATAR VIEWPORT */}
         <div className="sally-fs-viewport">
-          {/* Real Human Video Engine */}
-          <SallyRealHumanVideo
+          <SallyDigitalHumanCanvas
             state={sessionState}
             analyserNode={analyserNode}
-            isMuted={isMuted}
             activeVoiceName={activeVoiceObj.name}
           />
 
-          {/* User Webcam Preview PiP (Bottom-Right) */}
-          {showUserCamera && (
-            <div className="sally-user-pip">
+          {sessionError && (
+            <div className="sally-call-notice sally-call-notice-error" role="alert">
+              <MicOff size={18} />
+              <div>
+                <strong>Microphone access needed</strong>
+                <span>{sessionError}</span>
+              </div>
+              <button type="button" onClick={handleRetryMicrophone}>Try again</button>
+            </div>
+          )}
+
+          {cameraError && !sessionError && (
+            <div className="sally-call-notice" role="status">
+              <VideoOff size={17} />
+              <span>{cameraError}</span>
+              <button type="button" onClick={() => setCameraError('')}>Dismiss</button>
+            </div>
+          )}
+
+          {/* User Preview PiP (Bottom-Right) */}
+          <div className="sally-user-pip">
+            {showUserCamera ? (
               <video
                 ref={userVideoRef}
                 autoPlay
@@ -438,22 +475,29 @@ export function SallyVideoCallCard({
                 muted
                 className="sally-user-pip-video"
               />
-              <div className="sally-user-pip-tag">You (Camera)</div>
-            </div>
-          )}
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#4338ca', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: '0.82rem', border: '1px solid rgba(255,255,255,0.2)' }}>
+                  You
+                </div>
+                <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>Camera Off</span>
+              </div>
+            )}
+            <div className="sally-user-pip-tag">You: [PiP]</div>
+          </div>
 
           {/* REAL-TIME CLOSED CAPTIONS & TELEPROMPTER HUD */}
           <div className="sally-fs-captions-hud">
-            {sessionState === VOICE_STATES.THINKING ? (
+            {sessionState === VOICE_STATES.ERROR ? null : sessionState === VOICE_STATES.THINKING ? (
               <div className="sally-hud-box thinking">
                 <Sparkles size={16} color="#818cf8" className="animate-spin" />
-                <span>Sally IP is reasoning with patent intelligence database...</span>
+                <span>Sally is analyzing patent statutes & case law...</span>
               </div>
             ) : sessionState === VOICE_STATES.SPEAKING && sallySpokenWords.length > 0 ? (
               <div className="sally-hud-box speaking">
                 <div className="sally-hud-speaker-tag sally">
                   <Radio size={12} color="#818cf8" />
-                  <span>Sally IP</span>
+                  <span>Sally is speaking...</span>
                 </div>
                 <div className="sally-hud-content">
                   {sallySpokenWords.map((word, idx) => {
@@ -480,7 +524,7 @@ export function SallyVideoCallCard({
               </div>
             ) : (
               <div className="sally-hud-box idle">
-                <span>{isMuted ? 'Microphone is muted' : 'Listening... Speak naturally with Sally'}</span>
+                <span>{isMuted ? 'Microphone is muted' : 'Sally is listening... Speak naturally'}</span>
               </div>
             )}
           </div>

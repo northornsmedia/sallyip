@@ -40,11 +40,14 @@ export function SallyDigitalHumanCanvas({
   const avatarGroupRef = useRef(null);
   const headMeshRef = useRef(null);
   const teethMeshRef = useRef(null);
+  const morphMeshesRef = useRef([]);
   const headBoneRef = useRef(null);
   const neckBoneRef = useRef(null);
   const spineBoneRef = useRef(null);
   const leftEyeBoneRef = useRef(null);
   const rightEyeBoneRef = useRef(null);
+  const baseHeadRotationRef = useRef(new THREE.Euler());
+  const baseNeckRotationRef = useRef(new THREE.Euler());
 
   // Mouse tracking for 3D parallax
   const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
@@ -114,9 +117,10 @@ export function SallyDigitalHumanCanvas({
 
     // 3. Camera (Telephoto portrait framing focused on Sally's face and upper shoulders)
     const camera = new THREE.PerspectiveCamera(28, dims.w / dims.h, 0.1, 20);
-    // Face center is Y = 1.638. Camera sits at Z = 0.70m in front of face
-    camera.position.set(0, 1.638, 0.70);
-    camera.lookAt(0, 1.638, 0);
+    // The local avatar is authored in metres with its face centred near y=1.62.
+    // Frame the face and shoulders like an eye-level webcam portrait.
+    camera.position.set(0, 1.67, 0.92);
+    camera.lookAt(0, 1.66, 0.03);
     cameraRef.current = camera;
 
     // 4. WebGL Renderer with sRGB, Antialias, ACES Filmic Tone Mapping
@@ -224,12 +228,29 @@ export function SallyDigitalHumanCanvas({
 
         const avatar = gltf.scene;
         avatarGroupRef.current = avatar;
+        morphMeshesRef.current = [];
 
         // Traverse avatar and upgrade to High-Fidelity MetaHuman PBR materials
         avatar.traverse((child) => {
           if (child.isMesh || child.isSkinnedMesh) {
             child.castShadow = false;
             child.receiveShadow = false;
+
+            if (child.morphTargetDictionary && child.morphTargetInfluences) {
+              morphMeshesRef.current.push(child);
+            }
+
+            // Ready Player Me half-body avatars expose all ARKit/viseme morphs
+            // on Wolf3D_Avatar rather than a separate Wolf3D_Head mesh.
+            if (child.name === 'Wolf3D_Avatar' && child.morphTargetDictionary) {
+              headMeshRef.current = child;
+            }
+            if (/head/i.test(child.name) && child.morphTargetDictionary) {
+              headMeshRef.current = child;
+            }
+            if (/teeth/i.test(child.name) && child.morphTargetDictionary) {
+              teethMeshRef.current = child;
+            }
 
             const oldMat = child.material;
             const diffuseMap = oldMat?.map || null;
@@ -307,6 +328,18 @@ export function SallyDigitalHumanCanvas({
             if (child.name === 'RightEye') rightEyeBoneRef.current = child;
           }
         });
+
+        if (headBoneRef.current) baseHeadRotationRef.current.copy(headBoneRef.current.rotation);
+        if (neckBoneRef.current) baseNeckRotationRef.current.copy(neckBoneRef.current.rotation);
+
+        // Avaturn ships in a neutral T-pose.  A video-call portrait needs a
+        // relaxed silhouette, so lower both upper arms in local bone space.
+        // This is a real skeletal pose (the skinned clothing follows it), not
+        // a crop or a flat image trick.
+        const leftArm = avatar.getObjectByName('LeftArm');
+        const rightArm = avatar.getObjectByName('RightArm');
+        if (leftArm) leftArm.rotateZ(-Math.PI * 0.5);
+        if (rightArm) rightArm.rotateZ(Math.PI * 0.5);
 
         // Add to scene
         scene.add(avatar);
@@ -410,14 +443,16 @@ export function SallyDigitalHumanCanvas({
         const targetRotX = -mouse.y * 0.12 + breathCycle * 0.01 + stateTiltX;
         const targetRotZ = -mouse.x * 0.04 + microSwayY + stateTiltZ;
 
-        headBoneRef.current.rotation.y = THREE.MathUtils.lerp(headBoneRef.current.rotation.y, targetRotY, 0.08);
-        headBoneRef.current.rotation.x = THREE.MathUtils.lerp(headBoneRef.current.rotation.x, targetRotX, 0.08);
-        headBoneRef.current.rotation.z = THREE.MathUtils.lerp(headBoneRef.current.rotation.z, targetRotZ, 0.08);
+        const baseHead = baseHeadRotationRef.current;
+        headBoneRef.current.rotation.y = THREE.MathUtils.lerp(headBoneRef.current.rotation.y, baseHead.y + targetRotY, 0.08);
+        headBoneRef.current.rotation.x = THREE.MathUtils.lerp(headBoneRef.current.rotation.x, baseHead.x + targetRotX, 0.08);
+        headBoneRef.current.rotation.z = THREE.MathUtils.lerp(headBoneRef.current.rotation.z, baseHead.z + targetRotZ, 0.08);
       }
 
       if (neckBoneRef.current) {
-        neckBoneRef.current.rotation.y = mouse.x * 0.06;
-        neckBoneRef.current.rotation.x = -mouse.y * 0.04 + breathCycle * 0.005;
+        const baseNeck = baseNeckRotationRef.current;
+        neckBoneRef.current.rotation.y = baseNeck.y + mouse.x * 0.06;
+        neckBoneRef.current.rotation.x = baseNeck.x - mouse.y * 0.04 + breathCycle * 0.005;
       }
 
       // --- Particles Ambient Drift ---
@@ -524,8 +559,18 @@ export function SallyDigitalHumanCanvas({
         }
       };
 
-      applyMorphs(headMeshRef.current);
-      applyMorphs(teethMeshRef.current);
+      morphMeshesRef.current.forEach(applyMorphs);
+
+      // Keep the lips, teeth and tongue together, then blink every eye-related
+      // surface on the same frame so there is no uncanny mesh separation.
+      const mouthOpen = Math.min(0.72, energy * 1.7);
+      const blinkPhase = elapsed % 4.7;
+      const blink = blinkPhase > 4.52 ? Math.sin(((blinkPhase - 4.52) / 0.18) * Math.PI) : 0;
+      morphMeshesRef.current.forEach((mesh) => {
+        const dict = mesh.morphTargetDictionary;
+        if (dict.mouthOpen !== undefined) mesh.morphTargetInfluences[dict.mouthOpen] = mouthOpen;
+        if (dict.eyesClosed !== undefined) mesh.morphTargetInfluences[dict.eyesClosed] = blink;
+      });
 
       renderer.render(scene, camera);
     };

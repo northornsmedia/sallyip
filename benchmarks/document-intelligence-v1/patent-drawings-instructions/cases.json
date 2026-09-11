@@ -1,0 +1,442 @@
+{
+  "benchmark_id": "doc-intel-v1-patent-drawings-instructions",
+  "document_id": "patent-drawings-instructions",
+  "document_number": "012",
+  "name": "Patent Drawings Instructions Intelligence Benchmark",
+  "version": "1.0.0",
+  "created_at": "2026-09-11T00:00:00Z",
+  "cases": [
+    {
+      "id": "CASE-01-SYSTEM-ARCHITECTURE",
+      "title": "Simple sensing control unit",
+      "harness": "figure-plan",
+      "inputs": {
+        "invention_title": "Sensing Control Unit",
+        "invention_type": "SYSTEM",
+        "components": "sensing unit; processing module; output controller",
+        "steps": "receive input\nanalyse input\ngenerate control signal",
+        "relationships": "sensing unit communicates input data to processing module; processing module provides control output to output controller"
+      },
+      "expected": {
+        "figure_count": 2,
+        "first_purpose": "overall system architecture",
+        "readiness": "READY_FOR_INSTRUCTIONS",
+        "forbidden_terms": ["blockchain", "cloud server", "wireless network"]
+      }
+    },
+    {
+      "id": "CASE-02-METHOD-FLOW",
+      "title": "Supported control-signal method",
+      "harness": "method-flow",
+      "inputs": {
+        "invention_title": "Control Signal Method",
+        "invention_type": "METHOD",
+        "steps": "receive input\nanalyse input\ngenerate control signal"
+      },
+      "expected": {
+        "flowchart_steps": ["receive input", "analyse input", "generate control signal"],
+        "forbidden_terms": ["authenticate user", "store in cloud", "send email"]
+      }
+    },
+    {
+      "id": "CASE-03-MECHANICAL-VIEWS",
+      "title": "Sensor housing assembly",
+      "harness": "mechanical-views",
+      "inputs": {
+        "invention_title": "Sensor Housing Assembly",
+        "invention_type": "MECHANICAL",
+        "components": "housing; sensor; display; mounting bracket"
+      },
+      "expected": {
+        "has_perspective": true,
+        "has_exploded": true,
+        "has_cross_section": false,
+        "forbidden_terms": ["battery", "processor", "wireless module", "imaginary internal"]
+      }
+    },
+    {
+      "id": "CASE-04-EXPLODED-ORDER",
+      "title": "Exploded assembly relationships",
+      "harness": "exploded-order",
+      "inputs": {
+        "invention_title": "Sensor Housing Assembly",
+        "invention_type": "MECHANICAL",
+        "components": "housing; sensor; display; fastener",
+        "relationships": "housing receives sensor; sensor retained by fastener; display mounted adjacent to housing opening"
+      },
+      "expected": {
+        "has_exploded": true,
+        "required_terms": ["fastener", "adjacent to housing opening"]
+      }
+    },
+    {
+      "id": "CASE-05-CROSS-SECTION",
+      "title": "Unsupported cross-section detail",
+      "harness": "cross-section",
+      "inputs": {
+        "figures": [
+          {
+            "figure_id": "fig-3",
+            "display_number": "FIG. 3",
+            "figure_type": "cross-section",
+            "title": "Cross-section A-A",
+            "purpose": "cross-sectional view",
+            "components": [],
+            "relationships": [],
+            "status": "MISSING_INFORMATION",
+            "necessity": "SUPPORTING",
+            "review_flags": ["CROSS_SECTION_DETAIL_REQUIRED"],
+            "version": 1,
+            "lock": "UNLOCKED",
+            "history": []
+          }
+        ]
+      },
+      "expected": {
+        "review_flag": "CROSS_SECTION_DETAIL_REQUIRED",
+        "forbidden_terms": ["imaginary internal arrangement", "assumed thickness"]
+      }
+    },
+    {
+      "id": "CASE-06-SOFTWARE-ARCHITECTURE",
+      "title": "Supported client API service",
+      "harness": "software-architecture",
+      "inputs": {
+        "invention_title": "Client Processing Service",
+        "invention_type": "SOFTWARE",
+        "components": "client; API; processing service; database",
+        "relationships": "client calls API; API forwards requests to processing service; processing service reads database"
+      },
+      "expected": {
+        "required_terms": ["client", "API", "processing service", "database"],
+        "forbidden_terms": ["blockchain", "message queue", "AI service"]
+      }
+    },
+    {
+      "id": "CASE-07-AI-PIPELINE",
+      "title": "Supported AI pipeline only",
+      "harness": "ai-pipeline",
+      "inputs": {
+        "invention_title": "Supported Inference Pipeline",
+        "invention_type": "AI_ML",
+        "components": "input preprocessing module; training pipeline; inference service",
+        "relationships": "input preprocessing module supplies inference service"
+      },
+      "expected": {
+        "required_terms": ["input preprocessing module", "training pipeline", "inference service"],
+        "forbidden_terms": ["transformer layers", "training dataset", "feature embeddings"]
+      }
+    },
+    {
+      "id": "CASE-08-ELECTRONICS-BLOCK",
+      "title": "Sensor processor actuator diagram",
+      "harness": "electronics-block",
+      "inputs": {
+        "invention_title": "Sensor Control Electronics",
+        "invention_type": "ELECTRONICS",
+        "components": "sensor; processor; actuator",
+        "relationships": "sensor provides signal to processor; processor provides control signal to actuator"
+      },
+      "expected": {
+        "required_terms": ["sensor", "processor", "actuator", "signal"],
+        "forbidden_terms": ["5V", "resistor", "capacitor", "wire gauge"]
+      }
+    }
+    ,
+    {
+      "id": "CASE-09-MEDICAL-DEVICE",
+      "title": "Device arrangement without clinical claims",
+      "harness": "medical-device",
+      "inputs": {
+        "invention_title": "Monitoring Device Arrangement",
+        "invention_type": "MEDICAL_DEVICE",
+        "components": "housing; sensor; display",
+        "steps": "position device; capture signal; display reading"
+      },
+      "expected": {
+        "required_terms": ["housing", "sensor", "display"],
+        "forbidden_terms": ["clinical efficacy", "improves outcomes", "diagnoses disease"]
+      }
+    },
+    {
+      "id": "CASE-10-CHEMICAL-PROCESS",
+      "title": "Chemical apparatus needs specialist review",
+      "harness": "chemical-process",
+      "inputs": {
+        "invention_title": "Supported Reaction Apparatus",
+        "invention_type": "CHEMICAL",
+        "components": "reactor vessel; temperature sensor",
+        "steps": "mix reagents; heat mixture; quench reaction"
+      },
+      "expected": {
+        "review_flag": "SPECIALIST_DRAWING_REVIEW_REQUIRED",
+        "forbidden_terms": ["invented chemical structure", "assumed reaction conditions"]
+      }
+    },
+    {
+      "id": "CASE-11-EXISTING-SKETCH",
+      "title": "Visible sketch features only",
+      "harness": "existing-sketch",
+      "inputs": {
+        "invention_title": "Sketched Housing",
+        "invention_type": "MECHANICAL",
+        "source_assets": [
+          {
+            "asset_id": "sketch-1",
+            "kind": "SKETCH",
+            "label": "Uploaded concept sketch",
+            "visible_features": ["housing", "sensor", "display"],
+            "source": "SOURCE_SKETCH"
+          }
+        ]
+      },
+      "expected": {
+        "required_terms": ["housing", "sensor", "display"],
+        "forbidden_terms": ["battery", "processor", "wireless module"]
+      }
+    },
+    {
+      "id": "CASE-12-PRODUCT-PHOTO",
+      "title": "Exterior product photo only",
+      "harness": "product-photo",
+      "inputs": {
+        "invention_title": "Photographed Device Exterior",
+        "invention_type": "OTHER",
+        "source_assets": [
+          {
+            "asset_id": "photo-1",
+            "kind": "PRODUCT_PHOTO",
+            "label": "Exterior product photograph",
+            "visible_features": ["housing", "lens", "shutter button"],
+            "source": "SOURCE_IMAGE"
+          }
+        ]
+      },
+      "expected": {
+        "required_terms": ["housing", "lens", "shutter button"],
+        "forbidden_terms": ["internal mechanism", "material composition", "5 mm", "electrical connection"]
+      }
+    },
+    {
+      "id": "CASE-13-HIDDEN-STRUCTURE",
+      "title": "No imaginary internal arrangement",
+      "harness": "hidden-structure",
+      "inputs": {
+        "invention_title": "Exterior Housing Only",
+        "invention_type": "MECHANICAL",
+        "source_assets": [
+          {
+            "asset_id": "photo-2",
+            "kind": "PRODUCT_PHOTO",
+            "label": "Exterior photograph",
+            "visible_features": ["housing"],
+            "source": "SOURCE_IMAGE"
+          }
+        ]
+      },
+      "expected": {
+        "has_cross_section": false,
+        "forbidden_terms": ["imaginary", "assumed thickness", "hidden battery component"]
+      }
+    },
+    {
+      "id": "CASE-14-NUMERAL-CONFLICT",
+      "title": "Same numeral different components",
+      "harness": "numeral-conflict",
+      "inputs": {
+        "existing_numerals": [
+          { "term": "processor", "numeral": "120" },
+          { "term": "sensor", "numeral": "120" }
+        ]
+      },
+      "expected": { "conflict": "SAME_NUMERAL_DIFFERENT_COMPONENT" }
+    },
+    {
+      "id": "CASE-15-SAME-COMPONENT-NUMERALS",
+      "title": "Same sensor different numerals",
+      "harness": "same-component-numerals",
+      "inputs": {
+        "existing_numerals": [
+          { "term": "sensor", "numeral": "110" },
+          { "term": "sensor", "numeral": "210" }
+        ]
+      },
+      "expected": { "conflict": "SAME_COMPONENT_MULTIPLE_NUMERALS" }
+    },
+    {
+      "id": "CASE-16-MISSING-CLAIMED-FEATURE",
+      "title": "Actuator claimed but not shown",
+      "harness": "missing-claimed-feature",
+      "inputs": {
+        "claimed_features": ["sensor", "processor", "actuator"],
+        "figures": [
+          {
+            "display_number": "FIG. 1",
+            "components": [{ "term": "sensor" }, { "term": "processor" }],
+            "relationships": []
+          }
+        ]
+      },
+      "expected": {
+        "gap": "CLAIMED_FEATURE_NOT_SHOWN",
+        "missing_feature": "actuator",
+        "claim_status": "NOT_SHOWN"
+      }
+    }
+    ,
+    {
+      "id": "CASE-17-ALTERNATIVE-EMBODIMENTS",
+      "title": "Local and cloud variants stay separate",
+      "harness": "alternative-embodiments",
+      "inputs": {
+        "invention_title": "Processing Deployment",
+        "invention_type": "SYSTEM",
+        "components": "local processor; sensor",
+        "alternative_embodiments": "local processing embodiment; cloud processing embodiment"
+      },
+      "expected": {
+        "has_alternative": true,
+        "required_terms": ["local processing embodiment", "cloud processing embodiment"],
+        "forbidden_terms": ["both are mandatory", "simultaneously required"]
+      }
+    },
+    {
+      "id": "CASE-18-CLAIM-CHANGE-IMPACT",
+      "title": "Controller moved outside housing",
+      "harness": "claim-change-impact",
+      "inputs": {
+        "changed_field": "controller position",
+        "old_value": "controller inside housing",
+        "new_value": "controller outside housing",
+        "figures": [
+          {
+            "display_number": "FIG. 1",
+            "components": [{ "term": "housing" }, { "term": "controller" }],
+            "relationships": ["controller inside housing"],
+            "lock": "USER_LOCKED"
+          },
+          {
+            "display_number": "FIG. 2",
+            "components": [{ "term": "receive input" }, { "term": "generate signal" }],
+            "relationships": [],
+            "lock": "UNLOCKED"
+          }
+        ]
+      },
+      "expected": {
+        "review_flag": "DRAWING_REVIEW_REQUIRED",
+        "affected_figure": "FIG. 1",
+        "locked_preserved": "FIG. 1"
+      }
+    },
+    {
+      "id": "CASE-19-TERMINOLOGY",
+      "title": "Processor versus controller conflict",
+      "harness": "terminology",
+      "inputs": {
+        "instruction_terms": ["processor"],
+        "specification_terms": ["controller"],
+        "claim_terms": ["controller"]
+      },
+      "expected": { "conflict": "TERM_CONFLICT" }
+    },
+    {
+      "id": "CASE-20-FIGURE-LOCK",
+      "title": "Locked FIG. 1 survives FIG. 4 update",
+      "harness": "figure-lock",
+      "inputs": {
+        "locked_figure": {
+          "figure_id": "fig-1",
+          "display_number": "FIG. 1",
+          "title": "Locked system view",
+          "version": 2,
+          "lock": "USER_LOCKED",
+          "history": []
+        },
+        "unlocked_figure": {
+          "figure_id": "fig-4",
+          "display_number": "FIG. 4",
+          "title": "Detail view",
+          "version": 1,
+          "lock": "UNLOCKED",
+          "history": []
+        }
+      },
+      "expected": {
+        "locked_reason": "FIGURE_LOCKED",
+        "unlocked_updated": true
+      }
+    },
+    {
+      "id": "CASE-21-DESIGN-MISROUTING",
+      "title": "Ornamental bottle belongs to design workflow",
+      "harness": "design-misrouting",
+      "inputs": {
+        "prompt": "I need seven formal views showing the ornamental design of a new bottle."
+      },
+      "expected": {
+        "action": "CLARIFICATION_REQUIRED",
+        "document_family": "design-patent-application"
+      }
+    },
+    {
+      "id": "CASE-22-FORMAL-RULE-SAFETY",
+      "title": "No guessed USPTO margin",
+      "harness": "formal-rule-safety",
+      "inputs": { "jurisdiction_context": "UNDECIDED", "verified_authority": null },
+      "expected": {
+        "status": "UNVERIFIED",
+        "review_flag": "FORMAL_RULE_VERIFICATION_REQUIRED",
+        "forbidden_terms": ["margin", "25 mm", "2.5 cm"]
+      }
+    },
+    {
+      "id": "CASE-23-EXISTING-MATTER",
+      "title": "Matter context is reused first",
+      "harness": "existing-matter",
+      "inputs": {
+        "prompt": "Prepare drawing instructions.",
+        "matter_context": {
+          "matter": {
+            "id": "matter-valve-012",
+            "title": "Smart Valve Controller",
+            "client_name": "Acme Flow Systems",
+            "jurisdictions": ["US"]
+          },
+          "specification_text": "The assembly includes a valve body and a controller. The controller is coupled to the valve body.",
+          "claims_text": "An assembly comprising a valve body and a controller coupled to the valve body.",
+          "existing_figures": [
+            {
+              "figure_id": "existing-1",
+              "display_number": "FIG. 1",
+              "label": "FIG. 1",
+              "visible_features": ["valve body", "controller"],
+              "reference_numerals": [
+                { "term": "valve body", "numeral": "110" },
+                { "term": "controller", "numeral": "120" }
+              ],
+              "source": "SOURCE_SKETCH"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "action": "ASK_QUESTION",
+        "first_question_field": "figure_one_focus"
+      }
+    },
+    {
+      "id": "CASE-24-INSUFFICIENT-CONTEXT",
+      "title": "One useful question, no invented figures",
+      "harness": "insufficient-context",
+      "inputs": { "prompt": "Prepare patent drawing instructions." },
+      "expected": {
+        "action": "ASK_QUESTION",
+        "question_count": 1,
+        "first_question_field": "figure_one_focus",
+        "invented_figures": 0
+      }
+    }
+  ]
+}
+

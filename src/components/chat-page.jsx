@@ -26,6 +26,23 @@ const DocPanel=lazy(()=>import("./doc-panel"));
 const VerificationInspectorModal=lazy(()=>import("./verification-inspector-modal"));
 const VoiceOverlay=lazy(()=>import("./voice/VoiceOverlay.jsx"));
 const SallyVideoCallCard=lazy(()=>import("./voice/SallyVideoCallCard.jsx"));
+import SallyDocumentsModal from "./SallyDocumentsModal.jsx";
+import {
+  identifyDocument,
+  extractSlots,
+  evaluateIntakePhase,
+  isDraftedDocument,
+  generateStatutoryDocument,
+  isolateWorkflowMessages,
+  VERIFIED_20_DOCUMENTS,
+} from "../lib/document-intake-coordinator.js";
+import {
+  createInterviewSession,
+  processInterviewTurn,
+  DOCUMENT_INTERVIEW_PROFILES,
+  QUESTION_STATES,
+  isTaskSwitch,
+} from "../lib/conversational-interview-engine.js";
 import "./voice-chat-widget.css";
 import {
   ArrowRight,
@@ -143,6 +160,7 @@ const makeChat = () => ({
   id: crypto.randomUUID(),
   title: "New conversation",
   messages: [],
+  documentSession: null,
   createdAt: Date.now(),
 });
 const titleFor = (text) =>
@@ -277,6 +295,27 @@ I am ready to assist you across key patent and legal workflows:
    - Direct mark clearance across EUIPO, USPTO, and common-law registries.
 
 What invention, matter, or legal question would you like to explore today?`;
+  }
+
+  // 2.3 Verified 20 Statutory Documents Pipeline (Slot-Filling Intake & Direct Statutory Drafting)
+  const matchedDoc = identifyDocument(prompt, messages);
+  if (matchedDoc) {
+    const slots = extractSlots(matchedDoc, prompt, messages);
+    const relevantTurns = isolateWorkflowMessages(matchedDoc, prompt, messages);
+    const turnCount = relevantTurns.length;
+    const intake = evaluateIntakePhase(matchedDoc, slots, prompt, turnCount);
+
+    if (intake.phase === "INTERVIEW") {
+      if (intake.formattedResponse) {
+        return intake.formattedResponse;
+      }
+      const recorded = intake.recap.length > 0
+        ? `✓ **Recorded Disclosures:**\n${intake.recap.map((r) => `  - ${r}`).join("\n")}\n\n`
+        : "";
+      return `### ${matchedDoc.name} • Technical Disclosure Intake\n\n${recorded}${intake.nextQuestion}`;
+    }
+
+    return generateStatutoryDocument(matchedDoc, slots, userName);
   }
 
   // 2.5 Mutual NDA / Contract / Agreement drafting
@@ -636,6 +675,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   const [ingesting, setIngesting] = useState(false);
   const [uploadedSource, setUploadedSource] = useState(null);
   const [toolsOpen, setToolsOpen] = useState(false);
+  const [documentsModalOpen, setDocumentsModalOpen] = useState(false);
   const [activeWorkspace, setActiveWorkspace] = useState(null);
   const [viewingPassage, setViewingPassage] = useState(null);
   const [docPanel, setDocPanel] = useState(null);
@@ -675,6 +715,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   const dictationBaseInputRef = useRef("");
   const accumulatedFinalRef = useRef("");
   const inputRef = useRef(input);
+  const isSendingRef = useRef(false);
 
   useEffect(() => {
     inputRef.current = input;
@@ -1379,7 +1420,21 @@ export default function ChatPage({ onHome, onAuthRequired }) {
     for (let i = 0; i < lines.length; i++) {
       currentOutput += (i > 0 ? "\n" : "") + lines[i];
       setStreamingAnswer(currentOutput);
-      setDocPanel((p) => (p?.live ? { ...p, content: currentOutput } : p));
+      if (isDraftedDocument(currentOutput)) {
+        const docTitle = titleFor(currentOutput);
+        setDocPanel((p) => ({
+          title: p?.title || docTitle,
+          content: currentOutput,
+          version: p?.version || 1,
+          live: true,
+          artifact: p?.artifact || null,
+          conversationId: p?.conversationId || null,
+        }));
+        setStreamingAnswer(`Drafting **${docTitle}** into the workspace panel on the right...`);
+      } else {
+        setStreamingAnswer(currentOutput);
+        setDocPanel((p) => (p?.live ? { ...p, content: currentOutput } : p));
+      }
       if (threadRef.current) {
         threadRef.current.scrollTop = threadRef.current.scrollHeight;
       }
@@ -1404,7 +1459,8 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   const send = async (text = input, options = {}) => {
     const { autoSpeak = false } = options;
     const clean = text.trim();
-    if (!clean || loading) return;
+    if (!clean || loading || isSendingRef.current) return;
+    isSendingRef.current = true;
     const next = [
         ...(active?.messages || []),
         { role: "user", content: clean },
@@ -1442,6 +1498,168 @@ export default function ChatPage({ onHome, onAuthRequired }) {
 
     try {
       await persistChat(baseChat);
+
+      // 1. STATEFUL DOCUMENT INTERVIEW STATE MACHINE BINDING
+      // If an interview session is already active (WAITING_FOR_USER), or if the user is initiating a document interview:
+      const existingSession = baseChat.documentSession;
+      const switchedTask = Boolean(existingSession && isTaskSwitch(clean));
+      const switchToNewTask = switchedTask && /\b(let'?s do (an? )?nda instead|start (an? )?nda|switch to (patentability|novelty|fto|invalidity|prior art|landscapes?)|new matter|forget this application)\b/i.test(clean);
+      if (switchedTask) baseChat.documentSession = null;
+      const effectiveSession = switchedTask ? null : existingSession;
+
+      const isCancellation = /\b(cancel|abort|stop|quit|exit)\s+(?:the\s+)?(?:interview|drafting|session|process)\b/i.test(clean);
+
+      if ((isCancellation || (switchedTask && !switchToNewTask)) && existingSession) {
+        clearInterval(progressTimer);
+        await transitionToComplete();
+        const cancelMsg = "Document drafting interview has been cancelled. How else can I assist with your matter?";
+        await streamResponseLineByLine(cancelMsg);
+        const finalChat = {
+          ...baseChat,
+          documentSession: null,
+          messages: [
+            ...next,
+            { role: "assistant", content: cancelMsg },
+          ],
+        };
+        setIsWriting(false);
+        setStreamingAnswer("");
+        setThinkingProgress(0);
+        setLoading(false);
+        updateActive(() => finalChat);
+        await persistChat(finalChat);
+        return;
+      }
+
+      const targetInterviewDoc = identifyDocument(clean, baseChat.messages);
+      const hasStartVerbs = /\b(draft|prepare|create|start|begin|file|write|generate)\b/i.test(clean);
+      const sessionMatterMatches = !effectiveSession || effectiveSession.matterId === undefined || effectiveSession.matterId === (activeMatterId || null);
+      const isDocumentInterviewTurn = Boolean(
+        (effectiveSession && effectiveSession.state === QUESTION_STATES.WAITING_FOR_USER && effectiveSession.session && sessionMatterMatches) ||
+        (targetInterviewDoc && (DOCUMENT_INTERVIEW_PROFILES[targetInterviewDoc.id] || targetInterviewDoc.coreSlots) && (!effectiveSession || hasStartVerbs))
+      );
+
+      if (isDocumentInterviewTurn) {
+        const docId = effectiveSession?.documentId || targetInterviewDoc?.id || "national-phase-patent-application";
+        const docConfig = VERIFIED_20_DOCUMENTS.find((d) => d.id === docId) || targetInterviewDoc;
+        let responseContent = "";
+        let newSessionState = null;
+        let readyToDraft = false;
+        let artifact = null;
+
+        if (DOCUMENT_INTERVIEW_PROFILES[docId]) {
+          const sessionObj = (effectiveSession?.session && effectiveSession.state === QUESTION_STATES.WAITING_FOR_USER) ? effectiveSession.session : createInterviewSession(docId, {
+            matter: matters.find((m) => m.id === activeMatterId)
+          });
+          const turnResult = processInterviewTurn({
+            session: sessionObj,
+            userMessage: clean,
+            documentId: docId,
+            matterContext: { matter: matters.find((m) => m.id === activeMatterId) }
+          });
+          responseContent = turnResult.responseMarkdown;
+          readyToDraft = turnResult.readyToDraft;
+          newSessionState = {
+            documentId: docId,
+            matterId: activeMatterId || null,
+            state: readyToDraft ? QUESTION_STATES.READY_TO_DRAFT : QUESTION_STATES.WAITING_FOR_USER,
+            session: turnResult.session
+          };
+
+          if (readyToDraft) {
+            const rawDoc = generateStatutoryDocument(docConfig, turnResult.session.facts, user?.name);
+            artifact = makeArtifact({
+              title: docConfig?.name || "Statutory Document",
+              content: rawDoc,
+            });
+            artifact = await persistArtifact({
+              artifact,
+              conversation_id: baseChat.id,
+            });
+            setDocPanel({
+              title: artifact.title,
+              content: artifact.content,
+              version: artifact.version,
+              live: false,
+              artifact,
+              conversationId: baseChat.id,
+            });
+            responseContent = `I have drafted the official **${artifact.title}** and opened it in the document workspace on the right.\n\nAll verified disclosures have been formatted into the statutory filing transmittal package. You can review the complete text, make edits, or export to Word (.docx) or PDF.`;
+          }
+        } else if (docConfig) {
+          const docSlots = extractSlots(docConfig, clean, baseChat.messages);
+          const relevantTurns = isolateWorkflowMessages(docConfig, clean, baseChat.messages);
+          const intake = evaluateIntakePhase(docConfig, docSlots, clean, relevantTurns.length);
+          if (intake.phase === "INTERVIEW") {
+            responseContent = intake.formattedResponse || `${intake.recap?.length ? `✓ Recorded Disclosures:\n${intake.recap.join('\n')}\n\n` : ''}${intake.nextQuestion}`;
+            newSessionState = {
+              documentId: docId,
+              matterId: activeMatterId || null,
+              state: QUESTION_STATES.WAITING_FOR_USER,
+              slots: docSlots
+            };
+          } else {
+            readyToDraft = true;
+            const rawDoc = generateStatutoryDocument(docConfig, docSlots, user?.name);
+            artifact = makeArtifact({
+              title: docConfig.name,
+              content: rawDoc,
+            });
+            artifact = await persistArtifact({
+              artifact,
+              conversation_id: baseChat.id,
+            });
+            setDocPanel({
+              title: artifact.title,
+              content: artifact.content,
+              version: artifact.version,
+              live: false,
+              artifact,
+              conversationId: baseChat.id,
+            });
+            responseContent = `I have compiled the statutory ${docConfig.name} based on your verified parameters. The document is open in the workspace.`;
+            newSessionState = {
+              documentId: docId,
+              matterId: activeMatterId || null,
+              state: QUESTION_STATES.READY_TO_DRAFT,
+              slots: docSlots
+            };
+          }
+        }
+
+        if (responseContent) {
+          clearInterval(progressTimer);
+          await transitionToComplete();
+          await streamResponseLineByLine(responseContent);
+
+          const finalChat = {
+            ...baseChat,
+            documentSession: newSessionState,
+            messages: [
+              ...next,
+              {
+                role: "assistant",
+                content: responseContent,
+                artifact,
+              }
+            ]
+          };
+          setIsWriting(false);
+          setStreamingAnswer("");
+          setThinkingProgress(0);
+          setLoading(false);
+          updateActive(() => finalChat);
+          await persistChat(finalChat);
+          if (autoSpeak || autoSpeakVoice) {
+            const lastMsg = finalChat.messages[finalChat.messages.length - 1];
+            if (lastMsg?.role === "assistant" && lastMsg.content) {
+              setTimeout(() => togglePlayVoice(lastMsg.content, finalChat.messages.length - 1), 200);
+            }
+          }
+          return;
+        }
+      }
+
       if (activeMatterId) {
         const workflowResponse = await fetch("/api/workflows", {
           method: "POST",
@@ -1502,6 +1720,10 @@ export default function ChatPage({ onHome, onAuthRequired }) {
               },
             ],
           };
+          setIsWriting(false);
+          setStreamingAnswer("");
+          setThinkingProgress(0);
+          setLoading(false);
           updateActive(() => finalChat);
           await persistChat(finalChat);
           if (autoSpeak || autoSpeakVoice) {
@@ -1539,16 +1761,25 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         fileRequest && previousArtifact &&
         (referencesPreviousArtifact(clean) || isBareFileRequest(clean)) && !revisionRequest
       ));
-      const documentRequest = Boolean(fileRequest || detectDocumentRequest(clean));
+      const identifiedDoc = identifyDocument(clean, active?.messages || []);
+      const docSlots = identifiedDoc ? extractSlots(identifiedDoc, clean, active?.messages || []) : {};
+      const relevantTurns = identifiedDoc ? isolateWorkflowMessages(identifiedDoc, clean, active?.messages || []) : [];
+      const turnCount = relevantTurns.length;
+      const intake = identifiedDoc ? evaluateIntakePhase(identifiedDoc, docSlots, clean, turnCount) : null;
+      const isIntakeInterview = Boolean(identifiedDoc && intake?.phase === "INTERVIEW");
+
+      const documentRequest = !isIntakeInterview && Boolean(fileRequest || detectDocumentRequest(clean) || (identifiedDoc && intake?.phase === "READY_TO_DRAFT"));
       if (documentRequest || revisionRequest) {
         setDocPanel({
-          title: fileRequest?.title || previousArtifact?.title || titleFor(clean),
+          title: identifiedDoc?.name || fileRequest?.title || previousArtifact?.title || titleFor(clean),
           content: revisionRequest && previousArtifact?.content ? previousArtifact.content : "",
           version: revisionRequest && previousArtifact ? (previousArtifact.version || 0) + 1 : 1,
           live: true,
           artifact: revisionRequest ? previousArtifact : null,
           conversationId: baseChat.id,
         });
+      } else {
+        setDocPanel(null);
       }
 
       if (exportPrevious) {
@@ -1659,9 +1890,22 @@ export default function ChatPage({ onHome, onAuthRequired }) {
               if (evt.type === "delta" && evt.delta) {
                 acc += evt.delta;
                 setIsWriting(true);
-                setStreamingAnswer(acc);
+                if (!isIntakeInterview && isDraftedDocument(acc)) {
+                  const docTitle = identifiedDoc?.name || fileRequest?.title || previousArtifact?.title || titleFor(clean);
+                  setStreamingAnswer(`Drafting **${docTitle}** into the workspace panel on the right...`);
+                  setDocPanel((p) => ({
+                    title: p?.title || docTitle,
+                    content: acc,
+                    version: p?.version || 1,
+                    live: true,
+                    artifact: p?.artifact || null,
+                    conversationId: baseChat.id,
+                  }));
+                } else {
+                  setStreamingAnswer(acc);
+                  setDocPanel((p) => (p?.live ? { ...p, content: acc } : p));
+                }
                 if (threadRef.current) threadRef.current.scrollTop = threadRef.current.scrollHeight;
-                setDocPanel((p) => (p?.live ? { ...p, content: acc } : p));
               } else if (evt.type === "meta") {
                 if (evt.answer) {
                   acc = evt.answer;
@@ -1714,22 +1958,34 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         await streamResponseLineByLine(answer);
       }
 
-      let artifact = documentRequest || revisionRequest
+      const isDocumentAnswer = !isIntakeInterview && (isDraftedDocument(answer) || documentRequest || revisionRequest);
+      let artifact = isDocumentAnswer
         ? makeArtifact({
-            title: fileRequest?.title || previousArtifact?.title || titleFor(clean),
+            title: identifiedDoc?.name || fileRequest?.title || previousArtifact?.title || titleFor(clean),
             content: answer,
             previous: revisionRequest ? previousArtifact : null,
           })
         : null;
       if (artifact) {
+        const h1Match = answer.match(/^#\s+([^\n]+)/m);
+        if (h1Match && h1Match[1]?.trim() && !h1Match[1].toLowerCase().includes("intake")) {
+          artifact.title = h1Match[1].trim();
+        }
         artifact = await persistArtifact({
           artifact,
           conversation_id: baseChat.id,
           revision: revisionRequest,
         });
-        setDocPanel((p) => p ? { ...p, title: artifact.title, content: artifact.content, version: artifact.version, live: false, artifact, conversationId: baseChat.id } : p);
+        setDocPanel({
+          title: artifact.title,
+          content: artifact.content,
+          version: artifact.version,
+          live: false,
+          artifact,
+          conversationId: baseChat.id,
+        });
       } else {
-        setDocPanel((p) => p?.live ? { ...p, live: false, content: answer } : p);
+        setDocPanel(null);
       }
       let attachments = [];
       if (fileRequest) {
@@ -1778,13 +2034,19 @@ export default function ChatPage({ onHome, onAuthRequired }) {
               ? attachments.length
                 ? `Your ${fileRequest.format.toUpperCase()} has been created.`
                 : "I prepared the document, but the file generator could not finish. Please try exporting it again."
-              : answer,
+              : artifact
+                ? `I have drafted the **${artifact.title}** and opened it in the document workspace on the right.\n\nYou can review the complete text, make direct edits, or export it to Word (.docx) or PDF.`
+                : answer,
             artifact,
             attachments,
             provenance: data?.sally_meta || {},
           },
         ],
       };
+      setIsWriting(false);
+      setStreamingAnswer("");
+      setThinkingProgress(0);
+      setLoading(false);
       updateActive(() => finalChat);
       await persistChat(finalChat);
       if (autoSpeak || autoSpeakVoice) {
@@ -1799,22 +2061,34 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       await transitionToComplete();
       await streamResponseLineByLine(fallbackAns);
 
-      let artifact = documentRequest || revisionRequest
+      const isFallbackDocument = !isIntakeInterview && (isDraftedDocument(fallbackAns) || documentRequest || revisionRequest);
+      let artifact = isFallbackDocument
         ? makeArtifact({
-            title: fileRequest?.title || previousArtifact?.title || titleFor(clean),
+            title: identifiedDoc?.name || fileRequest?.title || previousArtifact?.title || titleFor(clean),
             content: fallbackAns,
             previous: revisionRequest ? previousArtifact : null,
           })
         : null;
       if (artifact) {
+        const h1Match = fallbackAns.match(/^#\s+([^\n]+)/m);
+        if (h1Match && h1Match[1]?.trim() && !h1Match[1].toLowerCase().includes("intake")) {
+          artifact.title = h1Match[1].trim();
+        }
         artifact = await persistArtifact({
           artifact,
           conversation_id: baseChat.id,
           revision: revisionRequest,
         });
-        setDocPanel((p) => p ? { ...p, title: artifact.title, content: artifact.content, version: artifact.version, live: false, artifact, conversationId: baseChat.id } : p);
+        setDocPanel({
+          title: artifact.title,
+          content: artifact.content,
+          version: artifact.version,
+          live: false,
+          artifact,
+          conversationId: baseChat.id,
+        });
       } else {
-        setDocPanel((p) => p?.live ? { ...p, live: false, content: fallbackAns } : p);
+        setDocPanel(null);
       }
 
       let attachments = [];
@@ -1864,12 +2138,18 @@ export default function ChatPage({ onHome, onAuthRequired }) {
               ? attachments.length
                 ? `Your ${fileRequest.format.toUpperCase()} has been created.`
                 : fallbackAns
-              : fallbackAns,
+              : artifact
+                ? `I have drafted the **${artifact.title}** and opened it in the document workspace on the right.\n\nYou can review the complete text, make direct edits, or export it to Word (.docx) or PDF.`
+                : fallbackAns,
             artifact,
             attachments,
           },
         ],
       };
+      setIsWriting(false);
+      setStreamingAnswer("");
+      setThinkingProgress(0);
+      setLoading(false);
       updateActive(() => finalChat);
       await persistChat(finalChat).catch(() => {});
       if (autoSpeak || autoSpeakVoice) {
@@ -1884,16 +2164,16 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       setStreamingAnswer("");
       setThinkingProgress(0);
       setLoading(false);
+      isSendingRef.current = false;
     }
   };
   const messages = active?.messages || [];
   const retry = (failed) => {
-    if (loading || !failed?.retryText) return;
+    if (loading || isSendingRef.current || !failed?.retryText) return;
     const recall = failed.retryText;
     const pruned = { ...active, messages: (active?.messages || []).filter((m) => m !== failed) };
     updateActive(() => pruned);
     persistChat(pruned).catch(() => {});
-    setLoading(true);
     setTimeout(() => send(recall), 0);
   };
   useEffect(() => {
@@ -2048,6 +2328,16 @@ export default function ChatPage({ onHome, onAuthRequired }) {
           <button className="beebotTabBtn" onClick={() => setToolsOpen(true)} title="Specialist Legal Workspaces">
             <Layers3 className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
             <span>Workspaces</span>
+          </button>
+
+          {/* Documents Catalogue Launcher */}
+          <button
+            className={`beebotTabBtn ${documentsModalOpen ? "active" : ""}`}
+            onClick={() => setDocumentsModalOpen(true)}
+            title="Sally IP Official Documents Catalogue (20 Verified Documents)"
+          >
+            <FileText className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+            <span>Documents</span>
           </button>
         </div>
 
@@ -2419,7 +2709,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                 type="button"
                 className="beebotNewChatBtn border-indigo-300 text-indigo-700 dark:border-indigo-700 dark:text-indigo-300 bg-indigo-50/50 dark:bg-indigo-950/30 hover:bg-indigo-100/60 shadow-sm"
                 onClick={() => setVideoCallOpen(true)}
-                title="Start live interactive video call with Sally's photorealistic digital human"
+                title="Start a live video call with Sally's real-time 3D human"
               >
                 <Video className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                 <span>Video Call</span>
@@ -2544,6 +2834,16 @@ export default function ChatPage({ onHome, onAuthRequired }) {
 
                     <button
                       type="button"
+                      className="beebotPillBtn"
+                      onClick={() => setDocumentsModalOpen(true)}
+                      title="Official Documents Catalogue (20 Verified Documents)"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>Documents</span>
+                    </button>
+
+                    <button
+                      type="button"
                       className={`beebotPillBtn ${isDictating ? "active text-red-600 border-red-400 dark:border-red-600 bg-red-50 dark:bg-red-950/30 animate-pulse font-semibold" : ""}`}
                       onClick={toggleDictation}
                       title={isDictating ? "Stop voice dictation" : "Voice dictation (Speak to Sally)"}
@@ -2646,7 +2946,11 @@ export default function ChatPage({ onHome, onAuthRequired }) {
 
                         <div className="beebotAssistantText">
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                            {sanitizeModelResponse(message.content)}
+                            {sanitizeModelResponse(
+                              message.artifact?.content && isDraftedDocument(message.content)
+                                ? `I have drafted the **${message.artifact.title || "Statutory Document"}** and opened it in the document workspace on the right.\n\nYou can review the complete text, make direct edits, or export it to Word (.docx) or PDF.`
+                                : message.content
+                            )}
                           </ReactMarkdown>
                         </div>
 
@@ -2722,7 +3026,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                   </div>
                 ))}
 
-                {loading && (
+                {loading && messages[messages.length - 1]?.role !== "assistant" && (
                   <div className="beebotMessage assistant">
                     <div className="beebotAvatar assistant">
                       <img src="/sallyip-brand-mark.png" alt="SallyIP" className="w-4 h-4 object-contain" />
@@ -2851,6 +3155,16 @@ export default function ChatPage({ onHome, onAuthRequired }) {
 
                       <button
                         type="button"
+                        className="beebotPillBtn"
+                        onClick={() => setDocumentsModalOpen(true)}
+                        title="Official Documents Catalogue (20 Verified Documents)"
+                      >
+                        <FileText className="w-3.5 h-3.5 text-emerald-500" />
+                        <span>Documents</span>
+                      </button>
+
+                      <button
+                        type="button"
                         className={`beebotPillBtn ${isDictating ? "active text-red-600 border-red-400 dark:border-red-600 bg-red-50 dark:bg-red-950/30 animate-pulse font-semibold" : ""}`}
                         onClick={toggleDictation}
                         title={isDictating ? "Stop voice dictation" : "Voice dictation (Speak to Sally)"}
@@ -2939,6 +3253,22 @@ export default function ChatPage({ onHome, onAuthRequired }) {
           />
         </Suspense>
       )}
+
+      {/* Sally Official Documents Catalogue Modal (20 Verified Documents) */}
+      <SallyDocumentsModal
+        isOpen={documentsModalOpen}
+        onClose={() => setDocumentsModalOpen(false)}
+        onSelectDocument={(doc) => {
+          setDocumentsModalOpen(false);
+          setInput(doc.command);
+          setTimeout(() => {
+            const inputEl = document.querySelector('.beebotInput');
+            if (inputEl) {
+              inputEl.focus();
+            }
+          }, 50);
+        }}
+      />
 
       {/* Workspaces Launcher Modal */}
       {toolsOpen && (

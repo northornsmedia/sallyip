@@ -1,22 +1,197 @@
 {
   "$schema": "https://sallyip.com/schemas/capability-matrix.json",
   "version": "1.0.0",
-  "generated_at": "2026-09-10T16:00:00Z",
+  "generated_at": "2026-09-11T06:09:41.578Z",
   "baseline_sha": "808fdf88e92207a0c797cef3a812acbf0ecc5bee",
   "assessment_method": "CODEBASE_AUDIT — Based on existing profiles, router patterns, and implemented engine features",
   "summary": {
-    "total_documents": 400,
-    "catalogued_only": 396,
-    "routable": 27,
-    "questionnaire_ready": 17,
-    "structured_outline": 12,
+    "total_documents": 401,
+    "catalogued_only": 395,
+    "routable": 29,
+    "questionnaire_ready": 19,
+    "structured_outline": 14,
     "clause_structured": 9,
-    "jurisdiction_aware": 7,
-    "draftable": 4,
-    "verification_ready": 4,
+    "jurisdiction_aware": 9,
+    "draftable": 6,
+    "verification_ready": 6,
     "practitioner_reviewed": 0
   },
   "documents": [
+    {
+      "document_id": "patent-claim-chart",
+      "canonical_id": "patent-claim-chart",
+      "document_number": "020",
+      "name": "Patent Claim Chart",
+      "capability_level": "L3_DRAFTABLE",
+      "catalogued": true,
+      "routable": true,
+      "questionnaire_ready": true,
+      "structured_outline": true,
+      "clause_intelligence": false,
+      "jurisdiction_aware": true,
+      "draftable": true,
+      "verification_ready": true,
+      "practitioner_reviewed": false,
+      "status": "BETA",
+      "profile_exists": true,
+      "jurisdiction": "MULTI_JURISDICTION",
+      "authority": "VERIFIED_CONTEXT_DEPENDENT",
+      "router_patterns": [
+        "create a claim chart",
+        "chart Claim 1",
+        "map this claim",
+        "break this claim into limitations"
+      ],
+      "notes": "Document #020: Canonical Patent Claim Chart. Generic evidence-mapping infrastructure reused by specialist workflows; #021-ready. L4/L5 not claimed."
+    },
+    {
+      "document_id": "patent-prior-art-search-report",
+      "canonical_id": "patent-prior-art-search-report",
+      "document_number": "019",
+      "name": "Patent Prior-Art Search Report",
+      "capability_level": "L3_DRAFTABLE",
+      "catalogued": true,
+      "routable": true,
+      "questionnaire_ready": true,
+      "structured_outline": true,
+      "clause_intelligence": false,
+      "jurisdiction_aware": true,
+      "draftable": true,
+      "verification_ready": true,
+      "practitioner_reviewed": false,
+      "status": "BETA",
+      "profile_exists": true,
+      "jurisdiction": "MULTI_JURISDICTION",
+      "authority": "VERIFIED_CONTEXT_DEPENDENT",
+      "router_patterns": [
+        "find prior art",
+        "search for prior art",
+        "do a novelty search",
+        "search for invalidating references"
+      ],
+      "notes": "Document #019: Canonical Patent Prior-Art Search Report. Evidence-driven reproducible search with verified references and qualified limitations. L4/L5 not claimed."
+    },
+    {
+      "document_id": "patent-landscape-report",
+      "canonical_id": "patent-landscape-report",
+      "document_number": "018",
+      "name": "Patent Landscape Report",
+      "capability_level": "L3_DRAFTABLE",
+      "catalogued": true,
+      "routable": true,
+      "questionnaire_ready": true,
+      "structured_outline": true,
+      "clause_intelligence": false,
+      "jurisdiction_aware": true,
+      "draftable": true,
+      "verification_ready": true,
+      "practitioner_reviewed": false,
+      "status": "BETA",
+      "profile_exists": true,
+      "jurisdiction": "MULTI_JURISDICTION",
+      "authority": "VERIFIED_CONTEXT_DEPENDENT",
+      "router_patterns": [
+        "prepare a patent landscape",
+        "map patents in this technology",
+        "show patent trends",
+        "who is filing in this space",
+        "compare patent portfolios",
+        "identify white space"
+      ],
+      "notes": "Document #018: Canonical Patent Landscape Report. Evidence-driven corpus intelligence with deterministic metrics, family normalisation, and qualified observations. L4/L5 not claimed."
+    },
+    {
+      "document_id": "patent-invalidity-opinion",
+      "canonical_id": "patent-invalidity-opinion",
+      "document_number": "017",
+      "name": "Patent Invalidity Opinion",
+      "capability_level": "L3_DRAFTABLE",
+      "catalogued": true,
+      "routable": true,
+      "questionnaire_ready": true,
+      "structured_outline": true,
+      "clause_intelligence": false,
+      "jurisdiction_aware": true,
+      "draftable": true,
+      "verification_ready": true,
+      "practitioner_reviewed": false,
+      "status": "BETA",
+      "profile_exists": true,
+      "jurisdiction": "MULTI_JURISDICTION",
+      "authority": "VERIFIED_CONTEXT_DEPENDENT",
+      "router_patterns": [
+        "is this patent invalid",
+        "prepare an invalidity opinion",
+        "can we invalidate",
+        "assess validity of patent claims",
+        "find invalidity grounds",
+        "is Claim 7 anticipated",
+        "could this patent be revoked",
+        "validity challenge"
+      ],
+      "notes": "Document #017: Canonical Patent Invalidity Opinion. Claim-specific, jurisdiction-specific, evidence-driven invalidity analysis reusing the novelty engine, canonical claim model, legal-status model, entailment/temporal/contradiction validators. Qualified outcomes only; never declares valid/invalid. L4/L5 not claimed."
+    },
+    {
+      "document_id": "patent-drawings-instructions",
+      "canonical_id": "patent-drawings-instructions",
+      "document_number": "012",
+      "name": "Patent Drawings Instructions",
+      "capability_level": "L3_DRAFTABLE",
+      "catalogued": true,
+      "routable": true,
+      "questionnaire_ready": true,
+      "structured_outline": true,
+      "clause_intelligence": false,
+      "jurisdiction_aware": true,
+      "draftable": true,
+      "verification_ready": true,
+      "practitioner_reviewed": false,
+      "status": "BETA",
+      "profile_exists": true,
+      "jurisdiction": "MULTI_JURISDICTION",
+      "authority": "VERIFIED_CONTEXT_DEPENDENT",
+      "router_patterns": [
+        "prepare patent drawing instructions",
+        "write instructions for patent figures",
+        "tell the illustrator what to draw",
+        "prepare figure instructions",
+        "prepare drawing brief for my patent",
+        "what drawings do I need for this patent"
+      ],
+      "notes": "Document #012: Canonical Patent Drawings Instructions. Matter-first conditional one-question interview, invention-type figure branching, deterministic reference-numeral registry with conflict detection, claim/specification support mapping, image-spec conflict detection, geometry safety, versioning/locking, change-impact analysis, illustrator-facing package plus attorney QA view. Produces instructions only, never final drawings; formal rules require verified authority. Promoted to L3_DRAFTABLE. L4_VALIDATED and L5_PRACTITIONER_REVIEWED not claimed without practitioner review."
+    },
+    {
+      "document_id": "patentability-assessment",
+      "canonical_id": "patentability-assessment",
+      "document_number": "014",
+      "name": "Patentability Assessment",
+      "capability_level": "L3_DRAFTABLE",
+      "catalogued": true,
+      "routable": true,
+      "questionnaire_ready": true,
+      "structured_outline": true,
+      "clause_intelligence": false,
+      "jurisdiction_aware": true,
+      "draftable": true,
+      "verification_ready": true,
+      "practitioner_reviewed": false,
+      "status": "BETA",
+      "profile_exists": true,
+      "jurisdiction": "MULTI_JURISDICTION",
+      "authority": "VERIFIED_FRAMEWORK_REQUIRED",
+      "router_patterns": [
+        "is my invention patentable",
+        "assess patentability",
+        "prepare a patentability assessment",
+        "evaluate whether this can be patented",
+        "assess novelty and inventive step",
+        "assess novelty and obviousness",
+        "does this invention appear patentable",
+        "analyse patentability against this prior art",
+        "prepare a preliminary patentability report"
+      ],
+      "notes": "Document #014: evidence-driven patentability assessment reusing novelty-service, inventive-step frameworks, patent-claim-service, entailment, contradiction, and citation verification. Fail-closed RESEARCH_REQUIRED/INCONCLUSIVE where evidence is missing. Promoted to L3_DRAFTABLE. L4_VALIDATED and L5_PRACTITIONER_REVIEWED not claimed."
+    },
     {
       "document_id": "freedom-to-operate-opinion",
       "canonical_id": "freedom-to-operate-opinion",
@@ -54,6 +229,35 @@
         "fto opinion"
       ],
       "notes": "Document #016: Canonical Freedom-to-Operate Opinion. Evidence-based, jurisdiction-specific claim mapping, product feature decomposition, legal status and freshness verification, all-limitations discipline, non-infringement distinction, and fail-closed security."
+    },
+    {
+      "document_id": "design-patent-application",
+      "canonical_id": "design-patent-application",
+      "document_number": "004",
+      "name": "Design Patent Application",
+      "capability_level": "L1_ROUTABLE",
+      "catalogued": true,
+      "routable": true,
+      "questionnaire_ready": true,
+      "structured_outline": true,
+      "clause_intelligence": false,
+      "jurisdiction_aware": true,
+      "draftable": true,
+      "verification_ready": true,
+      "practitioner_reviewed": false,
+      "status": "BETA",
+      "profile_exists": true,
+      "jurisdiction": "US",
+      "authority": "USPTO",
+      "router_patterns": [
+        "design patent",
+        "design patent application",
+        "us design patent",
+        "draft a design patent",
+        "prepare a design patent",
+        "design application"
+      ],
+      "notes": "Canonical Document #004. Profile exists with 6 USPTO sections, 21 required/recommended inputs, one-question-at-a-time interview graph with design-type branching, whole-vs-partial logic, drawing consistency detection"
     },
     {
       "document_id": "patent-novelty-opinion",
@@ -195,7 +399,13 @@
       "practitioner_reviewed": false,
       "status": "AVAILABLE",
       "profile_exists": true,
-      "router_patterns": ["nda", "non-disclosure", "confidentiality agreement", "mutual nda", "mutual confidentiality"],
+      "router_patterns": [
+        "nda",
+        "non-disclosure",
+        "confidentiality agreement",
+        "mutual nda",
+        "mutual confidentiality"
+      ],
       "notes": "Reference implementation with full profile, 7 sections, 6 clause families, 5 pre-draft questions, 9 drafting positions for clause variants"
     },
     {
@@ -245,7 +455,13 @@
       "practitioner_reviewed": false,
       "status": "BETA",
       "profile_exists": true,
-      "router_patterns": ["patent application", "patent filing", "provisional", "nonprovisional", "utility patent"],
+      "router_patterns": [
+        "patent application",
+        "patent filing",
+        "provisional",
+        "nonprovisional",
+        "utility patent"
+      ],
       "notes": "Legacy alias routed directly to canonical Document #001 Utility Patent Application profile and interview graph."
     },
     {
@@ -392,7 +608,11 @@
       "practitioner_reviewed": false,
       "status": "PLANNED",
       "profile_exists": false,
-      "router_patterns": ["one-way nda", "unilateral nda", "unilateral confidentiality"],
+      "router_patterns": [
+        "one-way nda",
+        "unilateral nda",
+        "unilateral confidentiality"
+      ],
       "notes": "Template exists in database (legal_contract_templates) but no document profile created. Router would match 'nda' pattern to nda-mutual."
     },
     {
@@ -408,7 +628,11 @@
       "practitioner_reviewed": false,
       "status": "PLANNED",
       "profile_exists": false,
-      "router_patterns": ["msa", "master services agreement", "master service agreement"],
+      "router_patterns": [
+        "msa",
+        "master services agreement",
+        "master service agreement"
+      ],
       "notes": "Template exists in database but no document profile. No router pattern currently defined."
     },
     {
@@ -424,7 +648,10 @@
       "practitioner_reviewed": false,
       "status": "PLANNED",
       "profile_exists": false,
-      "router_patterns": ["saas", "software as a service"],
+      "router_patterns": [
+        "saas",
+        "software as a service"
+      ],
       "notes": "Template exists in database but no document profile. Router pattern exists in document-engine-router.js"
     },
     {
@@ -440,7 +667,12 @@
       "practitioner_reviewed": false,
       "status": "PLANNED",
       "profile_exists": false,
-      "router_patterns": ["software licence", "software license", "eula", "end user"],
+      "router_patterns": [
+        "software licence",
+        "software license",
+        "eula",
+        "end user"
+      ],
       "notes": "Router pattern exists. No document profile created."
     },
     {
@@ -456,7 +688,10 @@
       "practitioner_reviewed": false,
       "status": "PLANNED",
       "profile_exists": false,
-      "router_patterns": ["dpa", "data processing agreement"],
+      "router_patterns": [
+        "dpa",
+        "data processing agreement"
+      ],
       "notes": "Router pattern exists. No document profile created."
     },
     {
@@ -472,7 +707,10 @@
       "practitioner_reviewed": false,
       "status": "PLANNED",
       "profile_exists": false,
-      "router_patterns": ["privacy notice", "privacy policy"],
+      "router_patterns": [
+        "privacy notice",
+        "privacy policy"
+      ],
       "notes": "Router pattern exists. No document profile created."
     },
     {
@@ -488,7 +726,10 @@
       "practitioner_reviewed": false,
       "status": "PLANNED",
       "profile_exists": false,
-      "router_patterns": ["patent assignment", "assignment of patent"],
+      "router_patterns": [
+        "patent assignment",
+        "assignment of patent"
+      ],
       "notes": "Router pattern exists. Template exists in database. No document profile created."
     },
     {
@@ -520,7 +761,10 @@
       "practitioner_reviewed": false,
       "status": "PLANNED",
       "profile_exists": false,
-      "router_patterns": ["trademark coexistence", "coexistence agreement"],
+      "router_patterns": [
+        "trademark coexistence",
+        "coexistence agreement"
+      ],
       "notes": "Router pattern exists. No document profile created."
     },
     {
@@ -536,7 +780,11 @@
       "practitioner_reviewed": false,
       "status": "PLANNED",
       "profile_exists": false,
-      "router_patterns": ["103", "office action", "§103"],
+      "router_patterns": [
+        "103",
+        "office action",
+        "§103"
+      ],
       "notes": "Router pattern exists for §103 response. No document profile. Patent workspace has office action handling but not as document engine profile."
     },
     {
@@ -552,7 +800,11 @@
       "practitioner_reviewed": false,
       "status": "PLANNED",
       "profile_exists": false,
-      "router_patterns": ["spa", "share purchase", "stock purchase"],
+      "router_patterns": [
+        "spa",
+        "share purchase",
+        "stock purchase"
+      ],
       "notes": "Router pattern exists. No document profile created."
     },
     {
@@ -568,7 +820,10 @@
       "practitioner_reviewed": false,
       "status": "PLANNED",
       "profile_exists": false,
-      "router_patterns": ["termination letter", "employee termination"],
+      "router_patterns": [
+        "termination letter",
+        "employee termination"
+      ],
       "notes": "Router pattern exists. No document profile created."
     },
     {
@@ -584,7 +839,11 @@
       "practitioner_reviewed": false,
       "status": "PLANNED",
       "profile_exists": false,
-      "router_patterns": ["legal research", "legal memo", "opinion"],
+      "router_patterns": [
+        "legal research",
+        "legal memo",
+        "opinion"
+      ],
       "notes": "Router pattern exists. No document profile created."
     },
     {
@@ -600,7 +859,10 @@
       "practitioner_reviewed": false,
       "status": "PLANNED",
       "profile_exists": false,
-      "router_patterns": ["arbitration notice", "arbitration demand"],
+      "router_patterns": [
+        "arbitration notice",
+        "arbitration demand"
+      ],
       "notes": "Router pattern exists. No document profile created."
     },
     {
@@ -616,7 +878,9 @@
       "practitioner_reviewed": false,
       "status": "PLANNED",
       "profile_exists": false,
-      "router_patterns": ["cease and desist"],
+      "router_patterns": [
+        "cease and desist"
+      ],
       "notes": "Router pattern exists. No document profile created."
     },
     {
@@ -730,14 +994,78 @@
       "profile_exists": false,
       "router_patterns": [],
       "notes": "No template, no router pattern, no document profile."
+    },
+    {
+      "document_id": "patent-abstract",
+      "canonical_id": "patent-abstract",
+      "document_number": "011",
+      "name": "Patent Abstract",
+      "capability_level": "L3_DRAFTABLE",
+      "catalogued": true,
+      "routable": true,
+      "questionnaire_ready": true,
+      "structured_outline": true,
+      "clause_intelligence": false,
+      "jurisdiction_aware": true,
+      "draftable": true,
+      "verification_ready": true,
+      "practitioner_reviewed": false,
+      "status": "BETA",
+      "profile_exists": true,
+      "jurisdiction": "MULTI_JURISDICTION",
+      "authority": "CONTEXT_DEPENDENT",
+      "router_patterns": [
+        "draft a patent abstract",
+        "write the abstract",
+        "prepare the patent abstract",
+        "review my patent abstract",
+        "rewrite this patent abstract",
+        "make the abstract more concise",
+        "draft an abstract from the specification",
+        "draft an abstract from the claims",
+        "prepare a PCT abstract",
+        "prepare an EP patent abstract"
+      ],
+      "notes": "Document #011: Canonical Patent Abstract. Matter-first one-question intake, source-version tracking, claim/specification/terminology consistency, deterministic word count, immutable versions, locks, and fail-closed confidentiality. L4 and L5 are not claimed."
+    },
+    {
+      "document_id": "patent-specification",
+      "canonical_id": "patent-specification",
+      "document_number": "009",
+      "name": "Patent Specification",
+      "capability_level": "L3_DRAFTABLE",
+      "catalogued": true,
+      "routable": true,
+      "questionnaire_ready": true,
+      "structured_outline": true,
+      "clause_intelligence": false,
+      "jurisdiction_aware": true,
+      "draftable": true,
+      "verification_ready": true,
+      "practitioner_reviewed": false,
+      "status": "BETA",
+      "profile_exists": true,
+      "jurisdiction": "MULTI_JURISDICTION",
+      "authority": "CONTEXT_DEPENDENT",
+      "router_patterns": [
+        "draft a patent specification",
+        "prepare the specification",
+        "write the detailed patent specification",
+        "prepare a full patent description",
+        "draft the description for my patent",
+        "turn this invention disclosure into a patent specification",
+        "prepare the patent description",
+        "draft the specification around these claims"
+      ],
+      "notes": "Document #009: Canonical Patent Specification (substantive description component, NOT a filing route). Matter-first one-question intake, drafting-mode awareness (full + section-level), jurisdiction context (US/PCT/EP/OTHER/UNDECIDED), invention-type branching, disclosure completeness, claim-aware support mapping without fabrication, terminology/numeral consistency, actual-vs-hypothetical examples, new-matter tracking, basis mapping, section locking, change-impact analysis, fail-closed confidentiality. L4 and L5 are not claimed."
     }
   ],
   "remaining_documents_note": "The remaining ~375 document types in the catalogue have status PLANNED/RESEARCH_ONLY/BETA but lack: document profiles, router patterns, structured outlines, clause intelligence, and drafting capability. They are CATALOGUE_ONLY entries.",
   "capability_levels": {
     "L0_CATALOGUED": 397,
-    "L1_ROUTABLE": 26,
+    "L1_ROUTABLE": 27,
     "L2_STRUCTURED": 11,
-    "L3_DRAFTABLE": 4,
+    "L3_DRAFTABLE": 6,
     "L4_VALIDATED": 0,
     "L5_PRACTITIONER_REVIEWED": 0
   }

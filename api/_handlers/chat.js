@@ -19,8 +19,7 @@ export default async function handler(req,res){
         sql = neon(databaseUrl);
         user = await getSessionUser(sql, req.headers.cookie).catch(() => null);
         if (!user) {
-          const [u] = await sql`SELECT id,email,full_name,initials,role FROM users WHERE email='aman@sallyip.com' LIMIT 1`.catch(() => []);
-          user = u || (await sql`SELECT id,email,full_name,initials,role FROM users ORDER BY created_at ASC LIMIT 1`.catch(() => []))[0];
+          user = (await sql`SELECT id,email,full_name,initials,role FROM users ORDER BY created_at ASC LIMIT 1`.catch(() => []))[0];
         }
       } catch (dbErr) {
         console.warn('DB session resolution warning:', dbErr.message);

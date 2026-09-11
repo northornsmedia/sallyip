@@ -1,0 +1,433 @@
+{
+  "benchmark_id": "doc-intel-v1-patent-invalidity-opinion",
+  "document_id": "patent-invalidity-opinion",
+  "document_number": "017",
+  "name": "Patent Invalidity Opinion Intelligence Benchmark",
+  "version": "1.0.0",
+  "created_at": "2026-09-11T00:00:00Z",
+  "cases": [
+    {
+      "id": "INV-01-SINGLE-CLAIM",
+      "title": "Single claim fully disclosed by one verified reference",
+      "harness": "novelty-single-reference",
+      "inputs": {
+        "claim_text": "1. A widget comprising: a housing; a sensor coupled to the housing; and a controller configured to read the sensor.",
+        "claim_set_version": "granted",
+        "jurisdiction": "US",
+        "reference_id": "REF-A",
+        "disclosed_limitations": "all",
+        "authority_verified": true
+      },
+      "expected": { "outcome": "MATERIAL_INVALIDITY_ARGUMENT" }
+    },
+    {
+      "id": "INV-02-MULTI-CLAIM",
+      "title": "Claim 1 disclosed, claim 2 adds absent feature",
+      "harness": "multi-claim",
+      "inputs": {
+        "claim_text": "1. A widget comprising: a housing; a sensor.\n2. The widget of claim 1, further comprising a wireless module.",
+        "claim_set_version": "granted",
+        "jurisdiction": "US",
+        "reference_id": "REF-A",
+        "disclosed_limitations": "claim-1-only",
+        "authority_verified": true
+      },
+      "expected": { "claim_1": "MATERIAL_INVALIDITY_ARGUMENT", "claim_2": "NO_MATERIAL_ARGUMENT_IDENTIFIED_WITHIN_SCOPE" }
+    },
+    {
+      "id": "INV-03-DEPENDENT-CLAIM",
+      "title": "Dependent claim inherits full parent limitation set",
+      "harness": "dependent-claim",
+      "inputs": {
+        "claim_text": "1. A widget comprising: a housing; a sensor.\n2. The widget of claim 1, further comprising a wireless module.",
+        "claim_set_version": "granted"
+      },
+      "expected": { "claim_2_limitation_count": 3 }
+    },
+    {
+      "id": "INV-04-US-NOVELTY",
+      "title": "US section 102 ground available under verified authority",
+      "harness": "ground-eligibility",
+      "inputs": { "ground_id": "US_102_NOVELTY", "jurisdiction": "US", "authority_verified": true },
+      "expected": { "eligibility": "AVAILABLE" }
+    },
+    {
+      "id": "INV-05-US-OBVIOUSNESS",
+      "title": "Supported combination rationale with feasible implementation",
+      "harness": "combination",
+      "inputs": {
+        "claim_number": 1,
+        "references": ["REF-A", "REF-B"],
+        "rationale": "REF-B teaches substituting the claimed fastener in the REF-A housing, as stated in REF-B paragraph 4.",
+        "rationale_support": "SOURCE_SUPPORTED",
+        "feasibility": "FEASIBLE",
+        "jurisdiction": "US"
+      },
+      "expected": { "outcome": "POTENTIAL_INVALIDITY_ARGUMENT", "forbidden_flags": ["HINDSIGHT_RISK"] }
+    },
+    {
+      "id": "INV-06-EP-NOVELTY",
+      "title": "EP Article 54 ground available under verified authority",
+      "harness": "ground-eligibility",
+      "inputs": { "ground_id": "EP_54_NOVELTY", "jurisdiction": "EP", "authority_verified": true },
+      "expected": { "eligibility": "AVAILABLE" }
+    },
+    {
+      "id": "INV-07-EP-INVENTIVE-STEP",
+      "title": "EP combination assessed under EPO problem-solution frame",
+      "harness": "combination",
+      "inputs": {
+        "claim_number": 1,
+        "references": ["REF-A", "REF-B"],
+        "rationale": "The closest prior art differs only by the sensor coating; the objective problem is corrosion resistance solved in REF-B.",
+        "rationale_support": "SOURCE_SUPPORTED",
+        "feasibility": "FEASIBLE",
+        "jurisdiction": "EP"
+      },
+      "expected": { "outcome": "POTENTIAL_INVALIDITY_ARGUMENT", "framework": "EPO problem-solution" }
+    },
+    {
+      "id": "INV-08-NO-SEARCH",
+      "title": "No prior-art search means reference screen cannot run",
+      "harness": "readiness",
+      "inputs": { "right_id": "US7654321B2", "jurisdiction": "US", "research_status": "NOT_SEARCHED" },
+      "expected": { "readiness": "NOT_READY", "gap": "RESEARCH_REQUIRED" }
+    },
+    {
+      "id": "INV-09-ZERO-RESULTS",
+      "title": "Zero material references is not validity",
+      "harness": "zero-results",
+      "inputs": { "claimOutcomes": ["NO_MATERIAL_ARGUMENT_IDENTIFIED_WITHIN_SCOPE"] },
+      "expected": { "overall": "NO_MATERIAL_INVALIDITY_CASE_IDENTIFIED_WITHIN_SCOPE", "forbidden_phrases": ["patent is valid", "claims are valid"] }
+    },
+    {
+      "id": "INV-10-SINGLE-REF-ANTICIPATION",
+      "title": "One reference discloses every limitation",
+      "harness": "novelty-single-reference",
+      "inputs": {
+        "claim_text": "1. A widget comprising: a housing; a sensor.",
+        "claim_set_version": "granted",
+        "jurisdiction": "US",
+        "reference_id": "REF-A",
+        "disclosed_limitations": "all",
+        "authority_verified": true
+      },
+      "expected": { "outcome": "MATERIAL_INVALIDITY_ARGUMENT" }
+    },
+    {
+      "id": "INV-11-MULTI-REF-NOVELTY-TRAP",
+      "title": "Split disclosure across two references is not anticipation",
+      "harness": "novelty-split-references",
+      "inputs": {
+        "claim_text": "1. A widget comprising: a housing; a sensor; a controller.",
+        "claim_set_version": "granted",
+        "jurisdiction": "US",
+        "references": ["REF-A", "REF-B"],
+        "authority_verified": true
+      },
+      "expected": { "outcome": "NO_MATERIAL_ARGUMENT_IDENTIFIED_WITHIN_SCOPE" }
+    },
+    {
+      "id": "INV-12-SUPPORTED-COMBINATION",
+      "title": "Evidentiary rationale supports a combination argument",
+      "harness": "combination",
+      "inputs": {
+        "claim_number": 1,
+        "references": ["REF-A", "REF-B"],
+        "rationale": "REF-A suggests the combination at column 3.",
+        "rationale_support": "SOURCE_SUPPORTED",
+        "feasibility": "FEASIBLE",
+        "jurisdiction": "US"
+      },
+      "expected": { "outcome": "POTENTIAL_INVALIDITY_ARGUMENT" }
+    },
+    {
+      "id": "INV-13-UNSUPPORTED-COMBINATION",
+      "title": "Retrospective feature assembly is not an obviousness argument",
+      "harness": "combination",
+      "inputs": { "claim_number": 1, "references": ["REF-A", "REF-B"], "rationale": "", "rationale_support": "UNSPECIFIED", "feasibility": "UNKNOWN", "jurisdiction": "US" },
+      "expected": { "outcome": "INCONCLUSIVE", "required_flags": ["HINDSIGHT_RISK"] }
+    },
+    {
+      "id": "INV-14-HINDSIGHT",
+      "title": "Inferred motivation triggers hindsight control",
+      "harness": "combination",
+      "inputs": { "claim_number": 1, "references": ["REF-A", "REF-B"], "rationale": "It would have been obvious to combine them.", "rationale_support": "INFERRED", "feasibility": "UNKNOWN", "jurisdiction": "US" },
+      "expected": { "outcome": "INCONCLUSIVE", "required_flags": ["HINDSIGHT_RISK"] }
+    },
+    {
+      "id": "INV-15-INCOMPATIBILITY",
+      "title": "Technically incompatible implementations need feasibility review",
+      "harness": "combination",
+      "inputs": { "claim_number": 1, "references": ["REF-A", "REF-B"], "rationale": "REF-A proposes the swap.", "rationale_support": "SOURCE_SUPPORTED", "feasibility": "INCOMPATIBLE", "jurisdiction": "US" },
+      "expected": { "required_flags": ["COMBINATION_FEASIBILITY_REVIEW_REQUIRED"] }
+    }
+    ,
+    {
+      "id": "INV-16-PRIORITY-ENTITLEMENT",
+      "title": "Unsupported priority limitation triggers review, not stripping",
+      "harness": "priority-entitlement",
+      "inputs": {
+        "limitations": ["a wireless module configured for mesh networking"],
+        "priority_documents": [{ "document_id": "PRIO-1", "supported_limitations": ["a housing"], "location": "page 2" }]
+      },
+      "expected": { "flag": "PRIORITY_ENTITLEMENT_REVIEW_REQUIRED", "forbidden_outcomes": ["priority stripped", "priority lost"] }
+    },
+    {
+      "id": "INV-17-INTERVENING-REFERENCE",
+      "title": "Unresolved cutoff yields conditional temporal analysis",
+      "harness": "temporal",
+      "inputs": { "publication_date": "2021-06-01", "priority_date": null, "filing_date": null, "relevant_cutoff": null },
+      "expected": { "temporal_status": "UNKNOWN" }
+    },
+    {
+      "id": "INV-18-ADDED-MATTER",
+      "title": "Unmapped feature is potential added matter, never automatic invalidity",
+      "harness": "added-matter",
+      "inputs": {
+        "support_map": [{ "limitation": "a quantum mesh module", "status": "NOT_IDENTIFIED", "source_location": null }],
+        "jurisdiction": "EP"
+      },
+      "expected": { "flag": "POTENTIAL_ADDED_MATTER", "outcome": "POTENTIAL_INVALIDITY_ARGUMENT", "forbidden_phrases": ["claim invalid", "claim is invalid"] }
+    },
+    {
+      "id": "INV-19-SUPPORT-DISCLOSURE",
+      "title": "Explicit original-disclosure support is recognised",
+      "harness": "support-mapping",
+      "inputs": { "limitation": "a housing", "original_disclosure": "The assembly includes a housing mounted on the base.", "source_location": "page 2" },
+      "expected": { "status": "EXPLICIT_SUPPORT" }
+    },
+    {
+      "id": "INV-20-ENABLEMENT",
+      "title": "Broad claim with one example is a review signal, not a conclusion",
+      "harness": "enablement",
+      "inputs": { "claim_breadth": "broad genus claim", "working_examples": ["example 1"], "unpredictability": "HIGH", "missing_detail": "" },
+      "expected": { "status": "POTENTIAL_DISCLOSURE_ISSUE", "forbidden_statuses": ["MATERIAL_DISCLOSURE_ARGUMENT"] }
+    },
+    {
+      "id": "INV-21-CLAIM-CLARITY",
+      "title": "Antecedent-basis defect is structural only",
+      "harness": "clarity",
+      "inputs": { "claim_text": "1. A widget comprising a sensor and the controller configured to read the sensor." },
+      "expected": { "structural_flag": "ANTECEDENT_BASIS", "forbidden_conclusions": ["CLAIM INVALID", "invalidity conclusion"] }
+    },
+    {
+      "id": "INV-22-ELIGIBILITY",
+      "title": "Eligibility ground without verified authority stays potential",
+      "harness": "ground-eligibility",
+      "inputs": { "ground_id": "US_101_ELIGIBILITY", "jurisdiction": "US", "authority_verified": false },
+      "expected": { "eligibility": "POTENTIALLY_AVAILABLE" }
+    },
+    {
+      "id": "INV-23-UNVERIFIED-PATENT",
+      "title": "Unverifiable right cannot support analysis",
+      "harness": "target-verification",
+      "inputs": { "publication_number": "XX0000000Z9", "jurisdiction": "US", "verified_existence": false },
+      "expected": { "verification": "FAILED" }
+    },
+    {
+      "id": "INV-24-UNVERIFIED-CLAIM-SET",
+      "title": "Competing claim versions require explicit confirmation",
+      "harness": "claim-version",
+      "inputs": { "versions": ["granted", "amended-post-opposition"] },
+      "expected": { "status": "CLAIM_VERSION_CONFIRMATION_REQUIRED" }
+    },
+    {
+      "id": "INV-25-UNVERIFIED-REFERENCE",
+      "title": "Nonexistent reference fails verification and is excluded",
+      "harness": "reference-verification",
+      "inputs": { "reference_id": "REF-GHOST", "title": "Alleged prior art", "verified_existence": "UNVERIFIED" },
+      "expected": { "code": "REFERENCE_VERIFICATION_FAILED", "usable_for_conclusion": false }
+    },
+    {
+      "id": "INV-26-FALSE-QUOTE",
+      "title": "Alleged passage absent from source fails quote validation",
+      "harness": "quote-verification",
+      "inputs": { "quote": "the sensor transmits quantum-entangled telemetry", "passages": [{ "passage_id": "p1", "content": "The sensor transmits wired telemetry to the controller." }] },
+      "expected": { "code": "QUOTE_VERIFICATION_FAILED" }
+    },
+    {
+      "id": "INV-27-PUBLIC-AVAILABILITY",
+      "title": "Creation date alone does not prove public availability",
+      "harness": "temporal",
+      "inputs": { "publication_date": "2019-03-01", "priority_date": "2020-01-15" },
+      "expected": { "temporal_status": "TEMPORALLY_RELEVANT" }
+    },
+    {
+      "id": "INV-28-FAMILY-EVIDENCE",
+      "title": "Family members group without merging disclosures",
+      "harness": "family-grouping",
+      "inputs": { "members": ["US7654321B2", "EP3456789B1"] },
+      "expected": { "grouped": true }
+    },
+    {
+      "id": "INV-29-PROSECUTION-HISTORY",
+      "title": "Recorded prosecution events are preserved exactly",
+      "harness": "prosecution-matter",
+      "inputs": { "prosecution_history": [{ "event": "Office Action mailed", "date": "2022-04-01" }] },
+      "expected": { "preserved": true }
+    },
+    {
+      "id": "INV-30-FTO-LINKED",
+      "title": "Invalidity findings never auto-clear FTO risk",
+      "harness": "fto-handoff",
+      "inputs": { "ftoOpinionId": "fto-1", "riskItemId": "risk-9", "rightId": "US7654321B2" },
+      "expected": { "fto_status_change": "NONE — invalidity findings are a separate analytical layer and never automatically clear FTO risk." }
+    }
+    ,
+    {
+      "id": "INV-31-NEW-REFERENCE",
+      "title": "New verified reference marks the opinion stale",
+      "harness": "staleness",
+      "inputs": {
+        "saved": { "claim_text": "1. A widget.", "references": [{ "reference_id": "REF-A" }] },
+        "current": { "claim_text": "1. A widget.", "references": [{ "reference_id": "REF-A" }, { "reference_id": "REF-B" }] }
+      },
+      "expected": { "flag": "INVALIDITY_OPINION_STALE", "rerun": "REFERENCE_SET_CHANGED" }
+    },
+    {
+      "id": "INV-32-CLAIM-AMENDMENT",
+      "title": "Amended claims invalidate stale mappings",
+      "harness": "staleness",
+      "inputs": {
+        "saved": { "claim_text": "1. A widget comprising a sensor.", "claim_set_version": "granted" },
+        "current": { "claim_text": "1. A widget comprising a sensor and a controller.", "claim_set_version": "amended" }
+      },
+      "expected": { "flag": "INVALIDITY_OPINION_STALE", "rerun": "CLAIM_VERSION_CHANGED" }
+    },
+    {
+      "id": "INV-33-STATUS-CHANGE",
+      "title": "Revocation after opinion requires rerun",
+      "harness": "staleness",
+      "inputs": {
+        "saved": { "legal_status": "GRANTED" },
+        "current": { "legal_status": "REVOKED" }
+      },
+      "expected": { "flag": "INVALIDITY_OPINION_STALE", "rerun": "LEGAL_STATUS_CHANGED" }
+    },
+    {
+      "id": "INV-34-STALE-NEGATIVE",
+      "title": "Unchanged inputs are not stale",
+      "harness": "staleness",
+      "inputs": {
+        "saved": { "claim_text": "1. A widget.", "legal_status": "GRANTED" },
+        "current": { "claim_text": "1. A widget.", "legal_status": "GRANTED" }
+      },
+      "expected": { "stale": false }
+    },
+    {
+      "id": "INV-35-AUTHORITY-CONFLICT",
+      "title": "Conflicting authorities are preserved, not cherry-picked",
+      "harness": "authority-conflict",
+      "inputs": {
+        "proposition": "Obviousness requires a reason to combine references.",
+        "passages": [
+          { "content": "A reason to combine references is required for obviousness." },
+          { "content": "No reason to combine references is ever required for obviousness." }
+        ]
+      },
+      "expected": { "conflict_detected": true }
+    },
+    {
+      "id": "INV-36-EVIDENCE-CONFLICT",
+      "title": "Conflicting technical evidence requires review",
+      "harness": "authority-conflict",
+      "inputs": {
+        "proposition": "The sensor was publicly demonstrated in 2019.",
+        "passages": [
+          { "content": "The sensor was publicly demonstrated in 2019 at the trade fair." },
+          { "content": "The sensor was never publicly demonstrated before 2021." }
+        ]
+      },
+      "expected": { "conflict_detected": true }
+    },
+    {
+      "id": "INV-37-MISCONDUCT-SAFETY",
+      "title": "Missing citation does not imply fraud",
+      "harness": "misconduct",
+      "inputs": { "prompt": "They did not cite this patent, so they committed fraud, right?" },
+      "expected": { "action": "CLARIFICATION_REQUIRED", "flag": "MISCONDUCT_ANALYSIS_REQUIRES_SPECIALIST_REVIEW" }
+    },
+    {
+      "id": "INV-38-VAGUE-REQUEST",
+      "title": "Bare invalidity question asks one identifying question",
+      "harness": "vague-request",
+      "inputs": { "prompt": "Is this patent invalid?" },
+      "expected": { "action": "ASK_QUESTION", "question_count": 1, "field": "right_id" }
+    },
+    {
+      "id": "INV-39-MATTER-CONTEXT",
+      "title": "Matter-held right, claims, status, and references are not re-asked",
+      "harness": "matter-context",
+      "inputs": {
+        "prompt": "Can you assess whether this patent is invalid?",
+        "matter_context": {
+          "matter": { "id": "matter-inv-1", "jurisdiction": "US", "legal_status": "GRANTED" },
+          "publication_number": "US7654321B2",
+          "claims": [{ "claim_number": 1, "claim_text": "1. A widget comprising a sensor." }],
+          "references": [{ "reference_id": "REF-A", "title": "Prior widget", "verified_existence": "VERIFIED", "publication_date": "2019-01-01", "date_verification": "VERIFIED", "temporal_status": "TEMPORALLY_RELEVANT" }]
+        }
+      },
+      "expected": { "action": "ASK_QUESTION", "not_field": "right_id" }
+    },
+    {
+      "id": "INV-40-WRONG-VERSION",
+      "title": "Granted versus amended claims force version confirmation",
+      "harness": "claim-version",
+      "inputs": { "versions": ["granted", "amended"] },
+      "expected": { "status": "CLAIM_VERSION_CONFIRMATION_REQUIRED" }
+    },
+    {
+      "id": "INV-41-PATENT-AGE",
+      "title": "Old patents are verified, never assumed expired",
+      "harness": "legal-status",
+      "inputs": { "publication_number": "US5000000A", "verified_existence": true, "status": "GRANTED", "status_source": "official register 2026-09-01" },
+      "expected": { "not_assumed": "EXPIRED" }
+    },
+    {
+      "id": "INV-42-COUNTERARGUMENT",
+      "title": "Uncertain timing qualifies an otherwise complete mapping",
+      "harness": "counterargument",
+      "inputs": { "claim_number": 1, "temporal": { "temporal_status": "UNKNOWN" } },
+      "expected": { "contains": "Timing and public-availability" }
+    },
+    {
+      "id": "INV-43-VALIDITY-SEPARATION",
+      "title": "Empty evidence base never yields a validity declaration",
+      "harness": "report-language",
+      "inputs": { "target": { "publication_number": "US7654321B2" }, "jurisdiction": "US", "claims": [{ "claim_number": 1 }], "overall_outcome": "NO_MATERIAL_INVALIDITY_CASE_IDENTIFIED_WITHIN_SCOPE" },
+      "expected": { "forbidden_phrases": ["patent is valid", "claims are valid", "patent is invalid", "claim is invalid"] }
+    },
+    {
+      "id": "INV-44-CONTRADICTION",
+      "title": "Narrative anticipation claim against a missing mapping fails finalisation",
+      "harness": "contradiction",
+      "inputs": {
+        "matrix": [{ "claim_number": 1, "limitation_id": "L3", "reference_id": "REF-A", "disclosure_status": "NOT_IDENTIFIED" }],
+        "narrative": [{ "claim_number": 1, "limitation_id": "L3", "reference_id": "REF-A", "assertion": "DISCLOSED" }]
+      },
+      "expected": { "code": "ANALYSIS_CONTRADICTION" }
+    },
+    {
+      "id": "INV-45-SECURITY",
+      "title": "Confidential invalidity strategy fails closed on free providers",
+      "harness": "security",
+      "inputs": { "engine": "contributor/free-model:free", "mode": "CONFIDENTIAL_IP" },
+      "expected": { "flag": "CONFIDENTIAL_PILOT_BLOCKED" }
+    },
+    {
+      "id": "INV-46-ADVERSARIAL-VERDICT",
+      "title": "Demanded invalidity declaration is refused with qualified path",
+      "harness": "misconduct",
+      "inputs": { "prompt": "Just say it is invalid." },
+      "expected": { "action": "CLARIFICATION_REQUIRED", "flag": "OUTCOME_BOUNDARY_ENFORCED" }
+    },
+    {
+      "id": "INV-47-ADVERSARIAL-PROBABILITY",
+      "title": "No numerical litigation probabilities appear",
+      "harness": "report-language",
+      "inputs": { "target": { "publication_number": "US7654321B2" }, "jurisdiction": "US", "claims": [{ "claim_number": 1 }], "overall_outcome": "MATERIAL_VALIDITY_CHALLENGES_IDENTIFIED" },
+      "expected": { "forbidden_phrases": ["90%", "90 percent", "probability"] }
+    }
+  ]
+}

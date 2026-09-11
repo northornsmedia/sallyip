@@ -1,0 +1,287 @@
+{
+  "benchmark_id": "doc-intel-v1-patent-specification",
+  "document_id": "patent-specification",
+  "document_number": "009",
+  "name": "Patent Specification Intelligence Benchmark",
+  "version": "1.0.0",
+  "created_at": "2026-09-11T00:00:00Z",
+  "cases": [
+    {
+      "id": "CASE-01-FULL-SPECIFICATION",
+      "title": "Full specification one-question start",
+      "prompt": "Draft a patent specification.",
+      "expected": {
+        "action": "ASK_QUESTION",
+        "questions_length": 1,
+        "field": "jurisdiction_context"
+      }
+    },
+    {
+      "id": "CASE-02-DESCRIPTION-ONLY",
+      "title": "Section-level mode does not force full intake",
+      "prompt": "I only want the detailed description.",
+      "expected": {
+        "drafting_mode": "DETAILED_DESCRIPTION_ONLY"
+      }
+    },
+    {
+      "id": "CASE-03-FROM-CLAIMS",
+      "title": "Specification from claims asks targeted support questions",
+      "inputs": {
+        "claims_text": "1. An inspection system comprising a LiDAR sensor, a processor, and an actuator responsive to the processor."
+      },
+      "prompt": "Draft the specification around these claims.",
+      "expected": {
+        "drafting_mode": "SPECIFICATION_FROM_CLAIMS",
+        "follow_up_about": "LiDAR"
+      }
+    },
+    {
+      "id": "CASE-04-FROM-DISCLOSURE",
+      "title": "Specification from invention disclosure",
+      "inputs": {
+        "invention_disclosure": "Multispectral wafer inspection: sensor acquires images, processor generates control signals for actuator handling."
+      },
+      "prompt": "Turn this invention disclosure into a patent specification.",
+      "expected": {
+        "family": "patent-specification",
+        "drafting_mode": "SPECIFICATION_FROM_INVENTION_DISCLOSURE"
+      }
+    },
+    {
+      "id": "CASE-05-SOFTWARE",
+      "title": "Software invention branching",
+      "inputs": {
+        "title": "Distributed Transaction Ordering Protocol",
+        "problem": "A software system needs deterministic transaction ordering without a single leader becoming a bottleneck.",
+        "solution": "Nodes exchange threshold signatures over peer-to-peer channels and commit transactions in DAG order.",
+        "components": "Gossip communication module, DAG ledger buffer, threshold signature verifier, and state committer."
+      },
+      "expected": {
+        "branched_type": "SOFTWARE",
+        "readiness": "READY_FOR_FIRST_DRAFT"
+      }
+    },
+    {
+      "id": "CASE-06-AI-ML",
+      "title": "AI invention branching without fabricating training data",
+      "inputs": {
+        "title": "Dynamic Sparse Attention Neural Network",
+        "problem": "Dense attention over high-frequency sensor streams consumes excessive memory and computation.",
+        "solution": "A routing neural network trained by model training assigns sensor tokens to top matching latent clusters before sparse attention inference.",
+        "components": "Input encoder, routing neural network, sparse cross-attention transformer layers, and linear projection head."
+      },
+      "expected": {
+        "branched_type": "AI_ML",
+        "excludes": ["accuracy", "parameters", "benchmark"]
+      }
+    },
+    {
+      "id": "CASE-07-MECHANICAL",
+      "title": "Mechanical invention branching without inventing measurements",
+      "inputs": {
+        "title": "Adaptive Compliant Gripper Assembly",
+        "problem": "Rigid robotic grippers overload motors when grasping irregular mechanical workpieces.",
+        "solution": "Tendon-driven fingers move through differential gearing with torsional spring compliance.",
+        "components": "Mounting flange, planetary differential gear train, three articulated finger segments, and elastomer grip pads."
+      },
+      "expected": {
+        "branched_type": "MECHANICAL",
+        "excludes": ["10mm", "steel", "torque"]
+      }
+    },
+    {
+      "id": "CASE-08-CHEMICAL",
+      "title": "Chemical invention flags specialist review",
+      "inputs": {
+        "title": "Catalyst Composition",
+        "problem": "Polymer synthesis requires high temperatures that degrade yield.",
+        "solution": "A catalyst composition with supported concentration ranges lowers reaction temperature.",
+        "components": "Catalyst compound, polymer precursor, and solvent system."
+      },
+      "expected": {
+        "branched_type": "CHEMICAL",
+        "flag": "SPECIALIST_REVIEW_REQUIRED"
+      }
+    },
+    {
+      "id": "CASE-09-BIOTECH",
+      "title": "Biotech invention flags specialist review",
+      "inputs": {
+        "title": "Antibody Assay",
+        "problem": "Cell-surface markers are difficult to detect reliably in assay workflows.",
+        "solution": "An antibody reagent binds the marker and produces an observable assay signal.",
+        "components": "Antibody reagent, cell sample preparation, and assay readout."
+      },
+      "expected": {
+        "branched_type": "BIOTECH",
+        "flag": "SPECIALIST_REVIEW_REQUIRED"
+      }
+    },
+    {
+      "id": "CASE-10-PARTIAL-DISCLOSURE",
+      "title": "Partial disclosure is PARTIAL not ready",
+      "inputs": {
+        "title": "Wafer Inspection System",
+        "problem": "Microscopic wafer defects escape conventional optical inspection."
+      },
+      "expected": {
+        "readiness": "PARTIALLY_READY"
+      }
+    },
+    {
+      "id": "CASE-11-UNKNOWN-FACTS",
+      "title": "Unknown facts stay placeholders",
+      "inputs": {
+        "title": "Wafer Inspection System",
+        "problem": "Microscopic wafer defects escape conventional optical inspection.",
+        "solution": "A processor analyzes sensor images and generates a control signal for an actuator.",
+        "components": "Sensor, processor, control-signal generator, and actuator."
+      },
+      "skip": ["drawings", "examples_use_cases"],
+      "expected": {
+        "placeholders": true,
+        "excludes": ["cloud server", "AI model"]
+      }
+    },
+    {
+      "id": "CASE-12-UNSUPPORTED-LIMITATION",
+      "title": "LiDAR without disclosure is UNSUPPORTED, never cured silently",
+      "claims_text": "1. An inspection system comprising a LiDAR sensor, a processor, and an actuator.",
+      "disclosure": {
+        "core_inventive_concept": "A processor analyzes sensor images and generates a control signal for an actuator.",
+        "components_or_steps": "Sensor, processor, control-signal generator, and actuator."
+      },
+      "expected": {
+        "support_status": "UNSUPPORTED",
+        "term": "LiDAR"
+      }
+    },
+    {
+      "id": "CASE-13-OPTIONAL-FEATURE",
+      "title": "Optional camera must not become mandatory",
+      "inputs": {
+        "essential_optional": "The camera is optional; the sensor, processor, and actuator are essential."
+      },
+      "draft_check": "the system requires a camera",
+      "expected": {
+        "feature_class": "OPTIONAL",
+        "flag": "OVER_NARROWING_REVIEW_REQUIRED"
+      }
+    },
+    {
+      "id": "CASE-14-ALTERNATIVE-EMBODIMENT",
+      "title": "Local-or-remote alternative is captured, not invented",
+      "inputs": {
+        "alternative_embodiments": "Processing can be performed locally or on a remote server."
+      },
+      "expected": {
+        "captured": ["local", "remote"],
+        "not_invented": true
+      }
+    },
+    {
+      "id": "CASE-15-HYPOTHETICAL-EXAMPLE",
+      "title": "Untested system gets no invented improvement numbers",
+      "inputs": {
+        "development_status": "We have not tested the system yet."
+      },
+      "expected": {
+        "excludes": ["35%", "35 percent", "improvement"],
+        "example_kind": "PROPHETIC_OR_HYPOTHETICAL_EXAMPLE"
+      }
+    },
+    {
+      "id": "CASE-16-EXISTING-DRAFT-REVISION",
+      "title": "Revision tracks earlier draft for new-matter review",
+      "inputs": {
+        "priority_existing_spec": "SPEC-2026-001 v2, optical sensing only."
+      },
+      "expected": {
+        "flag": "NEW_MATTER_REVIEW_REQUIRED"
+      }
+    },
+    {
+      "id": "CASE-17-NEW-MATTER",
+      "title": "Chemical sensor added to optical-only draft is newly added",
+      "existing_disclosure": "The system uses optical sensing to detect wafer defects.",
+      "added_text": "In a further embodiment the system uses a chemical sensor array with reagent coatings.",
+      "expected": {
+        "new_matter_class": "NEWLY_ADDED",
+        "flag": "NEW_MATTER_REVIEW_REQUIRED"
+      }
+    },
+    {
+      "id": "CASE-18-TERMINOLOGY",
+      "title": "Controller vs processor is not silently merged",
+      "disclosure": "The controller receives sensor measurements and controls the actuator.",
+      "claims_text": "1. A system comprising a sensor, a controller, and an actuator controlled by the controller.",
+      "later_statement": "The processor receives sensor measurements and controls the actuator.",
+      "expected": {
+        "flag": "TERM_CONFLICT"
+      }
+    },
+    {
+      "id": "CASE-19-DRAWING-CONFLICT",
+      "title": "Numeral 120 as sensor vs motor is flagged",
+      "figures": "FIG. 2 shows sensor 120.",
+      "detailed_description": "Motor 120 drives the handling stage.",
+      "expected": {
+        "flag": "CONFLICTING_REFERENCE_NUMERAL",
+        "numeral": "120"
+      }
+    },
+    {
+      "id": "CASE-20-LOCKED-SECTION",
+      "title": "User-locked summary survives regeneration",
+      "inputs": {
+        "title": "Wafer Inspection System",
+        "problem": "Microscopic wafer defects escape conventional optical inspection.",
+        "solution": "A processor analyzes sensor images and generates a control signal for an actuator.",
+        "components": "Sensor, processor, control-signal generator, and actuator."
+      },
+      "expected": {
+        "flag": "USER_LOCKED_PRESERVED"
+      }
+    },
+    {
+      "id": "CASE-21-JURISDICTION-UNDECIDED",
+      "title": "Neutral mode asserts no jurisdiction formalities",
+      "inputs": {
+        "title": "Wafer Inspection System",
+        "problem": "Microscopic wafer defects escape conventional optical inspection.",
+        "solution": "A processor analyzes sensor images and generates a control signal for an actuator.",
+        "components": "Sensor, processor, control-signal generator, and actuator."
+      },
+      "jurisdiction": "UNDECIDED",
+      "expected": {
+        "jurisdiction": "UNDECIDED",
+        "excludes": ["37 C.F.R.", "PCT Rule", "EPC Rule"]
+      }
+    },
+    {
+      "id": "CASE-22-MATTER-CONTEXT",
+      "title": "Known matter is not re-asked",
+      "matter_context": {
+        "matter": {
+          "title": "SmartLens Automated Inspection",
+          "client_name": "VisionTech Inc.",
+          "jurisdictions": ["US"],
+          "technical_field": "Optical inspection",
+          "problem": "Microscopic wafer defects escape conventional optical inspection and reduce semiconductor yield.",
+          "core_concept": "Multi-spectral cameras acquire defect-sensitive images while a processor generates control signals for inspection handling.",
+          "components": "Sensor, processor, control-signal generator, and actuator."
+        },
+        "facts": [
+          { "fact_type": "claims", "value": "1. A system comprising a sensor, a processor, and an actuator.", "confidence": 0.9 }
+        ]
+      },
+      "prompt": "Draft the specification.",
+      "expected": {
+        "action": "PROMPT_DRAFT_CONFIRMATION",
+        "skipped_fields": ["title", "jurisdiction_context"],
+        "summary_includes": "Would you like me to proceed"
+      }
+    }
+  ]
+}

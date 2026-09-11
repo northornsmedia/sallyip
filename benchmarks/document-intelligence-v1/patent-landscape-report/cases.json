@@ -1,0 +1,423 @@
+{
+  "benchmark_id": "doc-intel-v1-patent-landscape-report",
+  "document_id": "patent-landscape-report",
+  "document_number": "018",
+  "name": "Patent Landscape Report Intelligence Benchmark",
+  "version": "1.0.0",
+  "created_at": "2026-09-11T00:00:00Z",
+  "cases": [
+    {
+      "id": "LS-01-VAGUE-REQUEST",
+      "title": "Undefined landscape asks one scope question",
+      "harness": "vague-request",
+      "inputs": { "prompt": "Create a patent landscape for AI." },
+      "expected": { "action": "ASK_QUESTION", "question_count": 1, "field": "technology_scope" }
+    },
+    {
+      "id": "LS-02-MATTER-CONTEXT",
+      "title": "Held corpus and scope are not re-asked",
+      "harness": "matter-context",
+      "inputs": {
+        "prompt": "Prepare a patent landscape for AI drug discovery.",
+        "matter_context": {
+          "matter": { "id": "m-ls-1", "technology_scope": "AI drug discovery", "jurisdictions": ["US", "EP"], "time_range": "2015-2025 publication year", "competitors": ["Acme Corp"] },
+          "existing_corpus": [
+            { "source_id": "d1", "publication_number": "US1", "jurisdiction": "US", "family_id": "F1", "verified_existence": true, "applicant": "Acme Corp", "publication_date": "2020-01-01", "priority_date": "2019-01-01" }
+          ]
+        }
+      },
+      "expected": { "not_fields": ["technology_scope", "geographic_scope", "time_range"] }
+    },
+    {
+      "id": "LS-03-FAMILY-DEDUP",
+      "title": "Three documents, one invention family",
+      "harness": "family-dedup",
+      "inputs": {
+        "documents": [
+          { "source_id": "d1", "publication_number": "WO1", "jurisdiction": "WO", "family_id": "F1", "verified_existence": true, "publication_date": "2020-01-01", "priority_date": "2019-01-01" },
+          { "source_id": "d2", "publication_number": "US1", "jurisdiction": "US", "family_id": "F1", "verified_existence": true, "publication_date": "2021-01-01", "priority_date": "2019-01-01" },
+          { "source_id": "d3", "publication_number": "EP1", "jurisdiction": "EP", "family_id": "F1", "verified_existence": true, "publication_date": "2022-01-01", "priority_date": "2019-01-01" }
+        ]
+      },
+      "expected": { "document_count": 3, "resolved_inventions": 1 }
+    },
+    {
+      "id": "LS-04-FAMILY-UNCERTAIN",
+      "title": "Uncertain relations are never force-merged",
+      "harness": "family-uncertain",
+      "inputs": {
+        "documents": [
+          { "source_id": "d1", "publication_number": "US1", "jurisdiction": "US", "verified_existence": true },
+          { "source_id": "d2", "publication_number": "US2", "jurisdiction": "US", "verified_existence": true }
+        ],
+        "uncertain_pairs": [["US1", "US2"]]
+      },
+      "expected": { "relationship": "FAMILY_RELATIONSHIP_UNCERTAIN", "family_count": 2 }
+    },
+    {
+      "id": "LS-05-ASSIGNEE-NORMALISATION",
+      "title": "Verified mappings group; strings alone do not",
+      "harness": "assignee-normalisation",
+      "inputs": {
+        "records": ["IBM", "IBM Corp.", "International Business Machines Corporation"],
+        "verified_mappings": [{ "canonical_name": "International Business Machines", "aliases": ["IBM", "IBM Corp.", "International Business Machines Corporation"], "source": "corporate-registry-2024" }]
+      },
+      "expected": { "group_count": 1, "status": "VERIFIED_MATCH" }
+    },
+    {
+      "id": "LS-06-FALSE-MERGE",
+      "title": "Similar names without evidence stay separate",
+      "harness": "false-merge",
+      "inputs": { "records": ["Nova Therapeutics", "NovaTherapeutics Inc"] },
+      "expected": { "group_count": 2, "status": "UNKNOWN" }
+    },
+    {
+      "id": "LS-07-OWNERSHIP",
+      "title": "Applicant is not labelled current owner without verification",
+      "harness": "ownership",
+      "inputs": { "applicant": "Company A", "assignee": "Company B", "owner_verified": false },
+      "expected": { "label": "RECORDED_ASSIGNEE_NOT_VERIFIED_AS_OWNER", "current_owner": null }
+    },
+    {
+      "id": "LS-08-SHARE-CALC",
+      "title": "Company A share of verified families",
+      "harness": "share-calc",
+      "inputs": { "numerator": 17, "denominator": 100 },
+      "expected": { "value": 17, "label": "VERIFIED_FAMILIES_IN_CORPUS" }
+    },
+    {
+      "id": "LS-09-MARKET-SHARE-SAFETY",
+      "title": "Corpus share is never market share",
+      "harness": "market-share-safety",
+      "inputs": { "assignees": [{ "name": "Company A", "families": 25 }], "corpus_families": 100 },
+      "expected": { "label": "VERIFIED_FAMILIES_IN_CORPUS", "forbidden": "market share" }
+    },
+    {
+      "id": "LS-10-RECENT-DECLINE",
+      "title": "Incomplete recent year blocks decline claims",
+      "harness": "recent-decline",
+      "inputs": { "series": [{ "year": 2025, "families": 10 }, { "year": 2026, "families": 4 }], "current_year": 2026 },
+      "expected": { "flag": "RECENT_YEAR_INCOMPLETE", "decline_themes": 0 }
+    },
+    {
+      "id": "LS-11-ZERO-THEME",
+      "title": "Empty themes use corpus-scoped language",
+      "harness": "zero-theme",
+      "inputs": { "dimension": "theme", "theme": "Theme X", "family_count": 0, "corpus_families": 120 },
+      "expected": { "signal": "NO_VERIFIED_FAMILY_IN_CORPUS", "forbidden": "nobody has patented" }
+    },
+    {
+      "id": "LS-12-WHITE-SPACE",
+      "title": "Low density is underrepresentation, not opportunity",
+      "harness": "white-space",
+      "inputs": { "dimension": "theme", "theme": "Theme X", "family_count": 2, "corpus_families": 120 },
+      "expected": { "signal": "UNDERREPRESENTED_THEME_WITHIN_SEARCH_SCOPE", "not_claimed": ["patentability", "FTO"] }
+    },
+    {
+      "id": "LS-13-ABSTRACT-VS-CLAIM",
+      "title": "Abstract themes and claim themes stay distinct",
+      "harness": "abstract-vs-claim",
+      "inputs": { "claim_text": "1. A valve comprising: a housing; a sensor.", "abstract_theme": "artificial intelligence" },
+      "expected": { "claim_field": "claims", "abstract_basis": "abstract" }
+    },
+    {
+      "id": "LS-14-CLAIM-VERSION",
+      "title": "Published and granted claim versions never mix silently",
+      "harness": "claim-version",
+      "inputs": { "claim_text": "1. A valve comprising a housing.", "versions": ["published", "granted"] },
+      "expected": { "distinct_ids": true }
+    },
+    {
+      "id": "LS-15-CLASSIFICATION",
+      "title": "Model-predicted codes stay AI-proposed",
+      "harness": "classification",
+      "inputs": { "code": "G06N3/08", "source_codes": ["A61K31/00"], "ai_proposed": true },
+      "expected": { "status": "AI_PROPOSED" }
+    }
+    ,
+    {
+      "id": "LS-16-CITATION-VALUE",
+      "title": "Highly cited patents are labelled, never valued",
+      "harness": "citation-value",
+      "inputs": { "families": [{ "family_id": "F1", "forward_citations": 240, "members": ["d1"] }] },
+      "expected": { "label": "HIGHLY_CITED_WITHIN_CORPUS", "forbidden": "most valuable" }
+    },
+    {
+      "id": "LS-17-FAMILY-SIZE",
+      "title": "Fifteen members describe size, not value",
+      "harness": "family-size-value",
+      "inputs": { "families": [{ "family_id": "F1", "members": ["d1", "d2", "d3"] }] },
+      "expected": { "label": "LARGE_FAMILY", "forbidden": "high commercial value" }
+    },
+    {
+      "id": "LS-18-ASSIGNEE-QUANTITY",
+      "title": "Largest count is descriptive, not leadership",
+      "harness": "assignee-quantity",
+      "inputs": { "assignees": [{ "name": "Company A", "families": 40, "jurisdictions": ["US", "EP"] }], "corpus_families": 100 },
+      "expected": { "forbidden": "technology leader" }
+    },
+    {
+      "id": "LS-19-STATUS-CONFLICT",
+      "title": "Granted-versus-lapsed conflict requires review",
+      "harness": "status-conflict",
+      "inputs": {
+        "documents": [{ "publication_number": "US1", "verified_existence": true, "sources": [{ "status": "GRANTED" }, { "status": "LAPSED" }] }]
+      },
+      "expected": { "conflicts": 1 }
+    },
+    {
+      "id": "LS-20-SOURCE-COVERAGE",
+      "title": "Single-database search is reported exactly",
+      "harness": "source-coverage",
+      "inputs": { "search_sources": ["USPTO"], "scope_text": "AI valves" },
+      "expected": { "sources": ["USPTO"], "forbidden": "globally comprehensive" }
+    },
+    {
+      "id": "LS-21-LANGUAGE",
+      "title": "English-only search carries a visible limitation",
+      "harness": "language",
+      "inputs": { "language_scope": ["English keywords only"] },
+      "expected": { "preserved": true }
+    },
+    {
+      "id": "LS-22-GROWTH-CALC",
+      "title": "Growth math is deterministic with persisted parts",
+      "harness": "growth-calc",
+      "inputs": { "from": 40, "to": 52, "period": "2021-2023" },
+      "expected": { "value": 30, "numerator": 12, "denominator": 40 }
+    },
+    {
+      "id": "LS-23-CONTRADICTION",
+      "title": "Chart/text family-count mismatch blocks finalisation",
+      "harness": "contradiction",
+      "inputs": { "claims": [{ "text": "Company A holds 19 families.", "metric": "company_a", "corpus_version": "corpus_v1", "value": 19 }], "metrics": { "company_a": 17 } },
+      "expected": { "analysis_contradiction": true }
+    },
+    {
+      "id": "LS-24-UPDATE-DELTA",
+      "title": "Corpus updates version deltas without overwriting history",
+      "harness": "update-delta",
+      "inputs": {
+        "v1_size": 300,
+        "new_documents": [{ "source_id": "n1", "publication_number": "US99", "jurisdiction": "US", "verified_existence": true }],
+        "removals": ["d-old"]
+      },
+      "expected": { "next_version": "corpus_v2", "history_preserved": true, "added": 1 }
+    },
+    {
+      "id": "LS-25-STALENESS",
+      "title": "Two-year-old landscapes are flagged, not trusted",
+      "harness": "staleness",
+      "inputs": { "last_search_date": "2024-01-01", "update_window_days": 365 },
+      "expected": { "flag": "LANDSCAPE_STALE" }
+    },
+    {
+      "id": "LS-26-FTO-HANDOFF",
+      "title": "Blocking questions hand off without landscape verdicts",
+      "harness": "fto-handoff",
+      "inputs": { "prompt": "Which of these patents block our product?" },
+      "expected": { "action": "HANDOFF_FTO" }
+    },
+    {
+      "id": "LS-27-PATENTABILITY-HANDOFF",
+      "title": "White-space patentability claims route out",
+      "harness": "patentability-handoff",
+      "inputs": { "prompt": "This white space means our invention is patentable, right?" },
+      "expected": { "action": "HANDOFF_PATENTABILITY" }
+    },
+    {
+      "id": "LS-28-SECURITY",
+      "title": "Confidential competitor strategy fails closed",
+      "harness": "security",
+      "inputs": { "engine": "contributor/free-model:free", "mode": "CONFIDENTIAL_IP" },
+      "expected": { "flag": "CONFIDENTIAL_PILOT_BLOCKED" }
+    },
+    {
+      "id": "LS-29-EMPTY-CORPUS",
+      "title": "No supplied records means no invented patents",
+      "harness": "empty-corpus",
+      "inputs": { "candidates": [] },
+      "expected": { "deduplicated_documents": 0, "families": 0 }
+    },
+    {
+      "id": "LS-30-ZERO-BASELINE-GROWTH",
+      "title": "Zero baselines yield no invented percentages",
+      "harness": "growth-calc",
+      "inputs": { "from": 0, "to": 12, "period": "2023-2024" },
+      "expected": { "value": null }
+    }
+    ,
+    {
+      "id": "LS-31-JURISDICTION-NORMALISATION",
+      "title": "US variants collapse to one bucket",
+      "harness": "jurisdiction-normalisation",
+      "inputs": { "values": ["US", "USA", "United States"] },
+      "expected": { "buckets": 1, "code": "US" }
+    },
+    {
+      "id": "LS-32-TREND-BASIS",
+      "title": "Every trend series carries its date basis",
+      "harness": "trend-basis",
+      "inputs": {
+        "families": [{ "family_id": "F1", "earliest_priority": "2019-04-01", "members": [] }],
+        "basis": "EARLIEST_PRIORITY_YEAR"
+      },
+      "expected": { "basis": "EARLIEST_PRIORITY_YEAR", "points": [[2026, 0]] }
+    },
+    {
+      "id": "LS-33-DATA-QUALITY",
+      "title": "Unknown inputs cap data quality at LIMITED",
+      "harness": "data-quality",
+      "inputs": { "metadata_verification": "HIGH", "family_resolution": "UNKNOWN" },
+      "expected": { "level": "LIMITED" }
+    },
+    {
+      "id": "LS-34-EXCLUSION-LOG",
+      "title": "Exclusions are auditable records",
+      "harness": "exclusion-log",
+      "inputs": { "document_id": "d-x", "reason": "false-positive", "reviewer": "analyst-1" },
+      "expected": { "fields": ["document_id", "reason", "rule", "reviewer", "timestamp"] }
+    },
+    {
+      "id": "LS-35-REVIEW-QUEUE",
+      "title": "Uncertain families queue for review",
+      "harness": "family-uncertain",
+      "inputs": {
+        "documents": [
+          { "source_id": "d1", "publication_number": "US1", "jurisdiction": "US", "verified_existence": true },
+          { "source_id": "d2", "publication_number": "US2", "jurisdiction": "US", "verified_existence": true }
+        ],
+        "uncertain_pairs": [["US1", "US2"]]
+      },
+      "expected": { "relationship": "FAMILY_RELATIONSHIP_UNCERTAIN", "family_count": 2 }
+    },
+    {
+      "id": "LS-36-EVIDENCE-GRAPH",
+      "title": "Conclusions trace to corpus metrics",
+      "harness": "evidence-graph",
+      "inputs": { "scope_id": "ls-1", "corpus_version": "corpus_v1" },
+      "expected": { "trace": "LANDSCAPE_SCOPE → SEARCH_QUERY → SOURCE_RESULT → PATENT_DOCUMENT → FAMILY → ASSIGNEE → CLASSIFICATION → THEME → METRIC → CONCLUSION" }
+    },
+    {
+      "id": "LS-37-CHART-DATA",
+      "title": "Charts and prose share one metric source",
+      "harness": "chart-data",
+      "inputs": {},
+      "expected": { "source_note": "single metric source shared with report prose" }
+    },
+    {
+      "id": "LS-38-CONCENTRATION",
+      "title": "Concentration is descriptive, never antitrust",
+      "harness": "concentration",
+      "inputs": { "entries": [{ "name": "A", "families": 30 }, { "name": "B", "families": 10 }], "n": 2, "denominator": 100 },
+      "expected": { "families": 40, "forbidden": "market power" }
+    },
+    {
+      "id": "LS-39-OVERLAP",
+      "title": "Portfolio overlap is never infringement",
+      "harness": "overlap",
+      "inputs": { "a_themes": ["valves", "sensors"], "b_themes": ["sensors", "pumps"] },
+      "expected": { "shared": ["sensors"], "forbidden": "infringement" }
+    },
+    {
+      "id": "LS-40-EMERGING",
+      "title": "Emergence carries its lag caveat",
+      "harness": "emerging",
+      "inputs": { "themes": [{ "theme": "T", "recent_family_growth": 6, "new_assignees": 2, "window_includes_recent": true }] },
+      "expected": { "caveat": "provisional" }
+    },
+    {
+      "id": "LS-41-NEW-ENTRANTS",
+      "title": "Entrants are defined mathematically",
+      "harness": "new-entrants",
+      "inputs": { "assignees": [{ "name": "N", "first_corpus_year": 2024 }], "after_year": 2022 },
+      "expected": { "name": "N", "forbidden": "market entrant" }
+    },
+    {
+      "id": "LS-42-REPRESENTATIVE",
+      "title": "Representative selection states its basis",
+      "harness": "representative",
+      "inputs": { "families": [{ "family_id": "F1", "members": ["d1"] }] },
+      "expected": { "label": "CENTRALITY" }
+    },
+    {
+      "id": "LS-43-TAXONOMY",
+      "title": "Theme provenance is preserved",
+      "harness": "taxonomy",
+      "inputs": { "theme": "AI valves", "basis": "semantic cluster v3", "reviewer": null },
+      "expected": { "status": "AI_PROPOSED_THEME" }
+    },
+    {
+      "id": "LS-44-CLAIM-THEMES",
+      "title": "Claim concepts decompose canonically",
+      "harness": "claim-themes",
+      "inputs": { "claim_text": "1. A valve comprising: a housing; a sensor." },
+      "expected": { "min_concepts": 2, "field": "claims" }
+    },
+    {
+      "id": "LS-45-CONTINUATION",
+      "title": "Continuation relations are preserved, not collapsed",
+      "harness": "continuation",
+      "inputs": {
+        "documents": [
+          { "source_id": "d1", "publication_number": "US1", "jurisdiction": "US", "family_id": "F1", "verified_existence": true, "relation": "parent" },
+          { "source_id": "d2", "publication_number": "US2", "jurisdiction": "US", "family_id": "F1", "verified_existence": true, "relation": "continuation of US1" }
+        ]
+      },
+      "expected": { "continuations": 1 }
+    },
+    {
+      "id": "LS-46-REPRESENTATIVE-DOC",
+      "title": "Representative choice is deterministic",
+      "harness": "representative-doc",
+      "inputs": {
+        "members": [
+          { "source_id": "d2", "publication_date": "2021-01-01", "verified_existence": true },
+          { "source_id": "d1", "publication_date": "2020-01-01", "verified_existence": true }
+        ]
+      },
+      "expected": { "document": "d1", "rule": "earliest-publication-verified" }
+    },
+    {
+      "id": "LS-47-DUPLICATE-CONTROL",
+      "title": "Translated duplicates are excluded with reasons",
+      "harness": "duplicate-control",
+      "inputs": { "candidates": [{ "source_id": "d2", "duplicate_of": "d1" }, { "source_id": "d1" }] },
+      "expected": { "included": 1, "excluded": 1, "reason": "duplicate-record" }
+    },
+    {
+      "id": "LS-48-BOUNDARY-GUARD",
+      "title": "Market-share prose is rejected at assembly",
+      "harness": "boundary-guard",
+      "inputs": { "observations": ["Company A has 25% market share."] },
+      "expected": { "code": "LANDSCAPE_BOUNDARY_VIOLATION" }
+    },
+    {
+      "id": "LS-49-CONFIRMATION",
+      "title": "Full verified context proceeds only on approval",
+      "harness": "confirmation",
+      "inputs": {
+        "facts": {
+          "technology_scope": "AI valves",
+          "jurisdictions": ["US"],
+          "time_range": "2019-2024 publication year",
+          "trend_basis": "PUBLICATION_YEAR",
+          "workflow_mode": "TECHNOLOGY_LANDSCAPE",
+          "corpus_source": "EXISTING_CORPUS",
+          "analysis_modes": ["abstracts"],
+          "existing_corpus": [
+            { "source_id": "d1", "publication_number": "US1", "jurisdiction": "US", "family_id": "F1", "verified_existence": true, "publication_date": "2020-01-01", "priority_date": "2019-01-01" }
+          ]
+        }
+      },
+      "expected": { "prompt": "PROMPT_ANALYSIS_CONFIRMATION", "draft": "DRAFT" }
+    },
+    {
+      "id": "LS-50-VOICE-EXPORT",
+      "title": "Session IDs persist and payloads export cleanly",
+      "harness": "voice-export",
+      "inputs": { "prompt": "Prepare a patent landscape for AI valves." },
+      "expected": { "document": "patent-landscape-report" }
+    }
+  ]
+}

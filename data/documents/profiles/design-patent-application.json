@@ -26,6 +26,7 @@
   "capability_level": "L1_ROUTABLE",
   "risk_level": "HIGH",
   "jurisdiction_type": "JURISDICTION_SPECIFIC",
+  "jurisdiction": "US",
   "primary_jurisdiction": "US",
   "authority": "USPTO",
   "jurisdiction_classification": "JURISDICTION_SPECIFIC",

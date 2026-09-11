@@ -88,6 +88,8 @@ export function buildReadyBrief(analysis) {
   return `Disclosure state: established (${analysis.answeredRecap.join(', ') || 'none'})${analysis.phase === 'ready_partial' ? '; PARTIAL — proceed best-effort and mark gaps explicitly' : ''}. Follow the silent internal order (understand → problem → concepts → gaps → embodiments → claim strategy → independent claims → dependent claims → specification → §112 checks → §101 screen) without exposing it. Label user-provided facts vs drafting assumptions vs proposed embodiments requiring confirmation.`
 }
 
+import { identifyDocument, extractSlots, evaluateIntakePhase, buildDocumentIntakePrompt, isolateWorkflowMessages } from './document-intake-coordinator.js'
+
 // Single entry point for chat pipelines: returns the system-prompt addition
 // (or '') for the latest user turn given the full message history.
 // Current-turn intent always wins; history only continues an ongoing drafting
@@ -95,10 +97,24 @@ export function buildReadyBrief(analysis) {
 // a patent chat is never hijacked into an invention interview.
 export function draftGuidanceFor(messages, latest) {
   const current = planLegalTask(latest || '', {}).workflow_type
-  if (current && current !== 'patent_drafting') return ''
+  const verifiedDoc = identifyDocument(latest || '', messages)
+
+  // Disambiguation: if current is an unrelated task (e.g. general contract, trademark) and not one of the 20 verified docs, do not hijack
+  if (current && current !== 'patent_drafting' && !verifiedDoc) return ''
+
   const userTurns = (Array.isArray(messages) ? messages : []).filter(m => m?.role === 'user')
-  const drafting = current === 'patent_drafting' || userTurns.slice(-3).some(m => planLegalTask(String(m.content || ''), {}).workflow_type === 'patent_drafting')
+  const drafting = Boolean(verifiedDoc) || current === 'patent_drafting' || userTurns.slice(-3).some(m => planLegalTask(String(m.content || ''), {}).workflow_type === 'patent_drafting')
   if (!drafting) return ''
+
+  // Specialized intake for the 20 verified documents
+  if (verifiedDoc && verifiedDoc.id !== 'utility-patent-application') {
+    const slots = extractSlots(verifiedDoc, latest, messages)
+    const relevantTurns = isolateWorkflowMessages(verifiedDoc, latest, messages)
+    const intake = evaluateIntakePhase(verifiedDoc, slots, latest, relevantTurns.length)
+    return `\n\n${buildDocumentIntakePrompt(verifiedDoc, intake, slots)}`
+  }
+
+  // Canonical utility patent application workflow
   const interview = analyzeInterview(messages)
   if (interview.phase === 'interview') return `\n\n${buildInterviewContract(interview)}`
   return `\n\n${DRAFT_RESPONSE_CONTRACT}\n\n${buildReadyBrief(interview)}`

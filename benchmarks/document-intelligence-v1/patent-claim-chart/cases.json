@@ -1,0 +1,345 @@
+{
+  "benchmark_id": "doc-intel-v1-patent-claim-chart",
+  "document_id": "patent-claim-chart",
+  "document_number": "020",
+  "name": "Patent Claim Chart Intelligence Benchmark",
+  "version": "1.0.0",
+  "created_at": "2026-09-11T00:00:00Z",
+  "cases": [
+    {
+      "id": "CC-01-VAGUE-REQUEST",
+      "title": "Bare chart request asks one material question",
+      "harness": "vague-request",
+      "inputs": { "prompt": "Create a claim chart." },
+      "expected": { "action": "ASK_QUESTION", "question_count": 1, "field": "claim_selection" }
+    },
+    {
+      "id": "CC-02-MATTER-CONTEXT",
+      "title": "Held patent, claims, and references are reused",
+      "harness": "matter-context",
+      "inputs": {
+        "prompt": "Chart Claim 1 against Reference A.",
+        "matter_context": {
+          "matter": { "id": "m-cc-1" },
+          "patent": "US7654321B2",
+          "claims": [{ "claim_number": 1, "claim_text": "1. A sensor comprising a housing." }],
+          "references": [{ "source_id": "ref-a", "title": "Reference A" }]
+        }
+      },
+      "expected": { "not_fields": ["claim_selection", "target_source"] }
+    },
+    {
+      "id": "CC-03-VERSION-AMBIGUITY",
+      "title": "Published, amended, and granted versions force confirmation",
+      "harness": "version-ambiguity",
+      "inputs": { "versions": ["published", "amended", "granted"] },
+      "expected": { "status": "CLAIM_VERSION_CONFIRMATION_REQUIRED" }
+    },
+    {
+      "id": "CC-04-SNAPSHOT",
+      "title": "Later claim edits never rewrite history",
+      "harness": "snapshot",
+      "inputs": { "claim_number": 1, "claim_text": "1. A sensor comprising a housing.", "later_text": "1. A sensor comprising a housing and a processor." },
+      "expected": { "intact_before": true, "intact_after": false, "flag": "CLAIM_TEXT_INTEGRITY_FAILURE" }
+    },
+    {
+      "id": "CC-05-DEPENDENT-CLAIM",
+      "title": "Claim 2 charts Claim 1 plus additions",
+      "harness": "dependent-claim",
+      "inputs": { "claim_text": "1. A sensor comprising: a housing.\n2. The sensor of claim 1, further comprising a processor." },
+      "expected": { "min_limitations": 2, "inherited": true }
+    },
+    {
+      "id": "CC-06-MULTI-LEVEL-DEPENDENCY",
+      "title": "Claim 5 through 3 to 1 includes everything once",
+      "harness": "multi-level-dependency",
+      "inputs": { "claim_text": "1. A sensor comprising: a housing.\n3. The sensor of claim 1, further comprising a processor.\n5. The sensor of claim 3, further comprising a display." },
+      "expected": { "min_limitations": 3, "unique_ids": true }
+    },
+    {
+      "id": "CC-07-RELATIONAL",
+      "title": "Coupling without evidence is not mapped",
+      "harness": "relational",
+      "inputs": { "claim_text": "1. A device comprising: a sensor coupled to a processor.", "evidence": "both-present-no-coupling" },
+      "expected": { "relational_status": "NOT_IDENTIFIED" }
+    },
+    {
+      "id": "CC-08-FUNCTIONAL",
+      "title": "Processor presence never maps the function",
+      "harness": "functional",
+      "inputs": { "function_text": "processor configured to calculate X", "passage": null },
+      "expected": { "mapped": false }
+    },
+    {
+      "id": "CC-09-METHOD-ORDER",
+      "title": "C-A-B order is not A-B-C disclosure",
+      "harness": "method-order",
+      "inputs": { "claim_steps": ["expose", "develop", "fix"], "passage_steps": ["fix", "expose", "develop"] },
+      "expected": { "order_preserved": false }
+    },
+    {
+      "id": "CC-10-NUMERICAL",
+      "title": "5-10 mm versus 20-30 mm never overlaps",
+      "harness": "numerical",
+      "inputs": { "claim_range": { "min": 5, "max": 10 }, "reference_range": { "min": 20, "max": 30 } },
+      "expected": { "comparison": "OUTSIDE_RANGE" }
+    },
+    {
+      "id": "CC-11-NEGATIVE",
+      "title": "Silence on X never discloses free-of-X",
+      "harness": "negative",
+      "inputs": { "limitation": "composition free of X", "passage": "The composition contains polymers and solvents." },
+      "expected": { "disclosed": false }
+    },
+    {
+      "id": "CC-12-TITLE-SIMILARITY",
+      "title": "Identical titles without disclosure never map",
+      "harness": "title-similarity",
+      "inputs": { "proposition": "a sensor coupled to a processor", "passage": "Advances in sensor technology: general overview of housings and mounts." },
+      "expected": { "status": "NOT_ENTAILED" }
+    },
+    {
+      "id": "CC-13-FALSE-QUOTE",
+      "title": "Generated passages fail quote validation",
+      "harness": "false-quote",
+      "inputs": { "quote": "the processor dynamically compensates thermal drift at paragraph 42", "passages": [{ "passage_id": "p1", "content": "The processor is mounted on the board." }] },
+      "expected": { "code": "QUOTE_NOT_FOUND" }
+    },
+    {
+      "id": "CC-14-NON-ENTAILED",
+      "title": "Topical passages without support never map",
+      "harness": "non-entailed",
+      "inputs": { "proposition": "the valve opens above 5 bar", "passage": "Valves are widely used in fluid systems for many purposes." },
+      "expected": { "status": "NOT_ENTAILED" }
+    },
+    {
+      "id": "CC-15-MULTI-REFERENCE",
+      "title": "A+B+C and D stay source-separated",
+      "harness": "multi-reference",
+      "inputs": { "limitations": ["A", "B", "C", "D"], "cells": [{ "limitation": "A", "source": "R1" }, { "limitation": "D", "source": "R2" }] },
+      "expected": { "cells": 8, "synthetic": null }
+    }
+    ,
+    {
+      "id": "CC-16-NOVELTY-HANDOFF",
+      "title": "Novelty receives separated references, never synthetic ones",
+      "harness": "novelty-handoff",
+      "inputs": { "rows": [{ "claim_id": 1, "limitation_id": "L1", "target_source_id": "R1", "mapping_status": "MAPPED", "target_evidence": { "passage_id": "p1" } }, { "claim_id": 1, "limitation_id": "L2", "target_source_id": "R2", "mapping_status": "MAPPED", "target_evidence": { "passage_id": "p2" } }] },
+      "expected": { "target": "patent-novelty-opinion", "synthetic": null, "references": ["R1", "R2"] }
+    },
+    {
+      "id": "CC-17-PRODUCT-VERSION",
+      "title": "v1 and v2 evidence never mix",
+      "harness": "product-version",
+      "inputs": { "product": "Widget", "version": null },
+      "expected": { "confirmed": false, "flag": "PRODUCT_VERSION_CONFIRMATION_REQUIRED" }
+    },
+    {
+      "id": "CC-18-USER-ASSERTED",
+      "title": "Unverified user claims stay labelled",
+      "harness": "user-asserted",
+      "inputs": { "product": "Widget", "feature": "processor performs X", "source": "user statement", "source_type": "user statement", "status": "UNKNOWN" },
+      "expected": { "label": "USER_ASSERTED" }
+    },
+    {
+      "id": "CC-19-IMAGE",
+      "title": "Photos never reveal hidden architectures",
+      "harness": "image",
+      "inputs": { "image_id": "img-1", "region": "exterior", "observation": "external sensor visible" },
+      "expected": { "forbidden_inference": "internal processor architecture" }
+    },
+    {
+      "id": "CC-20-STANDARD",
+      "title": "Optional standard features need implementation proof",
+      "harness": "standard",
+      "inputs": { "standard_id": "STD-1", "clause": "7.2", "mandatory": false, "observation": "product claims compliance" },
+      "expected": { "proves_implementation": false }
+    },
+    {
+      "id": "CC-21-SPEC-SUPPORT",
+      "title": "Missing spec passages never conclude section 112",
+      "harness": "spec-support",
+      "inputs": { "limitation": "a quantum regulator", "passages": [] },
+      "expected": { "status": "NOT_IDENTIFIED" }
+    },
+    {
+      "id": "CC-22-PRIORITY-SUPPORT",
+      "title": "Related concepts stay review-gated",
+      "harness": "priority-support",
+      "inputs": { "limitation": "a wireless module", "priority_passages": [{ "content": "A wired module is described." }] },
+      "expected": { "status": "POTENTIAL_SUPPORT_REVIEW_REQUIRED" }
+    },
+    {
+      "id": "CC-23-PROSECUTION",
+      "title": "Statements record without estoppel inference",
+      "harness": "prosecution",
+      "inputs": { "document": "Office Action response", "date": "2023-05-01", "statement": "Applicant narrowed claim 1 to require a metal housing." },
+      "expected": { "estoppel": "never-inferred" }
+    },
+    {
+      "id": "CC-24-CONSTRUCTION",
+      "title": "Two plausible readings stay unresolved",
+      "harness": "construction",
+      "inputs": { "limitation_id": "L1", "construction_type": "MUDDLED", "construction": "housing means enclosure" },
+      "expected": { "type": "CONSTRUCTION_UNRESOLVED", "flag": "CONSTRUCTION_UNRESOLVED" }
+    },
+    {
+      "id": "CC-25-SOURCE-VERSION",
+      "title": "Manual v2 marks v1 mappings stale",
+      "harness": "source-version",
+      "inputs": { "recorded_version": "v1", "current_version": "v2", "affected_rows": ["row-001"] },
+      "expected": { "flag": "SOURCE_VERSION_CHANGED", "stale": true }
+    },
+    {
+      "id": "CC-26-CONTRADICTION",
+      "title": "All-mapped summaries against gaps block finalisation",
+      "harness": "contradiction",
+      "inputs": { "rows": [{ "claim_id": 1, "limitation_id": "L1.4", "target_source_id": "R1", "mapping_status": "NOT_IDENTIFIED" }], "claims_all_mapped": true },
+      "expected": { "code": "ANALYSIS_CONTRADICTION" }
+    },
+    {
+      "id": "CC-27-INVALIDITY-CONFUSION",
+      "title": "Full single-source mapping is review, not invalidity",
+      "harness": "invalidity-confusion",
+      "inputs": { "limitation_ids": ["L1", "L2"], "status": "MAPPED", "reference_id": "R1" },
+      "expected": { "technical_status": "ALL_LIMITATIONS_MAPPED_CANDIDATE_REVIEW", "forbidden": "invalid" }
+    },
+    {
+      "id": "CC-28-INFRINGEMENT-CONFUSION",
+      "title": "Product mapping never declares infringement",
+      "harness": "infringement-confusion",
+      "inputs": { "prompt": "Does Product X infringe Claim 1?" },
+      "expected": { "action": "CLARIFICATION_REQUIRED", "flag": "INFRINGEMENT_DETERMINATION_SEPARATE" }
+    },
+    {
+      "id": "CC-29-FTO-CONFUSION",
+      "title": "Strong product mapping never declares FTO",
+      "harness": "fto-confusion",
+      "inputs": { "claim_text": "1. A widget comprising a housing.", "product_evidence": "user manual shows housing" },
+      "expected": { "forbidden": "FTO" }
+    },
+    {
+      "id": "CC-30-SECURITY",
+      "title": "Confidential code and designs fail closed",
+      "harness": "security",
+      "inputs": { "engine": "contributor/free-model:free", "mode": "CONFIDENTIAL_IP" },
+      "expected": { "flag": "CONFIDENTIAL_PILOT_BLOCKED" }
+    }
+    ,
+    {
+      "id": "CC-31-PREAMBLE",
+      "title": "Preambles preserve without limiting rulings",
+      "harness": "preamble",
+      "inputs": { "claim_text": "1. A sensor for detecting motion, comprising: a housing." },
+      "expected": { "preamble_present": true, "note": "PREAMBLE_EFFECT_REVIEW_REQUIRED" }
+    },
+    {
+      "id": "CC-32-TRANSITION",
+      "title": "Transitions preserve verbatim",
+      "harness": "transition",
+      "inputs": { "claim_text": "1. A composition consisting of A and B." },
+      "expected": { "transition": "consisting of" }
+    },
+    {
+      "id": "CC-33-MARKUSH",
+      "title": "Alternatives never flatten to mandates",
+      "harness": "markush",
+      "inputs": { "limitation": "a metal selected from the group consisting of copper, aluminum, and steel" },
+      "expected": { "alternatives": 3 }
+    },
+    {
+      "id": "CC-34-PARTIAL-MAPPING",
+      "title": "Partial evidence never upgrades",
+      "harness": "partial-mapping",
+      "inputs": { "limitation_id": "L1", "partial": true },
+      "expected": { "status": "PARTIALLY_MAPPED" }
+    },
+    {
+      "id": "CC-35-POSSIBLE-MAPPING",
+      "title": "Uncertain equivalence stays review-gated",
+      "harness": "possible-mapping",
+      "inputs": { "limitation_id": "L1", "possible": true, "possible_reason": "Bluetooth may implement the wireless transceiver." },
+      "expected": { "status": "POSSIBLY_MAPPED_REVIEW_REQUIRED" }
+    },
+    {
+      "id": "CC-36-TERMINOLOGY",
+      "title": "Transceiver-to-Bluetooth needs recorded reasoning",
+      "harness": "terminology",
+      "inputs": { "claim_term": "wireless transceiver", "evidence_term": "Bluetooth module", "relationship": "TECHNICALLY_EQUIVALENT_REVIEW_REQUIRED", "reasoning": "" },
+      "expected": { "review": true }
+    },
+    {
+      "id": "CC-37-LOCKING",
+      "title": "Upstream changes flag locked rows, never silently keep them",
+      "harness": "locking",
+      "inputs": { "rows": 1 },
+      "expected": { "flag": "LOCKED_ROW_UPSTREAM_CHANGE", "status": "STALE_LOCKED" }
+    },
+    {
+      "id": "CC-38-OVERRIDE",
+      "title": "Reviewer overrides preserve machine originals",
+      "harness": "override",
+      "inputs": { "mapping_status": "MAPPED", "reviewer": "analyst-1", "notes": "Confirmed against page 4." },
+      "expected": { "review_status": "REVIEWER_OVERRIDDEN", "original_kept": true }
+    },
+    {
+      "id": "CC-39-STALENESS",
+      "title": "Claim edits stale the chart",
+      "harness": "staleness",
+      "inputs": { "claim_version": "granted", "current_version": "amended" },
+      "expected": { "flag": "CLAIM_CHART_STALE", "rerun": "CLAIM_VERSION_CHANGED" }
+    },
+    {
+      "id": "CC-40-RECOMPUTATION",
+      "title": "Only affected rows recompute",
+      "harness": "recomputation",
+      "inputs": { "changed": ["L1"], "rows": ["L1", "L2"] },
+      "expected": { "affected": 1, "preserved": 1 }
+    },
+    {
+      "id": "CC-41-INVALIDITY-HANDOFF",
+      "title": "Invalidity receives versioned evidence, applies law itself",
+      "harness": "invalidity-handoff",
+      "inputs": { "claim_version": "granted" },
+      "expected": { "target": "patent-invalidity-opinion", "legal": "NONE" }
+    },
+    {
+      "id": "CC-42-FTO-HANDOFF",
+      "title": "FTO adds its own territory and status gates",
+      "harness": "fto-handoff",
+      "inputs": {},
+      "expected": { "target": "freedom-to-operate-opinion" }
+    },
+    {
+      "id": "CC-43-EXPORT",
+      "title": "Table, JSON, and CSV derive from one dataset",
+      "harness": "export",
+      "inputs": {},
+      "expected": { "formats": ["table", "json", "csv"] }
+    },
+    {
+      "id": "CC-44-VOICE-CONFIRMATION",
+      "title": "Full context proceeds only on approval",
+      "harness": "confirmation",
+      "inputs": {
+        "facts": {
+          "claim_selection": "Claim 1 of US7654321B2",
+          "claim_numbers": [1],
+          "claims": [{ "claim_number": 1, "claim_text": "1. A sensor comprising a housing." }],
+          "claim_version": "granted",
+          "target_source": "Reference A",
+          "chart_purpose": "PRIOR_ART_REVIEW",
+          "constructions": []
+        }
+      },
+      "expected": { "prompt": "PROMPT_ANALYSIS_CONFIRMATION", "draft": "DRAFT" }
+    },
+    {
+      "id": "CC-45-DEPENDENCY-VALIDATION",
+      "title": "Missing parents and cycles are flagged",
+      "harness": "dependency-validation",
+      "inputs": { "claims": [{ "claim_number": 2, "depends_on": [9] }] },
+      "expected": { "flag": "CLAIM_DEPENDENCY_REVIEW_REQUIRED" }
+    }
+  ]
+}
