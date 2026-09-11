@@ -655,6 +655,8 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isDictating, setIsDictating] = useState(false);
   const [dictatedLiveText, setDictatedLiveText] = useState("");
+  const [dictationPhase, setDictationPhase] = useState("idle"); // 'idle' | 'listening' | 'answering' | 'speaking'
+  const [spokenWordsWindow, setSpokenWordsWindow] = useState([]);
   const [voiceOverlayOpen, setVoiceOverlayOpen] = useState(false);
   const [autoSpeakVoice, setAutoSpeakVoice] = useState(() => {
     try {
@@ -671,6 +673,8 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   const dictationChunksRef = useRef([]);
   const dictationBaseInputRef = useRef("");
   const accumulatedFinalRef = useRef("");
+  const silenceTimerRef = useRef(null);
+  const teleprompterTimerRef = useRef(null);
   const inputRef = useRef(input);
 
   useEffect(() => {
@@ -756,12 +760,33 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       } catch {}
       currentAudioRef.current = null;
     }
+    if (teleprompterTimerRef.current) {
+      clearInterval(teleprompterTimerRef.current);
+      teleprompterTimerRef.current = null;
+    }
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
 
+    if (playingAudioIndex === msgIndex && isPlayingAudio) {
+      setIsPlayingAudio(false);
+      setPlayingAudioIndex(null);
+      setDictationPhase("idle");
+      setSpokenWordsWindow([]);
+      return;
+    }
+
     const clean = cleanMarkdownForVoice(text);
-    if (!clean) return;
+    if (!clean) {
+      setDictationPhase("idle");
+      return;
+    }
+
+    const words = clean.split(/\s+/).filter(Boolean);
+    if (words.length > 0) {
+      setSpokenWordsWindow(words.slice(0, 1));
+      setDictationPhase("speaking");
+    }
 
     setPlayingAudioIndex(msgIndex);
     setIsPlayingAudio(true);
@@ -795,26 +820,60 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         const audio = new Audio(audioUrl);
         currentAudioRef.current = audio;
 
+        // Teleprompter interval: track current audio playback and slide 7-word window in real-time!
+        if (teleprompterTimerRef.current) clearInterval(teleprompterTimerRef.current);
+        teleprompterTimerRef.current = setInterval(() => {
+          if (!audio || audio.paused) return;
+          const cur = audio.currentTime || 0;
+          const dur = audio.duration || 1;
+          const ratio = Math.min(0.99, Math.max(0, cur / dur));
+          const wordIdx = Math.floor(ratio * words.length);
+          const startIdx = Math.max(0, wordIdx - 6);
+          setSpokenWordsWindow(words.slice(startIdx, wordIdx + 1));
+        }, 50);
+
         audio.onended = () => {
+          if (teleprompterTimerRef.current) {
+            clearInterval(teleprompterTimerRef.current);
+            teleprompterTimerRef.current = null;
+          }
           URL.revokeObjectURL(audioUrl);
           currentAudioRef.current = null;
           setIsPlayingAudio(false);
           setPlayingAudioIndex(null);
+          setDictationPhase("idle");
+          setSpokenWordsWindow([]);
         };
 
         audio.onerror = () => {
+          if (teleprompterTimerRef.current) {
+            clearInterval(teleprompterTimerRef.current);
+            teleprompterTimerRef.current = null;
+          }
           URL.revokeObjectURL(audioUrl);
           currentAudioRef.current = null;
           if (typeof window !== "undefined" && "speechSynthesis" in window) {
+            let wordCounter = 0;
             const utterance = new SpeechSynthesisUtterance(speechInput);
+            utterance.onboundary = (e) => {
+              if (e.name === "word") {
+                wordCounter = Math.min(words.length - 1, wordCounter + 1);
+                const startIdx = Math.max(0, wordCounter - 6);
+                setSpokenWordsWindow(words.slice(startIdx, wordCounter + 1));
+              }
+            };
             utterance.onend = () => {
               setIsPlayingAudio(false);
               setPlayingAudioIndex(null);
+              setDictationPhase("idle");
+              setSpokenWordsWindow([]);
             };
             window.speechSynthesis.speak(utterance);
           } else {
             setIsPlayingAudio(false);
             setPlayingAudioIndex(null);
+            setDictationPhase("idle");
+            setSpokenWordsWindow([]);
           }
         };
 
@@ -826,21 +885,40 @@ export default function ChatPage({ onHome, onAuthRequired }) {
     }
 
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      let wordCounter = 0;
       const utterance = new SpeechSynthesisUtterance(clean.slice(0, 300));
+      utterance.onboundary = (e) => {
+        if (e.name === "word") {
+          wordCounter = Math.min(words.length - 1, wordCounter + 1);
+          const startIdx = Math.max(0, wordCounter - 6);
+          setSpokenWordsWindow(words.slice(startIdx, wordCounter + 1));
+        }
+      };
       utterance.onend = () => {
         setIsPlayingAudio(false);
         setPlayingAudioIndex(null);
+        setDictationPhase("idle");
+        setSpokenWordsWindow([]);
       };
       window.speechSynthesis.speak(utterance);
     } else {
       setIsPlayingAudio(false);
       setPlayingAudioIndex(null);
+      setDictationPhase("idle");
+      setSpokenWordsWindow([]);
     }
   };
 
   const stopDictation = (autoSendAndSpeak = false) => {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
     isDictatingRef.current = false;
     setIsDictating(false);
+    if (!autoSendAndSpeak && dictationPhase !== "speaking") {
+      setDictationPhase("idle");
+    }
     setDictatedLiveText("");
     if (dictationRecognitionRef.current) {
       try {
@@ -861,12 +939,15 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       dictationMediaStreamRef.current = null;
     }
     if (autoSendAndSpeak) {
+      setDictationPhase("answering");
       setTimeout(() => {
         const textToSend = inputRef.current.trim();
         if (textToSend) {
           send(textToSend, { autoSpeak: true });
+        } else {
+          setDictationPhase("idle");
         }
-      }, 150);
+      }, 100);
     }
   };
 
@@ -884,6 +965,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       dictationChunksRef.current = [];
       setIsDictating(true);
       isDictatingRef.current = true;
+      setDictationPhase("listening");
       setDictatedLiveText("Recording speech... Speak clearly");
 
       const mimeType = typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported("audio/webm")
@@ -902,6 +984,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       recorder.onstop = async () => {
         if (dictationChunksRef.current.length > 0) {
           setDictatedLiveText("Transcribing speech with AI...");
+          setDictationPhase("answering");
           const blob = new Blob(dictationChunksRef.current, { type: recorder.mimeType || "audio/webm" });
           const reader = new FileReader();
           reader.onloadend = async () => {
@@ -957,6 +1040,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
     dictationBaseInputRef.current = input ? input.trim() + " " : "";
     accumulatedFinalRef.current = "";
     setDictatedLiveText("");
+    setDictationPhase("listening");
 
     // Try native Web Speech API first (works natively in Chrome, Safari iOS, Edge)
     if (SpeechRecognition) {
@@ -977,6 +1061,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         recognition.onstart = () => {
           setIsDictating(true);
           isDictatingRef.current = true;
+          setDictationPhase("listening");
         };
 
         recognition.onresult = (event) => {
@@ -999,6 +1084,19 @@ export default function ChatPage({ onHome, onAuthRequired }) {
             setInput(fullInput);
             setDictatedLiveText(totalSpoken);
           }
+
+          // Reset silence timer on every spoken word:
+          // The moment user stops speaking for 1.35s, change state to "answering" and auto-reply!
+          if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+          silenceTimerRef.current = setTimeout(() => {
+            if (isDictatingRef.current) {
+              const textToSend = inputRef.current.trim();
+              if (textToSend.length > 2) {
+                setDictationPhase("answering");
+                stopDictation(true);
+              }
+            }
+          }, 1350);
         };
 
         recognition.onerror = (err) => {
@@ -1015,6 +1113,12 @@ export default function ChatPage({ onHome, onAuthRequired }) {
 
         recognition.onend = () => {
           if (isDictatingRef.current) {
+            const textToSend = inputRef.current.trim();
+            if (textToSend.length > 2) {
+              setDictationPhase("answering");
+              stopDictation(true);
+              return;
+            }
             setTimeout(() => {
               try {
                 if (isDictatingRef.current && dictationRecognitionRef.current) {
@@ -1034,6 +1138,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         recognition.start();
         setIsDictating(true);
         isDictatingRef.current = true;
+        setDictationPhase("listening");
         return;
       } catch (err) {
         console.warn("[Dictation] SpeechRecognition init failed, falling back to MediaRecorder:", err);
@@ -1676,6 +1781,13 @@ export default function ChatPage({ onHome, onAuthRequired }) {
             }
           }
           if (acc) sseAnswer = acc;
+        } else if (streamRes.ok) {
+          const json = await streamRes.json().catch(() => ({}));
+          const txt = json.choices?.[0]?.message?.content || json.answer || "";
+          if (txt) {
+            sseAnswer = txt;
+            data = { sally_meta: json.sally_meta || {} };
+          }
         }
       } catch {
         sseAnswer = null;
@@ -1711,7 +1823,9 @@ export default function ChatPage({ onHome, onAuthRequired }) {
 
       // Model answer received: SSE path already streamed live; buffered path replays.
       clearInterval(progressTimer);
-      if (!sseAnswer) {
+      if (autoSpeak) {
+        setStreamingAnswer(answer);
+      } else if (!sseAnswer) {
         await transitionToComplete();
         await streamResponseLineByLine(answer);
       }
@@ -2445,6 +2559,82 @@ export default function ChatPage({ onHome, onAuthRequired }) {
 
               {/* Floating Center Composer */}
               <div className={`beebotComposerCard ${isDictating ? "is-dictating" : ""}`}>
+                {/* 1. Sally Speaking: 7-word rolling teleprompter */}
+                {dictationPhase === "speaking" && spokenWordsWindow.length > 0 && (
+                  <div className="beebotTeleprompterStrip">
+                    <div className="beebotTeleprompterHeader flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="beebotSpeakingWave">
+                          <span className="bar b1" />
+                          <span className="bar b2" />
+                          <span className="bar b3" />
+                          <span className="bar b4" />
+                        </div>
+                        <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                          Sally is speaking...
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (currentAudioRef.current) {
+                            try {
+                              currentAudioRef.current.pause();
+                              currentAudioRef.current.currentTime = 0;
+                            } catch {}
+                            currentAudioRef.current = null;
+                          }
+                          if (teleprompterTimerRef.current) {
+                            clearInterval(teleprompterTimerRef.current);
+                            teleprompterTimerRef.current = null;
+                          }
+                          if (typeof window !== "undefined" && "speechSynthesis" in window) {
+                            window.speechSynthesis.cancel();
+                          }
+                          setIsPlayingAudio(false);
+                          setPlayingAudioIndex(null);
+                          setDictationPhase("idle");
+                          setSpokenWordsWindow([]);
+                        }}
+                        className="beebotDictationDoneBtn"
+                        title="Stop speaking"
+                      >
+                        <Square className="w-2.5 h-2.5 fill-red-500 text-red-500" />
+                        <span>Stop</span>
+                      </button>
+                    </div>
+                    <div className="beebotRollingWordsLine">
+                      {spokenWordsWindow.map((word, idx) => {
+                        const isLatest = idx === spokenWordsWindow.length - 1;
+                        return (
+                          <span
+                            key={idx}
+                            className={`beebotRollingWord ${isLatest ? "active-word" : "prior-word"}`}
+                          >
+                            {word}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. Answering phase banner */}
+                {dictationPhase === "answering" && (
+                  <div className="beebotAnsweringBanner">
+                    <div className="flex items-center gap-2">
+                      <div className="beebotAnsweringOrb" />
+                      <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+                        Answering to your sentences...
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-indigo-500 animate-pulse" />
+                      <span>Generating voice response</span>
+                    </div>
+                  </div>
+                )}
+
                 {isDictating && (
                   <div className="beebotDictationBanner">
                     <div className="beebotDictationLeft">
@@ -2764,6 +2954,82 @@ export default function ChatPage({ onHome, onAuthRequired }) {
               {/* Persistent Pinned Bottom Composer */}
               <div className="beebotBottomComposerWrap">
                 <div className={`beebotComposerCard ${isDictating ? "is-dictating" : ""}`}>
+                  {/* 1. Sally Speaking: 7-word rolling teleprompter */}
+                  {dictationPhase === "speaking" && spokenWordsWindow.length > 0 && (
+                    <div className="beebotTeleprompterStrip">
+                      <div className="beebotTeleprompterHeader flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="beebotSpeakingWave">
+                            <span className="bar b1" />
+                            <span className="bar b2" />
+                            <span className="bar b3" />
+                            <span className="bar b4" />
+                          </div>
+                          <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                            Sally is speaking...
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (currentAudioRef.current) {
+                              try {
+                                currentAudioRef.current.pause();
+                                currentAudioRef.current.currentTime = 0;
+                              } catch {}
+                              currentAudioRef.current = null;
+                            }
+                            if (teleprompterTimerRef.current) {
+                              clearInterval(teleprompterTimerRef.current);
+                              teleprompterTimerRef.current = null;
+                            }
+                            if (typeof window !== "undefined" && "speechSynthesis" in window) {
+                              window.speechSynthesis.cancel();
+                            }
+                            setIsPlayingAudio(false);
+                            setPlayingAudioIndex(null);
+                            setDictationPhase("idle");
+                            setSpokenWordsWindow([]);
+                          }}
+                          className="beebotDictationDoneBtn"
+                          title="Stop speaking"
+                        >
+                          <Square className="w-2.5 h-2.5 fill-red-500 text-red-500" />
+                          <span>Stop</span>
+                        </button>
+                      </div>
+                      <div className="beebotRollingWordsLine">
+                        {spokenWordsWindow.map((word, idx) => {
+                          const isLatest = idx === spokenWordsWindow.length - 1;
+                          return (
+                            <span
+                              key={idx}
+                              className={`beebotRollingWord ${isLatest ? "active-word" : "prior-word"}`}
+                            >
+                              {word}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 2. Answering phase banner */}
+                  {dictationPhase === "answering" && (
+                    <div className="beebotAnsweringBanner">
+                      <div className="flex items-center gap-2">
+                        <div className="beebotAnsweringOrb" />
+                        <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+                          Answering to your sentences...
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-indigo-500 animate-pulse" />
+                        <span>Generating voice response</span>
+                      </div>
+                    </div>
+                  )}
+
                   {isDictating && (
                     <div className="beebotDictationBanner">
                       <div className="beebotDictationLeft">
