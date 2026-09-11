@@ -5,7 +5,7 @@ export function VoiceStatus({ state, duration = 0 }) {
   if (state === VOICE_STATES.IDLE || state === VOICE_STATES.DISCONNECTED) {
     return (
       <p className="voice-subtitle">
-        Discover real-time full-duplex conversational voice powered by Fish Audio S2.1 Pro
+        Real-time full-duplex conversational voice powered by Microsoft Edge Neural TTS
       </p>
     );
   }

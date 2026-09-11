@@ -120,7 +120,7 @@ export function VoiceOverlay({
             <span className="voice-header-title">Sally Full-Duplex Voice</span>
             <div className="voice-header-badge">
               <ShieldCheck size={12} color="#059669" />
-              <span>Fish Audio S2.1</span>
+              <span>Microsoft Edge Neural</span>
             </div>
           </div>
           <button

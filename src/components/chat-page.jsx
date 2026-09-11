@@ -2648,7 +2648,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                           <button
                             onClick={() => togglePlayVoice(message.content, index)}
                             className={`beebotActionBtn ${playingAudioIndex === index && isPlayingAudio ? "text-indigo-600 font-semibold bg-indigo-50 dark:bg-indigo-950/40" : ""}`}
-                            title={playingAudioIndex === index && isPlayingAudio ? "Stop Sally's voice audio" : "Listen in Sally's voice (Fish Audio)"}
+                            title={playingAudioIndex === index && isPlayingAudio ? "Stop Sally's voice audio" : "Listen in Sally's voice (Edge Neural)"}
                           >
                             {playingAudioIndex === index && isPlayingAudio ? (
                               <>

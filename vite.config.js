@@ -44,6 +44,7 @@ import { planLegalTask } from './src/lib/legal-task-planner.js'
 import { exportGroundingPairs, exportRiskPairs, flywheelCounts } from './src/lib/flywheel-export.js'
 import { runAutomatedLegalWorkflow } from './src/lib/workflow-orchestrator.js'
 import { createPatentDraft, getPatentDraft, listPatentDrafts, updateDraftSection, generateDraftSection, screenSubjectMatter101, verifyClaimSupport112, assembleFullSpecification } from './src/lib/patent-drafting-service.js'
+import { synthesizeEdgeTTS } from './src/lib/edge-tts-service.js'
 
 function sallyChatApi(apiKey, databaseUrl, model, embeddingKey, embeddingModel, lfmChatKey, lfmChatModel, dotsKey, dotsModel, gemmaKey, gemmaModel, rerankKey, rerankModel, oxKey, oxModel, epoKey, epoSecret, euipoClientId, euipoClientSecret, euipoAuthUrl, euipoApiBase, brainAdminUsername, brainAdminPassword, omniRouteKey, omniRouteBaseUrl, usptoApiKey, usptoApiBase, courtListenerToken, courtListenerCourt) {
   return {
@@ -133,9 +134,24 @@ function sallyChatApi(apiKey, databaseUrl, model, embeddingKey, embeddingModel, 
         if (req.method !== 'POST') { res.statusCode = 405; res.setHeader('Content-Type','application/json'); return res.end(JSON.stringify({error:{message:'Method not allowed'}})) }
         try {
           let raw = ''; for await (const chunk of req) raw += chunk
-          const { input, text, model } = JSON.parse(raw || '{}')
+          const { input, text, model, voice } = JSON.parse(raw || '{}')
           const speechText = String(input || text || '').trim()
           if (!speechText) { res.statusCode = 400; res.setHeader('Content-Type','application/json'); return res.end(JSON.stringify({error:{message:'Speech text is required'}})) }
+
+          // 1. Primary: Microsoft Edge Neural TTS
+          try {
+            const edgeVoice = voice || process.env.EDGE_TTS_VOICE || 'en-US-AriaNeural'
+            const buf = await synthesizeEdgeTTS(speechText, { voice: edgeVoice })
+            res.statusCode = 200
+            res.setHeader('Content-Type', 'audio/mpeg')
+            res.setHeader('Content-Length', String(buf.length))
+            res.setHeader('X-TTS-Engine', 'microsoft-edge-neural')
+            return res.end(buf)
+          } catch (edgeErr) {
+            console.warn('[vite-middleware] Edge TTS failed, attempting fallback:', edgeErr.message)
+          }
+
+          // 2. Fallback: OpenRouter / Fish Audio
           const candidateKeys = [
             process.env.OPENROUTER_SPEECH_API_KEY,
             process.env.OPENROUTER_API_KEY,
@@ -169,6 +185,7 @@ function sallyChatApi(apiKey, databaseUrl, model, embeddingKey, embeddingModel, 
               res.statusCode = 200
               res.setHeader('Content-Type', 'audio/mpeg')
               res.setHeader('Content-Length', String(buf.length))
+              res.setHeader('X-TTS-Engine', 'openrouter-fish-audio')
               return res.end(buf)
             }
             lastStatus = response.status
@@ -199,7 +216,7 @@ function sallyChatApi(apiKey, databaseUrl, model, embeddingKey, embeddingModel, 
         if (req.method !== 'POST') { res.statusCode = 405; return res.end(JSON.stringify({error:{message:'Method not allowed'}})) }
         return res.end(JSON.stringify({
           session_id: `vsess-${crypto.randomUUID()}`,
-          tts_model: process.env.SALLYIP_SPEECH_MODEL || 'fish-audio/s2.1-pro-free:free',
+          tts_model: 'microsoft-edge-neural/en-US-AriaNeural',
           sample_rate: 24000,
           created_at: Date.now()
         }))
@@ -208,9 +225,24 @@ function sallyChatApi(apiKey, databaseUrl, model, embeddingKey, embeddingModel, 
         if (req.method !== 'POST') { res.statusCode = 405; res.setHeader('Content-Type','application/json'); return res.end(JSON.stringify({error:{message:'Method not allowed'}})) }
         try {
           let raw = ''; for await (const chunk of req) raw += chunk
-          const { input, text, model } = JSON.parse(raw || '{}')
+          const { input, text, model, voice } = JSON.parse(raw || '{}')
           const speechText = String(input || text || '').trim()
           if (!speechText) { res.statusCode = 400; res.setHeader('Content-Type','application/json'); return res.end(JSON.stringify({error:{message:'input text is required'}})) }
+
+          // 1. Primary: Microsoft Edge Neural TTS
+          try {
+            const edgeVoice = voice || process.env.EDGE_TTS_VOICE || 'en-US-AriaNeural'
+            const buf = await synthesizeEdgeTTS(speechText, { voice: edgeVoice })
+            res.statusCode = 200
+            res.setHeader('Content-Type', 'audio/mpeg')
+            res.setHeader('Content-Length', String(buf.length))
+            res.setHeader('X-TTS-Engine', 'microsoft-edge-neural')
+            return res.end(buf)
+          } catch (edgeErr) {
+            console.warn('[vite-middleware] Edge TTS failed for /api/speech, attempting fallback:', edgeErr.message)
+          }
+
+          // 2. Fallback: OpenRouter / Fish Audio
           const candidateKeys = [
             process.env.OPENROUTER_SPEECH_API_KEY,
             process.env.OPENROUTER_API_KEY,
@@ -244,6 +276,7 @@ function sallyChatApi(apiKey, databaseUrl, model, embeddingKey, embeddingModel, 
               res.statusCode = 200
               res.setHeader('Content-Type', 'audio/mpeg')
               res.setHeader('Content-Length', String(buf.length))
+              res.setHeader('X-TTS-Engine', 'openrouter-fish-audio')
               return res.end(buf)
             }
             lastStatus = response.status

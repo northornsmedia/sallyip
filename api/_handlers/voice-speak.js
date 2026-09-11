@@ -6,6 +6,7 @@
  */
 
 import { assertChatAllowed, resolveExecutionMode } from '../../src/lib/provider-policy.js';
+import { synthesizeEdgeTTS } from '../../src/lib/edge-tts-service.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -43,6 +44,20 @@ export default async function handler(req, res) {
       }
     }
 
+    // 1. PRIMARY ENGINE: Microsoft Edge Neural TTS (Free, zero-quota, ultra-realistic)
+    try {
+      const edgeVoice = req.body?.voice || process.env.EDGE_TTS_VOICE || 'en-US-AriaNeural';
+      const buffer = await synthesizeEdgeTTS(speechText, { voice: edgeVoice });
+      res.setHeader('Content-Type', 'audio/mpeg');
+      res.setHeader('Content-Length', String(buffer.length));
+      res.setHeader('Cache-Control', 'no-cache, no-store');
+      res.setHeader('X-TTS-Engine', 'microsoft-edge-neural');
+      return res.status(200).send(buffer);
+    } catch (edgeErr) {
+      console.warn('[voice-speak] Edge TTS primary synthesis error, attempting fallback:', edgeErr.message);
+    }
+
+    // 2. FALLBACK ENGINE: OpenRouter / Fish Audio
     const candidateKeys = [
       process.env.OPENROUTER_SPEECH_API_KEY,
       process.env.OPENROUTER_API_KEY,
@@ -54,7 +69,7 @@ export default async function handler(req, res) {
     ].filter(Boolean);
 
     if (!candidateKeys.length) {
-      return res.status(500).json({ error: { message: 'OpenRouter Speech API key is not configured' } });
+      return res.status(500).json({ error: { message: 'Edge TTS and OpenRouter Speech are both unavailable' } });
     }
 
     let lastError = null;
@@ -83,6 +98,7 @@ export default async function handler(req, res) {
         res.setHeader('Content-Type', 'audio/mpeg');
         res.setHeader('Content-Length', String(buffer.length));
         res.setHeader('Cache-Control', 'no-cache, no-store');
+        res.setHeader('X-TTS-Engine', 'openrouter-fish-audio');
         return res.status(200).send(buffer);
       }
 

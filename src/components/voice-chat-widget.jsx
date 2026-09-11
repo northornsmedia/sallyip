@@ -42,7 +42,7 @@ export default function VoiceChatWidget() {
     {
       id: "welcome",
       role: "assistant",
-      text: "Hello! I am SallyIP Conversational Agent powered by Fish Audio S2.1 Pro. How can I assist with your patent, trademark, or legal research today?",
+      text: "Hello! I am SallyIP Conversational Agent powered by Microsoft Edge Neural TTS. How can I assist with your patent, trademark, or legal research today?",
       time: "Just now",
     },
   ]);
@@ -623,7 +623,7 @@ export default function VoiceChatWidget() {
                   /* Subtitle text matching user's voice model */
                   <p className="voice-subtitle">
                     Discover the capabilities of Conversational Agents powered by
-                    Fish Audio S2.1 Pro
+                    Microsoft Edge Neural TTS
                   </p>
                 )}
               </div>
