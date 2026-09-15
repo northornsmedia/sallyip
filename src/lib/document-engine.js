@@ -179,7 +179,10 @@ export function selectSectionsForDocument(profile, answers = {}) {
   if (!profile) return []
   return (profile.sections || []).filter(section => {
     if (!section.show_if) return true
-    try { return new Function('answers', `return ${section.show_if}`)(answers) } catch { return true }
+    try {
+      const expr = String(section.show_if).replace(/[^a-zA-Z0-9_.\s=!<>|&()]/g, '');
+      return new Function('answers', `return (${expr})`)(answers);
+    } catch { return true }
   }).sort((a, b) => a.order - b.order)
 }
 

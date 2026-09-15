@@ -7,6 +7,9 @@ export default async function handler(req,res){
   const {query,documents,top_n,mode}=req.body||{}
   if(typeof query!=='string'||!query.trim())return res.status(400).json({error:{message:'Query is required'}})
   if(!Array.isArray(documents)||!documents.length)return res.status(400).json({error:{message:'Documents must be a non-empty array'}})
+  const sql=neon(process.env.DATABASE_URL);
+  const user=await getSessionUser(sql,req.headers.cookie).catch(()=>null);
+  if(!user||!user.id)return res.status(401).json({error:{message:'Unauthorized',code:'UNAUTHORIZED'}});
   const executionMode = resolveExecutionMode({ mode: mode || process.env.SALLYIP_EXECUTION_MODE });
   try {
     assertRerankAllowed({ model: process.env.SALLYIP_RERANK_MODEL||'nvidia/llama-nemotron-rerank-vl-1b-v2:free', mode: executionMode });

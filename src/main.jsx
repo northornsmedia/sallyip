@@ -1789,7 +1789,7 @@ function App() {
     // Legacy hash marketing routes redirect to clean enterprise paths (no hash public pages).
     const hashRedirects = { home: "/", pricing: "/pricing", benchmarks: "/benchmarks", security: "/security", lifecycle: "/lifecycle-guide", modules: "/modules", performance: "/performance", transparency: "/verification-logs" };
     const cur = route();
-    if (hashRedirects[cur]) {
+    if (location.hash && hashRedirects[cur]) {
       window.history.pushState({}, "", hashRedirects[cur]);
       setMPath(hashRedirects[cur]);
     }

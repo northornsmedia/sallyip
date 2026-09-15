@@ -141,3 +141,10 @@ Full integration tests requiring configured external services or a database were
 - `d46825c` (August 25, 2026): kept Sally chat available during engine failures.
 - `d9344ba` (August 25, 2026): restored the main chat fallback.
 - `51763d4` (August 25, 2026): consolidated serverless functions into a unified catch-all router for the Vercel Hobby tier.
+
+## Update 2026-09-10 — hardening + P0 closure (see `SECURITY_ACTIVATION_REPORT.md` §19, `SECURITY_IMPLEMENTATION_LOG.md` §13, `CONFIDENTIAL_PILOT_P0_CLOSURE_REPORT.md`)
+
+- DB: `048_draft_workflow` (+ duplicate `048_patent_drafting.sql` — resolve per `sqlrun.md`), `049_draft_matter_optional`, `050_jurisdiction_packs` (12 US/IN/GB), `051_office_actions`, `052_patentbench`, `053_workflow_type_open`, `054_provider_records`, `055_tenant_isolation` (~70 tables, NOT applied live).
+- Security: provider-policy fail-closed, auth-guards, audit redaction, contradiction/temporal/entailment wiring, file-safety on both ingestion paths, `APP_ORIGIN` allowlist + manifest generator, secret-scan + pre-commit + CI (`.github/workflows/secret-scan.yml`).
+- Tests: 70/70 security, 28/28 verification, build clean. Gate: `CONFIDENTIAL_PILOT_BLOCKED` (no approved chat/embedding, RLS 0, owner runtime, 12/35 audit).
+- Corrections to §§ above: Word manifest is now `https://sallyip.com` (generated, §"Microsoft Word add-in" stale); test count 45 → 70+28 (§"Validation" stale); DB §§115-124 six-migration list superseded by `sqlrun.md`.

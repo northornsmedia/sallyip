@@ -45,7 +45,7 @@ All P0 code changes complete. Tests pass (70/70 security, 28/28 verification). *
 ---
 
 ## 6. Audit Coverage
-**IMPROVED: 12/35 handlers audited** (was 6/34). Still 23 NOT_AUDITED (mostly non-security).
+**IMPROVED: 12/39 handlers audited** (was 6/34). Still 27 NOT_AUDITED (mostly non-security).
 - Added: generated-files (list/download/delete/denial), workflows (execute/fail), artifacts (CRUD/restore/denial), sources (read/create), conversations (list/CRUD).
 - Structured fields: `event_id`, `actor`, `matter`, `action`, `resource`, `result`, `request_id`, `severity`.
 - Confidential content redacted (no `body.content`, `disclosure`, `invention` in audit).
@@ -79,7 +79,7 @@ Includes: pre-flight, migration command, role creation order, health checks, rol
 ## 10. Pilot Gate Output
 ```
 CONFIDENTIAL_PILOT_BLOCKED
-Passed (5): no-free-fallback, ingestion-file-safe, prod-auth, audit(12/35), build
+Passed (5): no-free-fallback, ingestion-file-safe, prod-auth, audit(12/39), build
 Blocked (5): approved-chat, approved-embedding, rls-verified, least-priv-role, cross-tenant-proof
 ```
 
@@ -97,13 +97,12 @@ Blocked (5): approved-chat, approved-embedding, rls-verified, least-priv-role, c
 ---
 
 ## 12. Files Changed (P0 Closure Wave)
-**Modified (15):**
+**Modified (19):**
 - `src/lib/provider-policy.js` (approved provider template)
 - `src/lib/sally-orchestrator.js` (policy gate, execution_mode, referer env)
-- `src/lib/embedding-service.js` (policy gate, referer)
+- `src/lib/embedding-service.js` (policy gate, referer env)
 - `src/lib/chat-orchestrator.js` (mode pass-through, siteUrlFor)
 - `src/lib/verification-service.js` (policy gate, contradiction/temporal/entailment wiring)
-- `src/lib/embedding-service.js` (referer env)
 - `src/lib/document-ingestion-local.js` (file-safety + injection flag)
 - `api/ingest-document.py` (confidential embed block + archive/traversal)
 - `api/_handlers/embeddings.js` (403 policy + rejection audit)
@@ -119,8 +118,8 @@ Blocked (5): approved-chat, approved-embedding, rls-verified, least-priv-role, c
 - `vite.config.js` (prod dev-fallback block)
 - `sqlrun.md` (055 migration)
 
-**New (22):**
-- `src/lib/provider-policy.js`, `src/lib/auth-guards.js`, `src/lib/contradiction-service.js`, `src/lib/temporal-service.js`, `src/lib/file-safety.js`, `src/lib/contract-analysis.js`, `src/lib/entailment-service.js`
+**New (34):**
+- `src/lib/auth-guards.js`, `src/lib/contradiction-service.js`, `src/lib/temporal-service.js`, `src/lib/file-safety.js`, `src/lib/contract-analysis.js`, `src/lib/entailment-service.js`
 - `database/055_tenant_isolation.sql`, `database/security_model.md`
 - `docs/provider-confidentiality-policy.md`, `docs/authority-provider-matrix.md`, `docs/contract-analysis-status.md`, `docs/security-architecture.md`, `docs/production-readiness.md`, `docs/runtime-security-evidence.md`, `docs/P0-7-production-migration-plan.md`
 - `benchmarks/contract_review_benchmark_v1.md`
@@ -132,7 +131,7 @@ Blocked (5): approved-chat, approved-embedding, rls-verified, least-priv-role, c
 ---
 
 ## 13. Git Status
-- Branch: `main...origin/main [ahead 7+]` (dirty from pre-existing SEO/sitemap changes unrelated to P0)
+- Branch: `main...origin/main` (dirty from pre-existing SEO/sitemap changes unrelated to P0; counts frozen at wave time — re-verify before merge)
 - Frozen benchmarks clean: no changes to `benchmarks/v1.0`, `hallucination-100.mjs`, `patent_retrieval_v1`
 - No legal benchmarks/ABIGAIL/IPBench/CUAD/practitioner grading modified.
 

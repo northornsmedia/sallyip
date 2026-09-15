@@ -1,7 +1,7 @@
 # SQL migrations — run later on a fresh database
 
-Already applied to the current live DB. Only needed for a second/fresh database.
-Run in number order from the project root:
+Already applied to the current live DB through 054. 055 is NOT applied live — see below. Only needed for a second/fresh database.
+Run in number order from the project root (fresh DBs also need `database/schema.sql` + `002`–`041` first):
 
 ```bash
 node --env-file=.env.local scripts/apply-migration.mjs database/042_playbooks.sql
@@ -15,8 +15,12 @@ node --env-file=.env.local scripts/apply-migration.mjs database/049_draft_matter
 node --env-file=.env.local scripts/apply-migration.mjs database/050_jurisdiction_packs.sql
 node --env-file=.env.local scripts/apply-migration.mjs database/051_office_actions.sql
 node --env-file=.env.local scripts/apply-migration.mjs database/052_patentbench.sql
+node --env-file=.env.local scripts/apply-migration.mjs database/053_workflow_type_open.sql
+node --env-file=.env.local scripts/apply-migration.mjs database/054_provider_records.sql
 node --env-file=.env.local scripts/apply-migration.mjs database/055_tenant_isolation.sql
 ```
+
+> Note: the repo contains both `database/048_draft_workflow.sql` and `database/048_patent_drafting.sql`. The canonical file for this chain is `048_draft_workflow.sql` — delete or rename the other before running a fresh DB.
 
 What each adds:
 
@@ -37,11 +41,19 @@ What each adds:
 | 054_provider_records | canonical patent records (provider/versioned, family_key + method) |
 | 055_tenant_isolation | RLS + FORCE RLS on ~70 tables, `sally_app`/`sally_readonly` roles, own-row policies (owner bypasses; see `database/security_model.md`). NOT yet applied to live DB — apply + switch user path to app role + verify. |
 
-New env keys for prod (search works without them; USPTO + CourtListener report "not configured" until added):
+New env keys for prod (search works without them; USPTO + CourtListener report "not configured" until added). Full reference with all 30+ keys lives in `.env.example`:
 
 ```
+EPO_OPS_KEY=
+EPO_OPS_SECRET=
+EUIPO_CLIENT_ID=
+EUIPO_CLIENT_SECRET=
 USPTO_API_KEY=
 USPTO_API_BASE=https://api.uspto.gov/patents/v1
 COURTLISTENER_TOKEN=
 COURTLISTENER_COURT=
+COURTLISTENER_API_BASE=https://www.courtlistener.com/api/rest/v3
+DATABASE_URL_ADMIN=
+DATABASE_URL_APP=
+DATABASE_URL_READONLY=
 ```

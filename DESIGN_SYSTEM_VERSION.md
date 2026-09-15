@@ -8,7 +8,7 @@
 # 4. Cross-device QA at 1440/1024/390
 #
 # Frozen: 2026-09-10
-# Baseline commit: (to be filled on tag)
+# Baseline commit: (to be filled on tag — until then the FROZEN claim is unverifiable)
 # Components: enterprise.css, ui.jsx, MarketingLayout, MarketingNav, MarketingFooter, shots.jsx
 # Pages: pages-home, pages-core, pages-ip, pages-company
 # Routes: 34 enterprise static + SPA marketing router
@@ -63,6 +63,7 @@
 - sallyip-patent-drafting (1424×749, 27.5 KB WebP)
 - sallyip-patent-drafting-focus (1139×412, 18.5 KB WebP)
 - sallyip-chat-actions-focus (1111×330, 9.3 KB WebP)
+- Plus matching `.png` fallbacks for all 5 names above (10 files on disk total). Registry lists WebP as canonical; PNGs are fallbacks, not separate shots.
 
 ## Visual Regression Baseline
 - 13 routes × 3 viewports = 39 baseline screenshots
@@ -74,6 +75,9 @@
 - 6 routes measured: /, /product, /novelty-search, /claim-charts, /office-action-defense, /benchmarks
 - Target: ≤200ms GOOD, ≤500ms NEEDS IMPROVEMENT, >500ms POOR (fail)
 - Command: npm run test:inp
+
+## Known drift (fix before v1.0.1; note: this section shifted the L86 ban reference below to L90)
+- `framer-motion@^11` is in `package.json` dependencies, contradicting the ban at L90 (`No framer-motion...`). Either remove the dep or amend the ban to allowlist it on non-marketing routes only.
 
 ## Freeze Policy
 - Any change to tokens, component contracts, or breakpoints requires:

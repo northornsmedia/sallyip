@@ -1,5 +1,7 @@
 # SECURITY ACTIVATION REPORT (live-evidence wave)
 
+> Superseded in part by `CONFIDENTIAL_PILOT_P0_CLOSURE_REPORT.md` (70/70 security, 12/35 audit). This file is the live-evidence wave snapshot — history below is frozen; new deltas go in §19.
+
 ## 1. P0 before/after
 - Providers: before — free models reachable everywhere; after — fail-closed gates on chat/embed/rerank/retrieval/ingestion, mock-proof of zero-fetch on block. Live approved provider still absent, so correct behavior is BLOCKED.
 - RLS: before — migration only; after — read-only live proof (owner bypass, 0 RLS) + staging test scaffolding. NOT applied live (deliberate, no blind prod apply).
@@ -58,3 +60,9 @@ Frozen: `git diff HEAD -- benchmarks/v1.0 benchmarks/hallucination-100.mjs bench
 
 ## Verdict
 `CONFIDENTIAL_PILOT_BLOCKED` — controls exist and unit/integration evidence is green, but tenant isolation, confidential providers, and full audit coverage lack live runtime proof. Do not admit confidential IP beyond PUBLIC_RESEARCH until the gate passes.
+
+## 19. Delta to P0 Closure (2026-09-15)
+- CI now exists (`.github/workflows/secret-scan.yml` + `visual-ci.yml`) — §11's "no `.github`" is stale.
+- Audit wiring 6/34 → 12/35; security tests 50/50 → 70/70 (+28/28 verification).
+- Word manifest domain is now `https://sallyip.com` via `scripts/generate-word-manifest.mjs` (do not hand-edit `public/word-addin/manifest.xml`).
+- BLOCKED reasons unchanged: no approved confidential chat/embedding, RLS not live, app role not runtime, live cross-tenant proof missing.

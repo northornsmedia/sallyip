@@ -6,7 +6,7 @@ const aliases={
   uae:'AE','south korea':'KR','north korea':'KP',
   russia:'RU','vietnam':'VN','bolivia':'BO','iran':'IR',
   taiwan:'TW','tanzania':'TZ','venezuela':'VE',
-  'european union':'EU',eu:'EU',epo:'EPO',europe:'EU'
+  'european union':'EU',eu:'EU',epo:'EPO',ep:'EPO',europe:'EU'
 }
 
 const regions=[]
@@ -46,6 +46,6 @@ export function resolveJurisdiction(text){
 
 export function officialPatentAuthority(jurisdiction){
   const region=resolveJurisdiction(jurisdiction)||supportedJurisdictions.find(item=>item.name===jurisdiction)
-  const known={IN:'Indian Patent Office / InPASS',US:'USPTO',GB:'UKIPO',DE:'DPMA and EPO',JP:'JPO',CN:'CNIPA',KR:'KIPO',CA:'CIPO',AU:'IP Australia',BR:'INPI Brazil',MX:'IMPI',FR:'INPI France',EU:'EPO',EPO:'EPO'}
+  const known={IN:'Indian Patent Office / InPASS',US:'USPTO',GB:'UKIPO',DE:'DPMA and EPO',JP:'JPO',CN:'CNIPA',KR:'KIPO',CA:'CIPO',AU:'IP Australia',BR:'INPI Brazil',MX:'IMPI',FR:'INPI France',EU:'EPO',EP:'EPO',EPO:'EPO'}
   return known[region?.code]||`${region?.name||jurisdiction||'National'} patent authority`
 }

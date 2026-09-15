@@ -20,13 +20,13 @@
 - P1 services: `contradiction-service.js`, `temporal-service.js`; entailment already existed and is now tested independently.
 - Contract wrapper `contract-analysis.js` (RULE_BASED_SCREENING label) + `benchmarks/contract_review_benchmark_v1.md` (11 cases).
 - File policy `src/lib/file-safety.js` (caps, MIME, traversal, injection flag).
-- Env: `SALLYIP_EXECUTION_MODE`, `SALLYIP_APPROVE_GEMINI_CONFIDENTIAL`, `APP_ORIGIN`/`API_ORIGIN` in `.env.example`; `test:security` script in `package.json`; `sqlrun.md` covers 055.
+- Env: `SALLYIP_EXECUTION_MODE`, `SALLYIP_APPROVE_GEMINI_CONFIDENTIAL`, `APP_ORIGIN`/`API_ORIGIN` in `.env.example` [STALE 2026-09-15: origins and several keys absent from current `.env.example` — restored, see full 30+ key reference there]; `test:security` script in `package.json`; `sqlrun.md` covers 055.
 
 ## 3. Unresolved P0 blockers
 - No approved confidential chat/embedding configured by default (Gemini needs paid Cloud + DPA + flag; local paid embedding TODO). Confidential requests correctly FAIL CLOSED until then — do not pilot confidential matters.
 - 055 not applied to live DB; user path still owner role; needs live apply + `SET LOCAL app.current_user_id` wiring + live cross-tenant verify.
-- File-safety lib not yet called from every ingestion route (`api/ingest-document.py`, `generate-file` paths).
-- Hardcoded origins still present at call sites; Word manifest still points at vercel.app.
+- File-safety lib not yet called from every ingestion route (`api/ingest-document.py`, `generate-file` paths). [SUPERSEDED by Activation wave §6: wired into both ingestion paths + 11 attack tests; live-upload staging still pending.]
+- Hardcoded origins still present at call sites; Word manifest still points at vercel.app. [STALE: manifest is now generated at sallyip.com — see Activation §19 delta.]
 
 ## 4. Unresolved P1 blockers
 - WIPO/UKIPO/CIPO/IPAU adapters missing; family `unresolved` handling documented but not fully wired.
@@ -47,7 +47,7 @@ See `docs/provider-confidentiality-policy.md`. Summary: all `:free` = MAY TRAIN,
 - Legal correctness kept separate from grounding; practitioner scorecard untouched.
 
 ## 8. Security tests passed/failed
-- New suite `npm run test:security`: 31/31 pass (7 files: provider-confidentiality, auth-hardening, audit-logging, file-safety, tenant-isolation, verification-p1, contracts-and-deploy).
+- New suite `npm run test:security`: 31/31 pass at window time (7 files). Current: 70/70 security (18 files) + 28/28 verification — see Activation §12/13 and P0 Closure.
 - Existing `npm run test:verification`: 28/28 pass.
 - Integration tests requiring DB/keys not run (documented limitation).
 
@@ -68,3 +68,6 @@ Branch `main...origin/main [ahead 3]` (was ahead 2 before window). Frozen paths 
 
 ## Verdict (per MOST IMPORTANT RULE)
 SallyIP is NOT production-ready, secure, confidential, certified, or enterprise-ready. Fail-closed defaults are now in code, but confidential use must wait for P0 blockers (§3) to be cleared with live evidence.
+
+## 13. Link forward (2026-09-15)
+See `SECURITY_ACTIVATION_REPORT.md` (esp. §19 delta), then `CONFIDENTIAL_PILOT_P0_CLOSURE_REPORT.md` for post-window waves. Verdict unchanged: NOT production-ready.
