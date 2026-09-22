@@ -455,8 +455,9 @@ function copyOrtPlugin() {
       const distOrt = path.resolve('dist/ort-wasm');
       if (!fs.existsSync(distOrt)) fs.mkdirSync(distOrt, { recursive: true });
       const srcDir = path.resolve('node_modules/onnxruntime-web/dist');
+      const keep = new Set(['ort-wasm-simd-threaded.wasm', 'ort-wasm-simd-threaded.mjs', 'ort.webgpu.mjs', 'ort.webgpu.min.mjs', 'ort.wasm.min.mjs', 'ort.min.mjs']);
       for (const f of fs.readdirSync(srcDir)) {
-        if (f.endsWith('.wasm') || f.endsWith('.mjs')) {
+        if (keep.has(f)) {
           fs.copyFileSync(path.join(srcDir, f), path.join(distOrt, f));
         }
       }
@@ -480,5 +481,18 @@ export default defineConfig(({ mode }) => {
   plugins: [react(), copyOrtPlugin(), sallyChatApi(env.OPENROUTER_API_KEY, env.DATABASE_URL, env.SALLYIP_MODEL, env.OPENROUTER_EMBEDDING_API_KEY, env.SALLYIP_EMBEDDING_MODEL, env.OPENROUTER_LFM_CHAT_API_KEY, env.SALLYIP_LFM_CHAT_MODEL, env.OPENROUTER_DOTS_API_KEY, env.SALLYIP_DOTS_MODEL, env.OPENROUTER_GEMMA_API_KEY, env.SALLYIP_GEMMA_MODEL, env.OPENROUTER_RERANK_API_KEY, env.SALLYIP_RERANK_MODEL, env.OPENROUTER_OX_API_KEY, env.SALLYIP_OX_MODEL, env.EPO_OPS_KEY, env.EPO_OPS_SECRET, env.EUIPO_CLIENT_ID, env.EUIPO_CLIENT_SECRET, env.EUIPO_AUTH_URL || 'https://auth.euipo.europa.eu/oidc/accessToken', env.EUIPO_API_BASE || 'https://api.euipo.europa.eu', env.BRAIN_ADMIN_USERNAME, env.BRAIN_ADMIN_PASSWORD, env.OMNIROUTE_API_KEY, env.OMNIROUTE_BASE_URL, env.USPTO_API_KEY, env.USPTO_API_BASE, env.COURTLISTENER_TOKEN, env.COURTLISTENER_COURT)],
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+  },
+  build: {
+    chunkSizeWarningLimit: 600,
+    cssCodeSplit: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          motion: ['framer-motion'],
+          markdown: ['react-markdown', 'remark-gfm'],
+        },
+      },
+    },
   },
 }})

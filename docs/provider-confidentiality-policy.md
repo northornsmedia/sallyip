@@ -13,6 +13,7 @@ Set via `SALLYIP_EXECUTION_MODE` or per-request `options.mode`. Orchestrator enf
 | slug | paid | trains? | confidential chat | notes |
 |---|---|---|---|---|
 | gemini-3.7-flash | yes (Cloud) | No with DPA; AI Studio free MAY train | conditional — requires `SALLYIP_APPROVE_GEMINI_CONFIDENTIAL=1` + paid project + DPA | never route free-tier key |
+| meta/muse-glimmer-30b | yes (NVIDIA NIM) | Verify enterprise terms; assume MAY TRAIN until DPA | conditional — same bar as Gemini (paid + DPA + zero-retention review) | flagship added to registry; do not use for confidential until approved |
 | nvidia/nemotron-3-ultra-550b-a55b:free | no | MAY TRAIN | NO | public-only fallback |
 | nvidia/nemotron-3.5-lightning:free | no | MAY TRAIN | NO | public-only / rescue only for public |
 | liquid/lfm-2.5-embedding-350m:free | no | MAY TRAIN (embeddings leak semantics) | NO | blocked for confidential; local embedding still TODO |

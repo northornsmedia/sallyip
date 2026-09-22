@@ -61,7 +61,7 @@ export default function HomePage({ route }) {
     <MarketingLayout route={route} active="/">
       <Hero
         eyebrow="Verification-first IP intelligence"
-        title={<>IP intelligence,<br />from creation to<br /><em>enforcement.</em></>}
+        title={<>IP intelligence, from creation to <em>enforcement.</em></>}
         lede="SallyIP is a verification-first AI workspace for intellectual property professionals, bringing research, drafting, analysis, evidence and matter context into one connected platform."
         primary={<button className="ent-btn ent-btn-primary" onClick={() => go('/product')}>Explore SallyIP <ArrowRight /></button>}
         secondary={<button className="ent-btn ent-btn-ghost" onClick={() => go('/enterprise')}>Request a Demo</button>}
@@ -86,13 +86,13 @@ export default function HomePage({ route }) {
       <Section>
         <Reveal><Eyebrow>One platform</Eyebrow><h2 className="ent-h2">One workspace.<br />Every stage of IP work.</h2></Reveal>
         <Reveal>
-          <div className="ent-journey" role="tablist">
-            {STAGES.map((st, i) => <button key={st.id} className={stage === i ? 'active' : ''} onClick={() => setStage(i)}>{st.id}</button>)}
+          <div className="ent-journey" role="group" aria-label="IP lifecycle stages">
+            {STAGES.map((st, i) => <button key={st.id} type="button" aria-pressed={stage === i} aria-current={stage === i ? 'true' : undefined} className={stage === i ? 'active' : ''} onClick={() => setStage(i)}>{st.id}</button>)}
           </div>
-          <div className="ent-journey-panel">
+          <div className="ent-journey-panel" role="status" aria-live="polite">
             <div className="ent-kicker">{s.id} · {s.w}</div>
             <p style={{ fontSize: 18, margin: '0 0 10px', maxWidth: '60ch', lineHeight: 1.6 }}>{s.d}</p>
-            <button className="ent-textlink" onClick={() => go('/product')}>See the workflow →</button>
+            <button type="button" className="ent-textlink" onClick={() => go('/product')}>See the workflow →</button>
           </div>
         </Reveal>
       </Section>

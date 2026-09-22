@@ -2,12 +2,19 @@
 
 const CATALOGUE_CACHE = { profiles: new Map(), lastLoaded: null }
 
+const SLUG_RE = /^[a-z0-9-]+$/;
+function sanitizeSlug(slug) {
+  const s = String(slug || '').toLowerCase().trim();
+  if (!SLUG_RE.test(s)) return null;
+  return s;
+}
 export async function loadDocumentProfile(slug) {
-  const normalizedSlug = slug === 'patent-application' ? 'utility-patent-application' :
-                         slug === 'non-provisional-patent-application' ? 'non-provisional-patent-application' : slug
+  const clean = sanitizeSlug(slug);
+  if (!clean) return null;
+  const normalizedSlug = clean === 'patent-application' ? 'utility-patent-application' : clean
   try {
     if (typeof fetch === 'function' && typeof window !== 'undefined') {
-      const response = await fetch(`/api/documents/profiles?slug=${normalizedSlug}`)
+      const response = await fetch(`/api/documents/profiles?slug=${encodeURIComponent(normalizedSlug)}`)
       if (response.ok) {
         const data = await response.json()
         if (data.profile) return data.profile
@@ -19,13 +26,11 @@ export async function loadDocumentProfile(slug) {
   try {
     const fs = await import('node:fs')
     const path = await import('node:path')
-    const filePath = path.resolve(process.cwd(), 'data', 'documents', 'profiles', `${normalizedSlug}.json`)
+    const profilesDir = path.resolve(process.cwd(), 'data', 'documents', 'profiles')
+    const filePath = path.normalize(path.join(profilesDir, `${normalizedSlug}.json`))
+    if (!filePath.startsWith(profilesDir)) return null
     if (fs.existsSync(filePath)) {
       return JSON.parse(fs.readFileSync(filePath, 'utf8'))
-    }
-    const legacyPath = path.resolve(process.cwd(), 'data', 'documents', 'profiles', `${slug}.json`)
-    if (fs.existsSync(legacyPath)) {
-      return JSON.parse(fs.readFileSync(legacyPath, 'utf8'))
     }
   } catch {}
 
@@ -41,10 +46,11 @@ export async function loadCatalogue() {
     if (!response.ok) return { profiles: new Map(), categories: [], aliases: new Map() }
     const data = await response.json()
     const profiles = new Map()
+    const aliases = new Map()
     for (const profile of data.catalogue || []) {
       profiles.set(profile.slug, profile)
       for (const alias of (profile.aliases || [])) {
-        aliases.set(alias.toLowerCase(), profile.slug)
+        aliases.set(String(alias).toLowerCase(), profile.slug)
       }
     }
     CATALOGUE_CACHE.profiles = profiles
@@ -149,9 +155,10 @@ export async function generatePreDraftQuestions(profile, knownFacts = {}) {
 }
 
 function getMatterFact(fieldId) {
+  const matter = globalThis.window?.sally?.matter || null
   const factMap = {
-    'jurisdiction': window.sally?.matter?.jurisdictions?.[0] || null,
-    'party_a': window.sally?.matter?.client_name || null,
+    'jurisdiction': matter?.jurisdictions?.[0] || null,
+    'party_a': matter?.client_name || null,
     'counterparty': null
   }
   return factMap[fieldId] || null
@@ -175,13 +182,26 @@ export function buildDocumentOutline(profile) {
   }))
 }
 
+function evalShowIf(showIf, answers = {}) {
+  // Allowlisted predicate only: "answers.field == 'value'" / "!=" / truthy check. No eval.
+  if (!showIf) return true
+  if (typeof showIf === 'boolean') return showIf
+  const s = String(showIf).trim()
+  const eq = s.match(/^answers\.([a-zA-Z0-9_]+)\s*(==|!=)\s*['"]([^'"]{0,120})['"]$/)
+  if (eq) {
+    const val = answers[eq[1]]
+    return eq[2] === '==' ? String(val ?? '') === eq[3] : String(val ?? '') !== eq[3]
+  }
+  const truthy = s.match(/^answers\.([a-zA-Z0-9_]+)$/)
+  if (truthy) return Boolean(answers[truthy[1]])
+  return true
+}
 export function selectSectionsForDocument(profile, answers = {}) {
   if (!profile) return []
   return (profile.sections || []).filter(section => {
     if (!section.show_if) return true
     try {
-      const expr = String(section.show_if).replace(/[^a-zA-Z0-9_.\s=!<>|&()]/g, '');
-      return new Function('answers', `return (${expr})`)(answers);
+      return evalShowIf(section.show_if, answers);
     } catch { return true }
   }).sort((a, b) => a.order - b.order)
 }

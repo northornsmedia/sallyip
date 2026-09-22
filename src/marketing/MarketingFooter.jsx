@@ -8,15 +8,15 @@ export default function MarketingFooter() {
       <div className="ent-wrap">
         <div className="ent-footer-grid">
           <div className="ent-footer-brand">
-            <button className="ent-brand" onClick={() => go('/')} style={{ marginBottom: 14 }}>
-              <img src="/sallyip-brand-mark.png" alt="SallyIP" /> SallyIP
+            <button type="button" className="ent-brand" aria-label="SallyIP home" onClick={() => go('/')} style={{ marginBottom: 14 }}>
+              <img src="/sallyip-brand-mark.png" alt="SallyIP" width={26} height={26} loading="lazy" decoding="async" /> SallyIP
             </button>
             <p>Verification-first AI for intellectual property work. Research tools, not legal advice. Practitioner review required.</p>
             <p style={{ marginTop: 12, fontSize: 12, color: '#5d6372' }}>No evidence, no assertion.</p>
           </div>
           {FOOTER.map((col) => (
             <div key={col.h}>
-              <h5>{col.h}</h5>
+              <h2 className="ent-footer-h">{col.h}</h2>
               {col.links.map((l) => (
                 <a key={l.to + l.t} href={l.to} onClick={(e) => { e.preventDefault(); go(l.to); }}>{l.t}</a>
               ))}

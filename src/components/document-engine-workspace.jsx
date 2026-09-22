@@ -45,16 +45,29 @@ export default function DocumentEngineWorkspace({ documentSlug, onClose, onResul
       const res = await fetch(`/api/documents?action=profile&slug=${slug}`)
       const data = await res.json()
       setProfile(data.profile)
-      setJurisdiction(data.profile.jurisdiction_scope?.['0'] || 'US')
-    } catch (e) { setError(e.message) }
+      setJurisdiction(data.profile?.jurisdiction_scope?.[0] || 'US')
+    } catch (e) { setError(e instanceof Error ? e.message : String(e)) }
     finally { setBusy(false) }
   }
 
+  function evalShowIfLocal(showIf, ans = {}) {
+    if (!showIf) return true
+    if (typeof showIf === 'boolean') return showIf
+    const s = String(showIf).trim()
+    const eq = s.match(/^answers\.([a-zA-Z0-9_]+)\s*(==|!=)\s*['"]([^'"]{0,120})['"]$/)
+    if (eq) {
+      const val = ans[eq[1]]
+      return eq[2] === '==' ? String(val ?? '') === eq[3] : String(val ?? '') !== eq[3]
+    }
+    const truthy = s.match(/^answers\.([a-zA-Z0-9_]+)$/)
+    if (truthy) return Boolean(ans[truthy[1]])
+    return true
+  }
   function buildOutline(profile, ans) {
     if (!profile) return
     const selected = (profile.sections || []).filter(s => {
       if (!s.show_if) return true
-      try { return new Function('answers', `return ${s.show_if}`)(ans) } catch { return true }
+      try { return evalShowIfLocal(s.show_if, ans) } catch { return true }
     }).sort((a, b) => a.order - b.order)
     setOutline(selected.map((s, i) => ({
       ...s,
@@ -85,7 +98,7 @@ export default function DocumentEngineWorkspace({ documentSlug, onClose, onResul
       if (data.draft_plan) {
         await streamDraft(profile, data.draft_plan)
       }
-    } catch (e) { setError(e.message) }
+    } catch (e) { setError(e instanceof Error ? e.message : String(e)) }
     finally { setBusy(false); setStreaming(false) }
   }
 
@@ -134,7 +147,7 @@ export default function DocumentEngineWorkspace({ documentSlug, onClose, onResul
         fullContent += `\n## ${s.heading}\n\n${s.content || '[Pending]'}\n`
       }
       setContent(fullContent)
-    } catch (e) { setError(e.message) }
+    } catch (e) { setError(e instanceof Error ? e.message : String(e)) }
     finally { setBusy(false) }
   }
 
@@ -174,7 +187,7 @@ export default function DocumentEngineWorkspace({ documentSlug, onClose, onResul
       })
       const data = await res.json()
       return data
-    } catch (e) { setError(e.message) }
+    } catch (e) { setError(e instanceof Error ? e.message : String(e)) }
     finally { setBusy(false) }
   }
 
@@ -189,7 +202,7 @@ export default function DocumentEngineWorkspace({ documentSlug, onClose, onResul
       })
       const d = await r.json()
       if (d.file) { setFileUrl(d.file.url) }
-    } catch (e) { setError(e.message) }
+    } catch (e) { setError(e instanceof Error ? e.message : String(e)) }
     finally { setBusy(false) }
   }
 
@@ -227,7 +240,7 @@ export default function DocumentEngineWorkspace({ documentSlug, onClose, onResul
               </div>
             )}
             <button onClick={startDraft} disabled={drafting} className="w-full bg-blue-600 text-white py-2 rounded text-sm hover:bg-blue-700 disabled:opacity-50">
-              {drafting ? <><Loader2 className="animate-spin w-4 h-4 inline mr-1" />Drafting…</> : <><Wand2 className="w-4 h-4 inline mr-1" />Draft Document</>}>
+              {drafting ? <><Loader2 className="animate-spin w-4 h-4 inline mr-1" />Drafting…</> : <><Wand2 className="w-4 h-4 inline mr-1" />Draft Document</>}
             </button>
           </div>
         ) : (

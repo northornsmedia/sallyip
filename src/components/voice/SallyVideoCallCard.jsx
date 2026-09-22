@@ -6,7 +6,7 @@
  * ZERO GPU clusters, ZERO server rendering cost.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import {
   Video,
   VideoOff,
@@ -29,8 +29,9 @@ import {
 import { VOICE_STATES } from '../../voice/types.js';
 import { VoiceSessionController } from '../../voice/VoiceSessionController.js';
 import { SallyAvatarMark } from './SallyAnimatedAvatar.jsx';
-import { SallyDigitalHumanCanvas } from './SallyDigitalHumanCanvas.jsx';
-import { VOICE_OPTIONS } from './VoiceOverlay.jsx';
+import { VOICE_OPTIONS } from '../../voice/voices.js';
+const SallyDigitalHumanCanvas = lazy(() => import('./SallyDigitalHumanCanvas.jsx').then((m) => ({ default: m.SallyDigitalHumanCanvas })));
+const SallyRealHumanVideo = lazy(() => import('./SallyRealHumanVideo.jsx').then((m) => ({ default: m.SallyRealHumanVideo })));
 import '../voice-chat-widget.css';
 
 export function SallyVideoCallCard({
@@ -55,6 +56,10 @@ export function SallyVideoCallCard({
   const [analyserNode, setAnalyserNode] = useState(null);
   const [sessionError, setSessionError] = useState('');
   const [cameraError, setCameraError] = useState('');
+  // '3d' = realtime Three.js WebGL avatar (default), 'human' = recorded video option
+  const [avatarMode, setAvatarMode] = useState('3d');
+  const [humanVideoFailed, setHumanVideoFailed] = useState(false);
+  const showHuman = avatarMode === 'human' && !humanVideoFailed;
   const [selectedVoice, setSelectedVoice] = useState(() => {
     return (
       (typeof window !== 'undefined'
@@ -393,6 +398,27 @@ export function SallyVideoCallCard({
 
         {/* Right: Window Controls */}
         <div className="sally-fs-header-right">
+          {/* Avatar mode toggle: real human vs 3D */}
+          <div role="group" aria-label="Avatar style" style={{ display: 'inline-flex', border: '1px solid rgba(255,255,255,.12)', borderRadius: 99, overflow: 'hidden' }}>
+            <button
+              type="button"
+              onClick={() => setAvatarMode('human')}
+              aria-pressed={showHuman}
+              title="Real human video (most lifelike)"
+              style={{ padding: '6px 12px', fontSize: 12, fontWeight: 700, background: showHuman ? '#6366f1' : 'transparent', color: showHuman ? '#fff' : '#c7d2fe', border: 0, cursor: 'pointer', minHeight: 32 }}
+            >
+              Human
+            </button>
+            <button
+              type="button"
+              onClick={() => setAvatarMode('3d')}
+              aria-pressed={!showHuman}
+              title="Realtime 3D avatar"
+              style={{ padding: '6px 12px', fontSize: 12, fontWeight: 700, background: !showHuman ? '#6366f1' : 'transparent', color: !showHuman ? '#fff' : '#c7d2fe', border: 0, cursor: 'pointer', minHeight: 32 }}
+            >
+              3D
+            </button>
+          </div>
           {/* Transcript Drawer Toggle */}
           <button
             type="button"
@@ -438,13 +464,50 @@ export function SallyVideoCallCard({
 
       {/* MAIN STAGE & SIDEBAR */}
       <div className="sally-fs-stage">
-        {/* LIVE ANIMATED DIGITAL AVATAR VIEWPORT */}
+        {/* LIFELIKE AVATAR VIEWPORT — real human video primary, 3D fallback */}
         <div className="sally-fs-viewport">
-          <SallyDigitalHumanCanvas
-            state={sessionState}
-            analyserNode={analyserNode}
-            activeVoiceName={activeVoiceObj.name}
-          />
+          <Suspense fallback={<div className="sally-avatar-loading" role="status" aria-live="polite">Loading avatar…</div>}>
+            {showHuman ? (
+              <SallyRealHumanVideo
+                state={sessionState}
+                analyserNode={analyserNode}
+                activeVoiceName={activeVoiceObj.name}
+                onVideoError={() => setHumanVideoFailed(true)}
+              />
+            ) : (
+              <SallyDigitalHumanCanvas
+                state={sessionState}
+                analyserNode={analyserNode}
+                activeVoiceName={activeVoiceObj.name}
+              />
+            )}
+          </Suspense>
+
+          {/* Broadcast lower-third nameplate */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              left: 20,
+              bottom: 64,
+              zIndex: 6,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '8px 16px 8px 10px',
+              borderRadius: 12,
+              background: 'linear-gradient(90deg, rgba(10,12,24,.88), rgba(10,12,24,.55))',
+              border: '1px solid rgba(255,255,255,.1)',
+              backdropFilter: 'blur(10px)',
+              pointerEvents: 'none',
+            }}
+          >
+            <span style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#6366f1,#4338ca)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13 }}>S</span>
+            <span>
+              <span style={{ display: 'block', color: '#fff', fontWeight: 700, fontSize: 13, lineHeight: 1.2 }}>Sally IP</span>
+              <span style={{ display: 'block', color: '#a5b4fc', fontSize: 11, lineHeight: 1.3 }}>AI Counsel • Live 3D</span>
+            </span>
+          </div>
 
           {sessionError && (
             <div className="sally-call-notice sally-call-notice-error" role="alert">

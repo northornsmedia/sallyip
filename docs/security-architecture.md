@@ -31,4 +31,4 @@ Client (Vite SPA, no secrets) -> Vercel serverless (`api/_handlers/*`, auth-chec
 ## Files / resilience
 - `src/lib/file-safety.js`: 25MB PDF/doc cap, MIME allowlist, executable/archive block, traversal-safe names, injection flag. Server-side enforcement required at every upload route (wiring TODO tracked in readiness).
 - Serverless: 25–35s model budget documented as fragile; target pattern request->job/run->async->persisted result (not yet migrated — see readiness Operational Reliability).
-- Env: `APP_ORIGIN`/`API_ORIGIN` replace hardcoded `https://sallyip.vercel.app`; secrets via Vercel env, never bundled (test 12).
+- Env: `APP_ORIGIN`/`API_ORIGIN` replace hardcoded hosts (still present: `chat-orchestrator siteUrlFor` fallback, verification/embedding referers, orchestrator defaults, vite dev-middleware rerank/embeddings/speech); secrets via Vercel env, never bundled (test 12).

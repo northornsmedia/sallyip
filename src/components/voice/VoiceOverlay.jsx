@@ -7,16 +7,7 @@ import { VoiceStatus } from './VoiceStatus.jsx';
 import { LiveTranscript } from './LiveTranscript.jsx';
 import '../voice-chat-widget.css';
 
-export const VOICE_OPTIONS = [
-  { id: 'en-US-AriaNeural', name: 'Aria (US)', desc: 'Articulate & Confident' },
-  { id: 'en-US-JennyNeural', name: 'Jenny (US)', desc: 'Friendly & Conversational' },
-  { id: 'en-US-AvaNeural', name: 'Ava (US)', desc: 'Modern & Expressive' },
-  { id: 'en-US-EmmaNeural', name: 'Emma (US)', desc: 'Calm & Intellectual' },
-  { id: 'en-GB-SoniaNeural', name: 'Sonia (UK)', desc: 'Crisp & Prestigious' },
-  { id: 'en-GB-LibbyNeural', name: 'Libby (UK)', desc: 'Pleasant & Polished' },
-  { id: 'en-US-GuyNeural', name: 'Guy (US)', desc: 'Natural Male' },
-  { id: 'en-IN-NeerjaExpressiveNeural', name: 'Neerja (IN)', desc: 'Expressive Indian' },
-];
+export { VOICE_OPTIONS } from '../../voice/voices.js';
 
 export function VoiceOverlay({ isOpen = false, onClose, matterId = null, conversationId = null }) {
   const [sessionState, setSessionState] = useState(VOICE_STATES.IDLE);

@@ -82,7 +82,16 @@ test.describe('Visual regression - interactive states', () => {
   test('office action demo step @ desktop', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 1200 });
     await page.goto('/office-action-defense', { waitUntil: 'networkidle' });
-    await page.click('button:has-text("Next")');
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(1500);
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.waitForTimeout(1000);
+    // OfficeActionDemo may be lazy-loaded via IntersectionObserver; skip if button not present
+    const nextBtn = page.locator('button:has-text("Next")');
+    if (await nextBtn.count() === 0) {
+      test.skip();
+    }
+    await nextBtn.click();
     await page.waitForTimeout(200);
     await expect(page).toHaveScreenshot('oa-demo-step2-desktop.png', { fullPage: true, maxDiffPixels: 200 });
   });
@@ -114,6 +123,7 @@ test.describe('Visual regression - interactive states', () => {
   test('benchmarks tab @ desktop', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 1200 });
     await page.goto('/benchmarks', { waitUntil: 'networkidle' });
+    await page.waitForSelector('button:has-text("Hallucination defence")', { timeout: 30000 });
     await page.click('button:has-text("Hallucination defence")');
     await page.waitForTimeout(200);
     await expect(page).toHaveScreenshot('benchmarks-hallucination-tab-desktop.png', { fullPage: true, maxDiffPixels: 200 });

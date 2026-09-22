@@ -11,18 +11,18 @@ export function NoveltyDemo() {
   ];
   return (
     <div className="ent-demo">
-      <div className="ent-demo-tabs">
-        <button className="active">1 · Query</button><button className="active">2 · Results</button><button className="active">3 · Claim mapping</button>
-      </div>
+      <ol className="ent-demo-tabs" aria-label="Demo progress">
+        <li aria-current="step">1 · Query</li><li>2 · Results</li><li>3 · Claim mapping</li>
+      </ol>
       <div className="ent-demo-body">
         <div>
-          <div style={{ fontSize: 12, color: '#8b91a1', marginBottom: 8 }}>INVENTION QUERY (DEMO DATA)</div>
-          <input value={q} onChange={(e) => setQ(e.target.value)} style={{ width: '100%', background: '#0a0b0f', border: '1px solid rgba(255,255,255,.12)', borderRadius: 8, color: '#fff', padding: '12px 14px', fontSize: 14 }} />
-          <div style={{ marginTop: 14 }}>
+          <label htmlFor="novelty-q" style={{ fontSize: 12, color: '#8b91a1', marginBottom: 8, display: 'block' }}>INVENTION QUERY (DEMO DATA)</label>
+          <input id="novelty-q" type="text" autoComplete="off" value={q} onChange={(e) => setQ(e.target.value)} style={{ width: '100%', background: '#0a0b0f', border: '1px solid rgba(255,255,255,.12)', borderRadius: 8, color: '#fff', padding: '12px 14px', fontSize: 14 }} />
+          <div style={{ marginTop: 14 }} role="listbox" aria-label="Reference passages (demo data)">
             {refs.map((r, i) => (
-              <div key={r.id} className={`ent-claim ${sel === i ? 'active' : ''}`} onClick={() => setSel(i)}>
+              <button key={r.id} type="button" role="option" aria-selected={sel === i} className={`ent-claim ${sel === i ? 'active' : ''}`} onClick={() => setSel(i)}>
                 <b>{r.id}</b> — {r.title}
-              </div>
+              </button>
             ))}
           </div>
         </div>
@@ -47,9 +47,11 @@ export function ClaimChartDemo() {
   ];
   return (
     <div className="ent-demo">
-      <div className="ent-demo-tabs"><button className="active">Select limitation</button><button>Evidence</button><button>Verification</button></div>
+      <ol className="ent-demo-tabs" aria-label="Demo progress">
+        <li aria-current="step">Select limitation</li><li>Evidence</li><li>Verification</li>
+      </ol>
       <div className="ent-demo-body">
-        <div>{rows.map((r, i) => <div key={i} className={`ent-claim ${sel === i ? 'active' : ''}`} onClick={() => setSel(i)}>{r.lim}</div>)}</div>
+        <div role="listbox" aria-label="Claim limitations (demo data)">{rows.map((r, i) => <button key={i} type="button" role="option" aria-selected={sel === i} className={`ent-claim ${sel === i ? 'active' : ''}`} onClick={() => setSel(i)}>{r.lim}</button>)}</div>
         <div className="ent-evidence"><p style={{ margin: '0 0 10px' }}><mark>{rows[sel].ev}</mark></p><p style={{ margin: 0 }}><b style={{ color: '#fff' }}>{rows[sel].v}</b></p></div>
       </div>
       <div className="ent-demo-note">DEMO DATA — select a limitation to highlight its evidence passage and verification state.</div>
@@ -67,12 +69,12 @@ export function OfficeActionDemo() {
   ];
   return (
     <div className="ent-demo">
-      <div className="ent-demo-tabs">{steps.map((s, i) => <button key={i} className={step === i ? 'active' : ''} onClick={() => setStep(i)}>{i + 1} · {s.t}</button>)}</div>
+      <div className="ent-demo-tabs" role="group" aria-label="Office action steps">{steps.map((s, i) => <button key={i} type="button" aria-pressed={step === i} className={step === i ? 'active' : ''} onClick={() => setStep(i)}>{i + 1} · {s.t}</button>)}</div>
       <div style={{ padding: 26 }}>
-        <div className="ent-evidence">{steps[step].b}</div>
+        <div className="ent-evidence" role="status" aria-live="polite">{steps[step].b}</div>
         <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
-          <button className="ent-btn ent-btn-ghost ent-btn-sm" disabled={step === 0} onClick={() => setStep(step - 1)}>Back</button>
-          <button className="ent-btn ent-btn-primary ent-btn-sm" disabled={step === steps.length - 1} onClick={() => setStep(step + 1)}>Next</button>
+          <button type="button" className="ent-btn ent-btn-ghost ent-btn-sm" disabled={step === 0} onClick={() => setStep(step - 1)}>Back</button>
+          <button type="button" className="ent-btn ent-btn-primary ent-btn-sm" disabled={step === steps.length - 1} onClick={() => setStep(step + 1)}>Next</button>
         </div>
       </div>
       <div className="ent-demo-note">DEMO DATA — rejection → authority → argument → amendment walkthrough.</div>
@@ -89,9 +91,11 @@ export function TrademarkDemo() {
   ];
   return (
     <div className="ent-demo">
-      <div className="ent-demo-tabs"><button className="active">Mark</button><button className="active">Candidates</button><button className="active">Evidence</button></div>
+      <ol className="ent-demo-tabs" aria-label="Demo progress">
+        <li aria-current="step">Mark</li><li>Candidates</li><li>Evidence</li>
+      </ol>
       <div className="ent-demo-body">
-        <div>{cands.map((c, i) => <div key={i} className={`ent-claim ${sel === i ? 'active' : ''}`} onClick={() => setSel(i)}><b>{c.mark}</b> · {c.goods}</div>)}</div>
+        <div role="listbox" aria-label="Trademark candidates (demo data)">{cands.map((c, i) => <button key={i} type="button" role="option" aria-selected={sel === i} className={`ent-claim ${sel === i ? 'active' : ''}`} onClick={() => setSel(i)}><b>{c.mark}</b> · {c.goods}</button>)}</div>
         <div className="ent-evidence">{cands[sel].risk} <br /><span style={{ fontSize: 12, color: '#8b91a1' }}>Research support only — never a clearance opinion. EUIPO/USPTO sources feed evidence; decisions are audit-logged.</span></div>
       </div>
       <div className="ent-demo-note">DEMO DATA — synthetic candidates for illustration.</div>
@@ -108,9 +112,11 @@ export function VerificationDemo() {
   ];
   return (
     <div className="ent-demo">
-      <div className="ent-demo-tabs"><button className="active">Proposition</button><button className="active">Source</button><button className="active">Verdict</button></div>
+      <ol className="ent-demo-tabs" aria-label="Demo progress">
+        <li aria-current="step">Proposition</li><li>Source</li><li>Verdict</li>
+      </ol>
       <div className="ent-demo-body">
-        <div>{props.map((r, i) => <div key={i} className={`ent-claim ${sel === i ? 'active' : ''}`} onClick={() => setSel(i)}>{r.p}</div>)}</div>
+        <div role="listbox" aria-label="Verification propositions (demo data)">{props.map((r, i) => <button key={i} type="button" role="option" aria-selected={sel === i} className={`ent-claim ${sel === i ? 'active' : ''}`} onClick={() => setSel(i)}>{r.p}</button>)}</div>
         <div className="ent-evidence"><p style={{ margin: '0 0 10px' }}>{props[sel].s}</p><p style={{ margin: 0 }}><b style={{ color: '#fff' }}>{props[sel].v}</b> · No evidence, no assertion.</p></div>
       </div>
       <div className="ent-demo-note">DEMO DATA — proposition → source → exact passage → verdict.</div>

@@ -17,6 +17,17 @@ import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { VOICE_STATES } from '../../voice/types.js';
+import {
+  buildClothMaterial,
+  buildEyeMaterial,
+  buildHairMaterial,
+  buildSkinMaterial,
+  buildStudioLights,
+  buildTeethMaterial,
+  createSkinPoreTexture,
+  resolveRimColor,
+} from './avatarMaterials.js';
+import { buildOfficeSet } from './officeSet.js';
 
 export function SallyDigitalHumanCanvas({
   state = VOICE_STATES.IDLE,
@@ -46,6 +57,15 @@ export function SallyDigitalHumanCanvas({
   const spineBoneRef = useRef(null);
   const leftEyeBoneRef = useRef(null);
   const rightEyeBoneRef = useRef(null);
+  // Broadcast-pose rig: relaxed arms at sides, elbows soft, hands in frame
+  const leftArmRef = useRef(null);
+  const rightArmRef = useRef(null);
+  const leftForeRef = useRef(null);
+  const rightForeRef = useRef(null);
+  const baseLeftArmRef = useRef(new THREE.Euler());
+  const baseRightArmRef = useRef(new THREE.Euler());
+  const baseLeftForeRef = useRef(new THREE.Euler());
+  const baseRightForeRef = useRef(new THREE.Euler());
   const baseHeadRotationRef = useRef(new THREE.Euler());
   const baseNeckRotationRef = useRef(new THREE.Euler());
 
@@ -77,9 +97,12 @@ export function SallyDigitalHumanCanvas({
     viseme_sil: 1,
   });
 
-  // Handle cursor movement for interactive 3D parallax
+  // Handle cursor movement for interactive 3D parallax (fine pointers only, motion-safe)
   useEffect(() => {
     if (!enableParallax) return;
+    if (typeof window === 'undefined') return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (window.matchMedia('(pointer: coarse)').matches) return;
 
     const handleMouseMove = (e) => {
       const { innerWidth, innerHeight } = window;
@@ -115,12 +138,11 @@ export function SallyDigitalHumanCanvas({
     const scene = new THREE.Scene();
     sceneRef.current = scene;
 
-    // 3. Camera (Telephoto portrait framing focused on Sally's face and upper shoulders)
-    const camera = new THREE.PerspectiveCamera(28, dims.w / dims.h, 0.1, 20);
-    // The local avatar is authored in metres with its face centred near y=1.62.
-    // Frame the face and shoulders like an eye-level webcam portrait.
-    camera.position.set(0, 1.67, 0.92);
-    camera.lookAt(0, 1.66, 0.03);
+    // 3. Camera (anchor waist-up shot: head + shoulders above the desk, board behind)
+    const camera = new THREE.PerspectiveCamera(32, dims.w / dims.h, 0.1, 20);
+    // Standing anchor framed head-to-desk; legs stay hidden behind the desk.
+    camera.position.set(0, 1.55, 1.5);
+    camera.lookAt(0, 1.35, 0.0);
     cameraRef.current = camera;
 
     // 4. WebGL Renderer with sRGB, Antialias, ACES Filmic Tone Mapping
@@ -132,11 +154,11 @@ export function SallyDigitalHumanCanvas({
         antialias: true,
         powerPreference: 'high-performance',
       });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
       renderer.setSize(dims.w, dims.h, false);
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.2;
+      renderer.toneMappingExposure = 1.05;
       rendererRef.current = renderer;
     } catch (err) {
       console.error('[Sally3DCanvas] WebGL init error:', err);
@@ -144,33 +166,19 @@ export function SallyDigitalHumanCanvas({
       return;
     }
 
-    // 5. Studio 3-Point Lighting Rig (Warm key light, azure fill light, rim light)
-    const keyLight = new THREE.DirectionalLight(0xfff6ec, 2.8);
-    keyLight.position.set(0.7, 2.5, 1.5);
-    scene.add(keyLight);
-
-    const fillLight = new THREE.DirectionalLight(0xdbeafe, 1.8);
-    fillLight.position.set(-0.8, 2.2, 1.2);
-    scene.add(fillLight);
-
-    const rimLight = new THREE.DirectionalLight(0xa5b4fc, 2.0);
-    rimLight.position.set(0, 2.4, -1.2);
-    scene.add(rimLight);
-
-    const chestWarmLight = new THREE.DirectionalLight(0xfef3c7, 0.6);
-    chestWarmLight.position.set(0, 0.9, 1.0);
-    scene.add(chestWarmLight);
-
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
-    scene.add(ambientLight);
+    // 5. Cinematic studio rig (see avatarMaterials.js — rim shifts with voice state)
+    const lights = buildStudioLights(scene);
+    const rimLight = lights.rim;
+    const rimTargetColor = resolveRimColor(stateRef.current, VOICE_STATES).clone();
 
     // 6. Subtle studio atmospheric backdrop particles
+    const reducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const particleGeo = new THREE.BufferGeometry();
-    const particleCount = 50;
+    const particleCount = reducedMotion ? 0 : 24;
     const posArr = new Float32Array(particleCount * 3);
     for (let i = 0; i < particleCount * 3; i += 3) {
-      posArr[i] = (Math.random() - 0.5) * 3.0;
-      posArr[i + 1] = 1.0 + Math.random() * 1.5;
+      posArr[i] = (Math.random() - 0.5) * 3.4;
+      posArr[i + 1] = 0.4 + Math.random() * 1.8;
       posArr[i + 2] = -0.3 - Math.random() * 1.5;
     }
     particleGeo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
@@ -184,38 +192,8 @@ export function SallyDigitalHumanCanvas({
     const particles = new THREE.Points(particleGeo, particleMat);
     scene.add(particles);
 
-    // 6. Generate procedural microscopic skin pore normal map for photorealistic skin
-    const createSkinPoreTexture = () => {
-      try {
-        const cvs = document.createElement('canvas');
-        cvs.width = 256;
-        cvs.height = 256;
-        const c = cvs.getContext('2d');
-        const imgData = c.createImageData(256, 256);
-        const d = imgData.data;
-
-        for (let i = 0; i < 256 * 256; i++) {
-          const noiseX = (Math.random() - 0.5) * 30;
-          const noiseY = (Math.random() - 0.5) * 30;
-          const idx = i * 4;
-          d[idx] = 128 + noiseX;     // R (normal X)
-          d[idx + 1] = 128 + noiseY; // G (normal Y)
-          d[idx + 2] = 255;          // B (normal Z)
-          d[idx + 3] = 255;
-        }
-
-        c.putImageData(imgData, 0, 0);
-        const tex = new THREE.CanvasTexture(cvs);
-        tex.wrapS = THREE.RepeatWrapping;
-        tex.wrapT = THREE.RepeatWrapping;
-        tex.repeat.set(22, 22);
-        return tex;
-      } catch {
-        return null;
-      }
-    };
-
-    const skinPoreNormalMap = createSkinPoreTexture();
+    // 6. Microscopic skin-pore normal detail (recipe lives in avatarMaterials.js)
+    const skinPoreNormalMap = createSkinPoreTexture(128, 14);
 
     // 7. Load Sally 3D Avatar Model (/models/sally_avatar.glb)
     const loader = new GLTFLoader();
@@ -255,68 +233,38 @@ export function SallyDigitalHumanCanvas({
             const oldMat = child.material;
             const diffuseMap = oldMat?.map || null;
 
-            // --- A. Face & Skin: Photorealistic MeshPhysicalMaterial ---
-            if (child.name === 'Wolf3D_Head') {
+            // --- Photoreal surfaces (recipes in avatarMaterials.js) ---
+            // Avaturn mesh names (Wolf3D fallbacks kept for other models).
+            if (child.name === 'Head_Mesh' || child.name === 'Wolf3D_Head') {
               headMeshRef.current = child;
-
-              const skinMat = new THREE.MeshPhysicalMaterial({
-                map: diffuseMap,
-                roughness: 0.42,
-                metalness: 0.0,
-                clearcoat: 0.22,
-                clearcoatRoughness: 0.28,
-                sheen: 0.8,
-                sheenColor: new THREE.Color(0xffd5c4), // Peach-fuzz subsurface scattering sheen
-                normalMap: skinPoreNormalMap,
-                normalScale: new THREE.Vector2(0.28, 0.28),
-                ior: 1.4,
-              });
-
-              child.material = skinMat;
+              child.material = buildSkinMaterial(diffuseMap, skinPoreNormalMap);
             }
 
-            // --- B. Eyes: Wet Cornea & Deep Iris Reflection ---
-            else if (child.name === 'EyeLeft' || child.name === 'EyeRight') {
-              const eyeMat = new THREE.MeshPhysicalMaterial({
-                map: diffuseMap,
-                roughness: 0.04,
-                metalness: 0.0,
-                clearcoat: 1.0,
-                clearcoatRoughness: 0.02,
-                ior: 1.45,
-              });
-              child.material = eyeMat;
+            // --- B. Eyes: wet cornea over deep iris ---
+            else if (child.name === 'Eye_Mesh' || child.name === 'EyeLeft' || child.name === 'EyeRight') {
+              child.material = buildEyeMaterial(diffuseMap);
+            }
+            else if (child.name === 'EyeAO_Mesh' || child.name === 'Eyelash_Mesh') {
+              child.material = new THREE.MeshStandardMaterial({ color: 0x1a1214, roughness: 0.6, metalness: 0.0 });
             }
 
-            // --- C. Teeth: Enamel Gloss ---
-            else if (child.name === 'Wolf3D_Teeth') {
+            // --- C. Teeth + tongue ---
+            else if (child.name === 'Teeth_Mesh' || child.name === 'Wolf3D_Teeth') {
               teethMeshRef.current = child;
-              const teethMat = new THREE.MeshStandardMaterial({
-                map: diffuseMap,
-                roughness: 0.2,
-                metalness: 0.02,
-              });
-              child.material = teethMat;
+              child.material = buildTeethMaterial(diffuseMap);
+            }
+            else if (child.name === 'Tongue_Mesh') {
+              child.material = new THREE.MeshStandardMaterial({ color: 0x8a4a52, roughness: 0.5, metalness: 0.0 });
             }
 
-            // --- D. Hair: Soft Satin Specular ---
-            else if (child.name === 'Wolf3D_Hair') {
-              const hairMat = new THREE.MeshStandardMaterial({
-                map: diffuseMap,
-                roughness: 0.52,
-                metalness: 0.08,
-              });
-              child.material = hairMat;
+            // --- D. Hair: layered satin sheen, double-sided so strands never hole ---
+            else if (child.name.startsWith('avaturn_hair') || child.name === 'Wolf3D_Hair') {
+              child.material = buildHairMaterial(diffuseMap);
             }
 
-            // --- E. Clothing: Executive Matte Fabric ---
-            else if (child.name.includes('Outfit') || child.name.includes('Body')) {
-              const clothMat = new THREE.MeshStandardMaterial({
-                map: diffuseMap,
-                roughness: 0.85,
-                metalness: 0.02,
-              });
-              child.material = clothMat;
+            // --- E. Clothing + shoes: executive matte ---
+            else if (child.name.includes('Outfit') || child.name.includes('Body') || child.name.includes('avaturn_look') || child.name.includes('shoes')) {
+              child.material = buildClothMaterial(diffuseMap);
             }
           }
 
@@ -332,14 +280,42 @@ export function SallyDigitalHumanCanvas({
         if (headBoneRef.current) baseHeadRotationRef.current.copy(headBoneRef.current.rotation);
         if (neckBoneRef.current) baseNeckRotationRef.current.copy(neckBoneRef.current.rotation);
 
-        // Avaturn ships in a neutral T-pose.  A video-call portrait needs a
-        // relaxed silhouette, so lower both upper arms in local bone space.
-        // This is a real skeletal pose (the skinned clothing follows it), not
-        // a crop or a flat image trick.
+        // Seated executive pose: hips drop to the chair, thighs forward,
+        // shins vertical, torso leaning in a touch. Arms relaxed at the
+        // sides, elbows soft and slightly forward — never T-pose, never
+        // pinned behind the back. Real skeletal pose, clothing follows.
         const leftArm = avatar.getObjectByName('LeftArm');
         const rightArm = avatar.getObjectByName('RightArm');
-        if (leftArm) leftArm.rotateZ(-Math.PI * 0.5);
-        if (rightArm) rightArm.rotateZ(Math.PI * 0.5);
+        const leftFore = avatar.getObjectByName('LeftForeArm');
+        const rightFore = avatar.getObjectByName('RightForeArm');
+        if (leftArm) {
+          leftArmRef.current = leftArm;
+          leftArm.rotateZ(-Math.PI * 0.46);
+          leftArm.rotateX(0.16);
+          baseLeftArmRef.current.copy(leftArm.rotation);
+        }
+        if (rightArm) {
+          rightArmRef.current = rightArm;
+          rightArm.rotateZ(Math.PI * 0.46);
+          rightArm.rotateX(0.16);
+          baseRightArmRef.current.copy(rightArm.rotation);
+        }
+        if (leftFore) {
+          leftForeRef.current = leftFore;
+          leftFore.rotateX(0.32);
+          baseLeftForeRef.current.copy(leftFore.rotation);
+        }
+        if (rightFore) {
+          rightForeRef.current = rightFore;
+          rightFore.rotateX(0.32);
+          baseRightForeRef.current.copy(rightFore.rotation);
+        }
+        const spine = avatar.getObjectByName('Spine1');
+        if (spine) spine.rotateX(0.05);
+        // Office set: floor, wall, SALLY IP board, plaque, chair, desk, panels, spot
+        let office = null;
+        try { office = buildOfficeSet(scene); } catch (e) { console.warn('[Sally3DCanvas] office set skipped:', e?.message); }
+        avatarGroupRef.current.userData.office = office;
 
         // Add to scene
         scene.add(avatar);
@@ -399,13 +375,29 @@ export function SallyDigitalHumanCanvas({
     resizeObserver.observe(container);
     window.addEventListener('resize', handleResize);
 
-    // 9. Animation & Lip-Sync Loop (60 FPS)
+    // 9. Animation & Lip-Sync Loop (pauses offscreen / hidden tab / reduced motion)
     const freqData = new Uint8Array(128);
     let startTime = performance.now();
+    let lastFrameTime = startTime;
+    let isVisible = true;
+    const motionOK = !reducedMotion;
+    const visObserver = (typeof IntersectionObserver !== 'undefined')
+      ? new IntersectionObserver((es) => { es.forEach((e) => { isVisible = e.isIntersecting; }); }, { threshold: 0.02 })
+      : null;
+    if (visObserver) visObserver.observe(container);
+    // Natural gaze saccade targets (shift every 1.8–3.6s like a real listener)
+    let gazeX = 0; let gazeY = 0; let nextSaccade = 2.0;
+    // Natural blink scheduler (2.5–5.5s, 140ms close)
+    let nextBlink = 3.0; let blinkStart = -1;
 
     const animate = (currentTime) => {
       if (isDisposed) return;
       animFrameIdRef.current = requestAnimationFrame(animate);
+      // Skip work when tab hidden or avatar offscreen (battery + CPU)
+      if (document.hidden || !isVisible) { lastFrameTime = currentTime; return; }
+      // Throttle background-adjacent work to ~30fps; speaking lip-sync stays smooth via EMA
+      if (currentTime - lastFrameTime < (stateRef.current === VOICE_STATES.SPEAKING ? 16 : 33)) return;
+      lastFrameTime = currentTime;
 
       const elapsed = (currentTime - startTime) * 0.001;
       const currentState = stateRef.current;
@@ -416,10 +408,26 @@ export function SallyDigitalHumanCanvas({
       mouse.x += (mouse.targetX - mouse.x) * 0.06;
       mouse.y += (mouse.targetY - mouse.y) * 0.06;
 
-      // --- Breathing & Lifelike Sway Physics ---
-      const breathCycle = Math.sin(elapsed * 1.6);
-      const microSwayX = Math.sin(elapsed * 0.8) * 0.01;
-      const microSwayY = Math.cos(elapsed * 0.6) * 0.008;
+      // --- Breathing & Lifelike Sway Physics (calmer, asymmetric like a real sitter) ---
+      const damp = motionOK ? 1 : 0.15;
+      const breathCycle = Math.sin(elapsed * 1.4) * 0.7 + Math.sin(elapsed * 2.3 + 1.1) * 0.3;
+      const microSwayX = Math.sin(elapsed * 0.7 + 0.4) * 0.008 * damp;
+      const microSwayY = Math.cos(elapsed * 0.55) * 0.006 * damp;
+      // Gentle chest rise/fall on the whole avatar group
+      if (avatarGroupRef.current && motionOK) {
+        avatarGroupRef.current.position.y = breathCycle * 0.003;
+      }
+      // Natural gaze saccades: small, camera-biased — she looks AT you, not past you
+      if (motionOK && elapsed > nextSaccade) {
+        gazeX = (Math.random() - 0.5) * 0.022;
+        gazeY = (Math.random() - 0.5) * 0.014;
+        nextSaccade = elapsed + 2.2 + Math.random() * 2.0;
+      }
+      // Slow cinematic dolly: lean in while speaking, settle back otherwise
+      const targetDolly = currentState === VOICE_STATES.SPEAKING ? 1.42 : 1.5;
+      camera.position.z = THREE.MathUtils.lerp(camera.position.z, targetDolly, 0.02);
+      // Rim glow follows conversation state (speaking indigo, listening green, thinking amber)
+      rimLight.color.lerp(resolveRimColor(currentState, VOICE_STATES), 0.04);
 
       // --- Bone Head/Neck Tracking ---
       if (headBoneRef.current) {
@@ -439,9 +447,9 @@ export function SallyDigitalHumanCanvas({
           stateTiltY = Math.cos(elapsed * 2.5) * 0.015;
         }
 
-        const targetRotY = mouse.x * 0.18 + microSwayX + stateTiltY;
-        const targetRotX = -mouse.y * 0.12 + breathCycle * 0.01 + stateTiltX;
-        const targetRotZ = -mouse.x * 0.04 + microSwayY + stateTiltZ;
+        const targetRotY = mouse.x * 0.14 + microSwayX + stateTiltY + gazeX * damp;
+        const targetRotX = -mouse.y * 0.1 + breathCycle * 0.008 + stateTiltX + gazeY * damp;
+        const targetRotZ = -mouse.x * 0.03 + microSwayY + stateTiltZ;
 
         const baseHead = baseHeadRotationRef.current;
         headBoneRef.current.rotation.y = THREE.MathUtils.lerp(headBoneRef.current.rotation.y, baseHead.y + targetRotY, 0.08);
@@ -455,9 +463,32 @@ export function SallyDigitalHumanCanvas({
         neckBoneRef.current.rotation.x = baseNeck.x - mouse.y * 0.04 + breathCycle * 0.005;
       }
 
+      // --- Broadcast body language: hands gesture with her voice ---
+      const gestureAmp = currentState === VOICE_STATES.SPEAKING ? Math.min(energy * 2.0, 1.0) : 0;
+      const gestureWave = Math.sin(elapsed * 3.1) * 0.5 + Math.sin(elapsed * 5.3 + 0.7) * 0.5;
+      if (leftForeRef.current && rightForeRef.current) {
+        const baseL = baseLeftForeRef.current;
+        const baseR = baseRightForeRef.current;
+        // Hands lift and emphasize as she speaks, settle when listening
+        leftForeRef.current.rotation.x = baseL.x + gestureAmp * (0.1 + gestureWave * 0.06) + breathCycle * 0.004 * damp;
+        rightForeRef.current.rotation.x = baseR.x + gestureAmp * (0.1 - gestureWave * 0.06) + breathCycle * 0.004 * damp;
+        leftForeRef.current.rotation.z = baseL.z + gestureAmp * gestureWave * 0.03;
+        rightForeRef.current.rotation.z = baseR.z - gestureAmp * gestureWave * 0.03;
+      }
+      if (leftArmRef.current && rightArmRef.current) {
+        const baseLA = baseLeftArmRef.current;
+        const baseRA = baseRightArmRef.current;
+        leftArmRef.current.rotation.x = baseLA.x + gestureAmp * 0.05 * Math.sin(elapsed * 2.2);
+        rightArmRef.current.rotation.x = baseRA.x + gestureAmp * 0.05 * Math.sin(elapsed * 2.2 + 1.4);
+      }
+      // Speaking nod: tiny affirmative head motion synced to voice energy
+      if (headBoneRef.current && currentState === VOICE_STATES.SPEAKING && motionOK) {
+        headBoneRef.current.rotation.x += gestureAmp * 0.012 * Math.sin(elapsed * 4.5);
+      }
+
       // --- Particles Ambient Drift ---
-      if (particles) {
-        particles.rotation.y = elapsed * 0.015;
+      if (particles && motionOK) {
+        particles.rotation.y = elapsed * 0.012;
       }
 
       // --- Real-Time WebAudio Lip-Sync (Edge Neural TTS -> Oculus Visemes) ---
@@ -563,9 +594,11 @@ export function SallyDigitalHumanCanvas({
 
       // Keep the lips, teeth and tongue together, then blink every eye-related
       // surface on the same frame so there is no uncanny mesh separation.
-      const mouthOpen = Math.min(0.72, energy * 1.7);
-      const blinkPhase = elapsed % 4.7;
-      const blink = blinkPhase > 4.52 ? Math.sin(((blinkPhase - 4.52) / 0.18) * Math.PI) : 0;
+      const mouthOpen = Math.min(0.68, energy * 1.6);
+      // Natural blink: schedule closes every 2.5–5.5s, 140ms duration
+      if (motionOK && elapsed > nextBlink) { blinkStart = elapsed; nextBlink = elapsed + 2.5 + Math.random() * 3.0; }
+      const blinkT = blinkStart > 0 ? (elapsed - blinkStart) / 0.14 : 99;
+      const blink = blinkT >= 0 && blinkT <= 1 ? Math.sin(blinkT * Math.PI) : 0;
       morphMeshesRef.current.forEach((mesh) => {
         const dict = mesh.morphTargetDictionary;
         if (dict.mouthOpen !== undefined) mesh.morphTargetInfluences[dict.mouthOpen] = mouthOpen;
@@ -579,9 +612,14 @@ export function SallyDigitalHumanCanvas({
 
     return () => {
       isDisposed = true;
-      if (animFrameIdRef.current) cancelAnimationFrame(animFrameIdRef.current);
+      if (animFrameIdRef.current) cancelAnimationFrame(animFrameRef.current);
+      if (visObserver) visObserver.disconnect();
       resizeObserver.disconnect();
       window.removeEventListener('resize', handleResize);
+      try { avatarGroupRef.current?.userData?.office?.dispose(); } catch {}
+      if (skinPoreNormalMap) skinPoreNormalMap.dispose();
+      if (particleGeo) particleGeo.dispose();
+      if (particleMat) particleMat.dispose();
 
       scene.traverse((obj) => {
         if (obj.geometry) obj.geometry.dispose();
@@ -612,6 +650,28 @@ export function SallyDigitalHumanCanvas({
         overflow: 'hidden',
       }}
     >
+      {/* Cinematic stage: indigo aura + vignette (pure CSS, zero WebGL cost) */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background:
+            'radial-gradient(ellipse 55% 62% at 50% 42%, rgba(99,102,241,.20), rgba(99,102,241,0) 70%)',
+          pointerEvents: 'none',
+        }}
+      />
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background:
+            'radial-gradient(ellipse 120% 105% at 50% 45%, rgba(0,0,0,0) 55%, rgba(2,4,12,.55) 100%)',
+          pointerEvents: 'none',
+          zIndex: 2,
+        }}
+      />
       {/* 3D WebGL Canvas */}
       <canvas
         ref={canvasRef}

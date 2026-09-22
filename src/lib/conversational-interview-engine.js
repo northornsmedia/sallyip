@@ -954,8 +954,21 @@ export function processInterviewTurn({
 export function isTaskSwitch(text = '') {
   const clean = String(text || '').trim().toLowerCase();
   if (!clean) return false;
-  if (/^(stop( this)?|cancel|cancel this|start over|forget this( application)?|new matter|new task|switch (to|tasks)|change topic)\b/i.test(clean)) return true;
-  if (/\b(let'?s do (an? |the )?nda instead|start (an? )?nda|switch to (patentability|novelty|fto|invalidity|prior art|landscapes?)|new matter|forget this application)\b/i.test(clean)) return true;
+
+  // Single word affirmative/negative answers or standard field values must NOT be switches
+  if (/^(yes|no|y|n|unknown|none|n\/a)$/i.test(clean)) return false;
+
+  // Explicit cancellation / reset commands
+  if (/^(stop( this)?|cancel( this)?|abort|start over|forget this( application)?|new matter|new task|switch (to|tasks)|change topic|never\s*mind)\b/i.test(clean)) return true;
+
+  // Switching to another document type or domain (e.g. NDA, trademark, contract, FTO)
+  if (/\b(nda|non-disclosure|confidentiality agreement|trademark|contract|license|patentability|novelty|fto|prior art)\b/i.test(clean)) return true;
+  if (/\b(switch to|let'?s do|start (an? )?|instead|develop something else|something else|different document|another document|i want to make|i want an?|make an?|draft an?)\b/i.test(clean) &&
+      !/^(pct\/|wo\s*20\d{2})/i.test(clean)) return true;
+
+  // Starting with 'no' followed by an alternative instruction
+  if (/^no[,\s]+(develop|i want|let'?s|make|draft|switch|do|can we)\b/i.test(clean)) return true;
+
   return false;
 }
 

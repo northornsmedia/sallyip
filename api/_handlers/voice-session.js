@@ -19,12 +19,29 @@ export default async function handler(req, res) {
     const { matter_id } = req.body || {};
     const executionMode = resolveExecutionMode(process.env);
 
+    if (!process.env.DATABASE_URL) {
+      return res.status(503).json({ error: { message: 'Service unavailable: database not configured', code: 'NOT_CONFIGURED' } });
+    }
     let user = null;
-    if (process.env.DATABASE_URL) {
+    try {
+      const sql = neon(process.env.DATABASE_URL);
+      user = await getSessionUser(sql, req.headers?.cookie || '');
+    } catch {
+      return res.status(503).json({ error: { message: 'Service unavailable', code: 'NOT_CONFIGURED' } });
+    }
+    if (!user || !user.id) {
+      return res.status(401).json({ error: { message: 'Unauthorized', code: 'UNAUTHORIZED' } });
+    }
+    if (matter_id) {
       try {
         const sql = neon(process.env.DATABASE_URL);
-        user = await getSessionUser(sql, req.headers.cookie);
-      } catch {}
+        const matter = await getMatterContext(sql, user.id, matter_id).catch(() => null);
+        if (!matter) {
+          return res.status(403).json({ error: { message: 'Forbidden: matter not found or access denied', code: 'FORBIDDEN' } });
+        }
+      } catch {
+        return res.status(503).json({ error: { message: 'Service unavailable', code: 'NOT_CONFIGURED' } });
+      }
     }
 
     const sessionId = `vsess-${crypto.randomUUID()}`;
@@ -38,6 +55,7 @@ export default async function handler(req, res) {
       created_at: Date.now(),
     });
   } catch (error) {
-    return res.status(500).json({ error: { message: error.message } });
+    console.error('voice-session.request failed:', error.message);
+    return res.status(500).json({ error: { message: 'Voice session failed', code: 'INTERNAL_ERROR' } });
   }
 }

@@ -99,6 +99,23 @@ export const PROVIDER_REGISTRY = [
     fallback_allowed: 'public-only',
   },
   {
+    slug: 'meta/muse-glimmer-30b',
+    provider: 'nvidia',
+    model: 'meta/muse-glimmer-30b',
+    purpose: 'NVIDIA NIM flagship legal reasoning & drafting',
+    paid: true,
+    retention_policy: 'NVIDIA API Catalog data handling',
+    training_policy: 'NVIDIA API policy; verify enterprise terms',
+    dpa_available: true,
+    zero_retention_available: 'enterprise-only',
+    region: 'us/global',
+    approved_for_confidential_ip: 'conditional',
+    approved_for_unpublished_invention: 'conditional',
+    approved_for_contracts: 'conditional',
+    approved_for_litigation: 'conditional',
+    fallback_allowed: true,
+  },
+  {
     slug: 'liquid/lfm-2.5-embedding-350m:free',
     provider: 'openrouter/liquid',
     model: 'lfm-2.5-embedding-350m:free',
@@ -414,7 +431,10 @@ export function isGeminiConfidentialApproved(env = {}) {
 }
 
 export function isGatewayConfidentialApproved(env = {}) {
-  return Boolean(env.AI_GATEWAY_API_KEY);
+  return String(env.SALLYIP_APPROVE_GATEWAY_CONFIDENTIAL || '').trim() === '1' && Boolean(env.AI_GATEWAY_API_KEY);
+}
+export function isNvidiaConfidentialApproved(env = {}) {
+  return String(env.SALLYIP_APPROVE_NVIDIA_CONFIDENTIAL || '').trim() === '1' && Boolean(env.NVIDIA_API_KEY);
 }
 
 export function isEngineApprovedForMode(engine, mode, env = {}) {
@@ -422,13 +442,13 @@ export function isEngineApprovedForMode(engine, mode, env = {}) {
   const record = getProviderRecord(slug);
   if (mode === 'PUBLIC_RESEARCH') return true;
   if (mode === 'CONFIDENTIAL_IP' || mode === 'HIGHLY_CONFIDENTIAL') {
-    if (engine?.key === 'AI_GATEWAY_API_KEY' && env.AI_GATEWAY_API_KEY) return true;
-    // Free tier never approved for confidential.
+    // Free tier never approved for confidential — checked first, no bypass.
     if (record.paid === false || isFreeTierSlug(slug)) return false;
     if (record.approved_for_confidential_ip === false) return false;
     if (record.approved_for_confidential_ip === 'conditional') {
       if (String(slug).includes('gemini')) return isGeminiConfidentialApproved(env);
-      if (record.provider?.includes('vercel-ai-gateway') || (engine?.key === 'AI_GATEWAY_API_KEY' && env.AI_GATEWAY_API_KEY)) return true;
+      if (record.provider?.includes('vercel-ai-gateway') || engine?.key === 'AI_GATEWAY_API_KEY') return isGatewayConfidentialApproved(env);
+      if (record.provider?.includes('nvidia') || engine?.key === 'NVIDIA_API_KEY') return isNvidiaConfidentialApproved(env);
       return false;
     }
     if (record.approved_for_confidential_ip === 'query-only') return false; // search APIs are not chat engines
@@ -436,7 +456,7 @@ export function isEngineApprovedForMode(engine, mode, env = {}) {
       // Highly confidential: only explicitly approved paid primary, no fallback engines.
       const primary = String(env.SALLYIP_PRIMARY_MODEL || '').trim();
       if (!primary || slug !== primary) return false;
-      return isGeminiConfidentialApproved(env) || Boolean(env.AI_GATEWAY_API_KEY) || record.approved_for_confidential_ip === true;
+      return isGeminiConfidentialApproved(env) || isGatewayConfidentialApproved(env) || isNvidiaConfidentialApproved(env) || record.approved_for_confidential_ip === true;
     }
     return record.approved_for_confidential_ip === true;
   }

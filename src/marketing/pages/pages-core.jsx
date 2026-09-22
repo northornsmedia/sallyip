@@ -23,7 +23,7 @@ export function ProductPage({ route }) {
         {groups.map((g) => (
           <Reveal key={g.h}>
             <div className="ent-kicker" style={{ marginTop: 36 }}>{g.h}</div>
-            <div className="ent-areas" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
+            <div className="ent-areas">
               {g.items.map((it) => <a key={it[0]} className="ent-area" href={it[2]} onClick={(e) => { e.preventDefault(); go(it[2]); }}><h3>{it[0]}</h3><p>{it[1]}</p><span>Open →</span></a>)}
             </div>
           </Reveal>
@@ -57,7 +57,7 @@ export function SolutionsPage({ route }) {
           <Reveal key={a[0]}>
             <div style={{ padding: '32px 0', borderTop: i === 0 ? '1px solid rgba(255,255,255,.09)' : undefined, borderBottom: '1px solid rgba(255,255,255,.06)' }}>
               <div className="ent-kicker">{String(i + 1).padStart(2, '0')} · {a[0]}</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 24 }}>
+              <div className="ent-split3" style={{ display: 'grid', gap: 24 }}>
                 <div><b style={{ fontSize: 13 }}>PROBLEM</b><p style={{ color: '#b8bdc9', fontSize: 14, lineHeight: 1.65 }}>{a[1]}</p></div>
                 <div><b style={{ fontSize: 13 }}>WORKFLOW → PRODUCT</b><p style={{ color: '#b8bdc9', fontSize: 14, lineHeight: 1.65 }}>{a[2]}</p></div>
                 <div><b style={{ fontSize: 13 }}>TRUST</b><p style={{ color: '#b8bdc9', fontSize: 14, lineHeight: 1.65 }}>{a[3]}</p></div>
@@ -133,14 +133,15 @@ export function BenchmarksPage({ route }) {
       <Hero eyebrow="Benchmarks" title="Measured, not merely claimed." lede="Every number carries sample size, model, date, methodology and status — including the blocked release. Citation integrity is not legal correctness." primary={<button className="ent-btn ent-btn-primary" onClick={() => go('/verification-logs')}>How verification works <ArrowRight /></button>} secondary={<button className="ent-btn ent-btn-ghost" onClick={() => go('/resources')}>All resources</button>} meta="N, MODEL, DATE, COMMIT, METHOD, STATUS — ALWAYS" />
       <Section>
         <Reveal>
-          <div className="ent-demo-tabs" style={{ border: '1px solid rgba(255,255,255,.1)', borderRadius: 12, marginBottom: 8 }}>
-            {tabs.map((t) => <button key={t} className={tab === t ? 'active' : ''} onClick={() => setTab(t)}>{t}</button>)}
+          <div className="ent-demo-tabs" role="group" aria-label="Benchmark filters" style={{ border: '1px solid rgba(255,255,255,.1)', borderRadius: 12, marginBottom: 8 }}>
+            {tabs.map((t) => <button key={t} type="button" aria-pressed={tab === t} className={tab === t ? 'active' : ''} onClick={() => setTab(t)}>{t}</button>)}
           </div>
         </Reveal>
         <Reveal>
-          <div className="ent-table-wrap">
+          <div className="ent-table-wrap" tabIndex={0} role="region" aria-label="Benchmark results table, scrollable">
           <table className="ent-table">
-            <thead><tr><th>Benchmark (sample · model · date)</th><th>Recorded result</th><th>Status</th></tr></thead>
+            <caption className="sr-only">Benchmark results with sample, model, date, result and status</caption>
+            <thead><tr><th scope="col">Benchmark (sample · model · date)</th><th scope="col">Recorded result</th><th scope="col">Status</th></tr></thead>
             <tbody>
               {BENCHMARKS.filter(match).map((b) => (
                 <tr key={b.name}><td><b>{b.name}</b><br /><small style={{ color: '#8b91a1' }}>{b.meta}</small></td><td>{b.metrics}</td><td><span className={`ent-status ${b.status === 'BLOCKED' ? 'blocked' : b.status === 'PENDING' ? 'pending' : 'ok'}`}>{b.status.replace('_', ' ')}</span></td></tr>
@@ -168,7 +169,7 @@ export function PricingPage({ route }) {
     <MarketingLayout route={route} active="/pricing">
       <Hero eyebrow="Pricing" title="Pricing for modern IP practice." lede="Every plan includes exact-quote verification, citation-integrity gating, and matter-scoped work. No accuracy percentages sold as guarantees." primary={<button className="ent-btn ent-btn-primary" onClick={() => go('/enterprise')}>Request a Demo <ArrowRight /></button>} secondary={<button className="ent-btn ent-btn-ghost" onClick={() => go('/education')}>Education access</button>} />
       <Section>
-        <div className="ent-grid3" style={{ gridTemplateColumns: 'repeat(4,1fr)' }}>
+        <div className="ent-grid3 ent-grid4">
           {plans.map((pl) => (
             <Reveal key={pl.n}>
               <div style={{ border: pl.hot ? '1px solid #5b5bf0' : '1px solid rgba(255,255,255,.1)', borderRadius: 12, padding: 26, background: '#101218', height: '100%' }}>

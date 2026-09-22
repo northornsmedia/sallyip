@@ -16,6 +16,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import SallyTopNav from './sally-topnav';
+import ModernGradientFooter from './modern-gradient-footer';
 
 const SECURITY_PILLARS = [
   {
@@ -79,73 +80,147 @@ const CERTIFICATIONS = [
   { name: 'HIPAA Capable', desc: 'Business Associate Agreement (BAA) available for biotech/pharma clients.' },
 ];
 
-export default function SecurityPage({ onHome, onChat, onAuth, onPricing }) {
+export default function SecurityPage({ onHome, onChat, onAuth, onPricing, onBenchmarks, onNavigate }) {
+  const handleNavChat = () => {
+    if (onNavigate) onNavigate('chat');
+    else if (onChat) onChat();
+    else window.location.hash = 'chat';
+  };
+
+  const handleNavAuth = () => {
+    if (onNavigate) onNavigate('auth');
+    else if (onAuth) onAuth();
+    else window.location.hash = 'auth';
+  };
+
+  const handleNavPricing = () => {
+    if (onNavigate) onNavigate('pricing');
+    else if (onPricing) onPricing();
+    else {
+      window.history.pushState({}, '', '/pricing');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }
+  };
+
+  const handleNavBenchmarks = () => {
+    if (onNavigate) onNavigate('benchmarks');
+    else if (onBenchmarks) onBenchmarks();
+    else {
+      window.history.pushState({}, '', '/benchmarks');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }
+  };
+
   return (
-    <div className="sally-home" style={{ minHeight: '100vh', background: '#09090b', color: '#f8fafc' }}>
+    <div style={{ minHeight: '100vh', background: '#000000', color: '#ffffff', fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif' }}>
       <SallyTopNav
         activePage="security"
         onNavigate={(page) => {
-          if (page === 'home') onHome();
-          else if (page === 'pricing') onPricing ? onPricing() : (window.location.hash = 'pricing');
-          else if (page === 'chat') onChat();
-          else if (page === 'auth') onAuth();
+          if (onNavigate) onNavigate(page);
+          else if (page === 'home') onHome ? onHome() : (window.location.hash = 'home');
+          else if (page === 'pricing') handleNavPricing();
+          else if (page === 'benchmarks') handleNavBenchmarks();
+          else if (page === 'chat') handleNavChat();
+          else if (page === 'auth') handleNavAuth();
           else window.location.hash = page;
         }}
-        onOpenChat={onChat}
-        onOpenAuth={onAuth}
+        onOpenChat={handleNavChat}
+        onOpenAuth={handleNavAuth}
       />
 
-      <main style={{ maxWidth: 1240, margin: '0 auto', padding: '120px 24px 80px' }}>
+      <main style={{ maxWidth: 1440, margin: '0 auto', padding: 'clamp(70px, 9vh, 110px) clamp(20px, 3.5vw, 48px) 80px' }}>
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: 56 }}>
+        <div style={{ textAlign: 'center', maxWidth: 960, margin: '0 auto clamp(48px, 6vh, 64px)' }}>
           <div
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: 8,
-              background: 'rgba(99, 102, 241, 0.12)',
-              border: '1px solid rgba(99, 102, 241, 0.3)',
-              borderRadius: 999,
+              background: '#0d0e14',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              borderRadius: 9999,
               padding: '6px 16px',
-              fontSize: 13,
+              fontSize: 11,
               fontWeight: 600,
-              color: '#818cf8',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: '#a1a1aa',
               marginBottom: 20,
             }}
           >
-            <ShieldCheck size={16} />
-            <span>CONFIDENTIALITY & ENTERPRISE SECURITY</span>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} />
+            <ShieldCheck size={13} style={{ color: '#10b981' }} />
+            <span>CONFIDENTIALITY & ENTERPRISE PRIVILEGE</span>
           </div>
 
           <h1
             style={{
-              fontSize: 'clamp(36px, 5vw, 56px)',
-              fontWeight: 800,
-              letterSpacing: '-0.03em',
-              lineHeight: 1.15,
+              fontSize: 'clamp(38px, 5vw, 68px)',
+              fontWeight: 700,
+              letterSpacing: '-0.04em',
+              lineHeight: 1.08,
               color: '#ffffff',
               margin: '0 auto 20px',
-              maxWidth: 900,
             }}
           >
-            Fortified security for{' '}
-            <span style={{ background: 'linear-gradient(135deg, #818cf8 0%, #c084fc 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              confidential attorney work-product.
-            </span>
+            Fortified Security for
+            <br />
+            Confidential Attorney Work-Product.
           </h1>
 
-          <p style={{ fontSize: 18, color: '#94a3b8', maxWidth: 760, margin: '0 auto', lineHeight: 1.6 }}>
-            SallyIP is engineered from the silicon up for intellectual property counsel. We treat client invention disclosures and litigation strategies with the highest grade of cryptographic protection.
+          <p style={{ fontSize: 'clamp(16px, 1.4vw, 19px)', color: '#9496a1', maxWidth: 760, margin: '0 auto 32px', lineHeight: 1.6 }}>
+            SallyIP is engineered from the silicon up for intellectual property counsel. We treat client invention disclosures and litigation strategies with strict cryptographic isolation and zero data retention.
           </p>
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, flexWrap: 'wrap' }}>
+            <button
+              onClick={handleNavChat}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                height: 46,
+                padding: '0 28px',
+                background: '#ffffff',
+                color: '#000000',
+                borderRadius: 9999,
+                fontSize: 14,
+                fontWeight: 600,
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Launch Studio <ArrowRight size={15} />
+            </button>
+            <button
+              onClick={handleNavPricing}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                height: 46,
+                padding: '0 26px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                color: '#ffffff',
+                borderRadius: 9999,
+                fontSize: 14,
+                fontWeight: 500,
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                cursor: 'pointer',
+              }}
+            >
+              View Pricing & Plans
+            </button>
+          </div>
         </div>
 
         {/* Security Pillars */}
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-            gap: 24,
-            marginBottom: 64,
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: 20,
+            marginBottom: 'clamp(48px, 6vh, 72px)',
           }}
         >
           {SECURITY_PILLARS.map((p, i) => {
@@ -157,10 +232,10 @@ export default function SecurityPage({ onHome, onChat, onAuth, onPricing }) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: i * 0.08 }}
                 style={{
-                  background: 'rgba(18, 18, 24, 0.85)',
+                  background: '#08090d',
                   border: '1px solid rgba(255, 255, 255, 0.08)',
                   borderRadius: 20,
-                  padding: 32,
+                  padding: 28,
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
@@ -170,40 +245,42 @@ export default function SecurityPage({ onHome, onChat, onAuth, onPricing }) {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <div
                       style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 12,
-                        background: 'rgba(99, 102, 241, 0.15)',
-                        border: '1px solid rgba(99, 102, 241, 0.3)',
+                        width: 40,
+                        height: 40,
+                        borderRadius: 10,
+                        background: 'rgba(255, 255, 255, 0.04)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
                     >
-                      <Icon size={22} color="#818cf8" />
+                      <Icon size={18} color="#10b981" />
                     </div>
                     <span
                       style={{
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: '#818cf8',
-                        background: 'rgba(99, 102, 241, 0.12)',
-                        padding: '3px 8px',
-                        borderRadius: 6,
+                        fontSize: 10.5,
+                        fontWeight: 600,
+                        letterSpacing: '0.06em',
+                        color: '#a1a1aa',
+                        background: '#0e1017',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        padding: '4px 10px',
+                        borderRadius: 9999,
                       }}
                     >
                       {p.badge}
                     </span>
                   </div>
 
-                  <h3 style={{ fontSize: 20, fontWeight: 700, color: '#fff', margin: '0 0 10px' }}>{p.title}</h3>
-                  <p style={{ fontSize: 14, color: '#94a3b8', lineHeight: 1.6, margin: '0 0 24px' }}>{p.description}</p>
+                  <h3 style={{ fontSize: 18, fontWeight: 600, color: '#fff', margin: '0 0 8px' }}>{p.title}</h3>
+                  <p style={{ fontSize: 13.5, color: '#94a3b8', lineHeight: 1.6, margin: '0 0 20px' }}>{p.description}</p>
 
-                  <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)', paddingTop: 18 }}>
-                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)', paddingTop: 16 }}>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 9 }}>
                       {p.points.map((pt, j) => (
-                        <li key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 13, color: '#cbd5e1', lineHeight: 1.5 }}>
-                          <CheckCircle2 size={15} color="#10b981" style={{ flexShrink: 0, marginTop: 2 }} />
+                        <li key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: 9, fontSize: 12.5, color: '#cbd5e1', lineHeight: 1.5 }}>
+                          <CheckCircle2 size={14} color="#10b981" style={{ flexShrink: 0, marginTop: 2 }} />
                           <span>{pt}</span>
                         </li>
                       ))}
@@ -218,39 +295,53 @@ export default function SecurityPage({ onHome, onChat, onAuth, onPricing }) {
         {/* Certifications Banner */}
         <div
           style={{
-            background: 'rgba(18, 18, 24, 0.85)',
+            background: '#08090d',
             border: '1px solid rgba(255, 255, 255, 0.08)',
             borderRadius: 20,
             padding: '36px 40px',
-            marginBottom: 48,
+            marginBottom: 'clamp(48px, 6vh, 80px)',
           }}
         >
-          <h3 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 8px', color: '#fff' }}>Compliance & Legal Standards</h3>
-          <p style={{ fontSize: 14, color: '#94a3b8', margin: '0 0 28px' }}>
+          <h3 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 8px', color: '#fff' }}>Compliance & Legal Standards</h3>
+          <p style={{ fontSize: 14, color: '#9496a1', margin: '0 0 24px', lineHeight: 1.6 }}>
             Built to satisfy the stringent compliance requirements of Am Law 100 law firms and Fortune 500 patent departments.
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
             {CERTIFICATIONS.map((c, i) => (
               <div
                 key={i}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.02)',
+                  background: '#040508',
                   border: '1px solid rgba(255, 255, 255, 0.06)',
-                  borderRadius: 12,
-                  padding: 20,
+                  borderRadius: 14,
+                  padding: 18,
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                  <ShieldCheck size={18} color="#10b981" />
-                  <span style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>{c.name}</span>
+                  <ShieldCheck size={16} color="#10b981" />
+                  <span style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>{c.name}</span>
                 </div>
-                <div style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.5 }}>{c.desc}</div>
+                <div style={{ fontSize: 12.5, color: '#828290', lineHeight: 1.5 }}>{c.desc}</div>
               </div>
             ))}
           </div>
         </div>
       </main>
+
+      {/* Modern Gradient Footer */}
+      <ModernGradientFooter
+        onDemoClick={handleNavChat}
+        onNavigate={(page) => {
+          if (onNavigate) onNavigate(page);
+          else if (page === 'home') onHome ? onHome() : (window.location.hash = 'home');
+          else if (page === 'pricing') handleNavPricing();
+          else if (page === 'benchmarks') handleNavBenchmarks();
+          else if (page === 'chat') handleNavChat();
+          else if (page === 'auth') handleNavAuth();
+          else window.location.hash = page;
+        }}
+      />
     </div>
   );
 }

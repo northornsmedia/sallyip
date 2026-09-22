@@ -1,6 +1,6 @@
 // INP (Interaction to Next Paint) measurement for CI
 // Run with: node scripts/measure-inp.mjs  (after `npm run preview &`)
-import { chromium } from 'playwright';
+import { chromium } from 'playwright-core';
 
 const ROUTES = ['/', '/product', '/novelty-search', '/claim-charts', '/office-action-defense', '/benchmarks'];
 

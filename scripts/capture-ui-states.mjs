@@ -1,6 +1,6 @@
 // Capture missing real UI states for: verification desk, claim chart, office action thread, trademark grid, benchmark table
 // Run with: node scripts/capture-ui-states.mjs  (after `npm run build && npm run preview &`)
-import { chromium } from 'playwright';
+import { chromium } from 'playwright-core';
 import { mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 

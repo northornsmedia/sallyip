@@ -26,7 +26,7 @@ const DocPanel=lazy(()=>import("./doc-panel"));
 const VerificationInspectorModal=lazy(()=>import("./verification-inspector-modal"));
 const VoiceOverlay=lazy(()=>import("./voice/VoiceOverlay.jsx"));
 const SallyVideoCallCard=lazy(()=>import("./voice/SallyVideoCallCard.jsx"));
-import SallyDocumentsModal from "./SallyDocumentsModal.jsx";
+const SallyDocumentsModal=lazy(()=>import("./SallyDocumentsModal.jsx"));
 import {
   identifyDocument,
   extractSlots,
@@ -92,12 +92,12 @@ const suggestions = [
   "Build the evidence chronology",
 ];
 const thinkingStages = [
-  { state: "connecting", label: "Connecting Sally’s intelligence…" },
-  { state: "searching", label: "Searching evidence…" },
-  { state: "weaving", label: "Weaving model findings…" },
+  { state: "connecting", label: "Connecting to matter vault…" },
+  { state: "searching", label: "Searching retrieved passages…" },
+  { state: "weaving", label: "Checking quotes and citations…" },
   { state: "solving", label: "Resolving conflicts…" },
-  { state: "composing", label: "Composing Sally’s answer…" },
-  { state: "shaping", label: "Shaping the final response…" },
+  { state: "composing", label: "Drafting answer with sources…" },
+  { state: "shaping", label: "Final check before answering…" },
 ];
 const detectFileRequest = (text) => {
   const match = text.match(/\b(pdf|docx?|word document|pptx?|powerpoint|xlsx?|excel|csv|markdown|md|html|json|txt|text file)\b/i);
@@ -1445,14 +1445,14 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   };
 
   const transitionToComplete = async () => {
-    // 1. Enter 99% the moment the answer is received from the model
+    // 1. Enter 99% the moment the answer is received
     setThinkingProgress(99);
-    setThinkingPhase("Model answer received • Finalizing statutory synthesis (99%)…");
+    setThinkingPhase("Evidence checked • Drafting answer…");
     await new Promise((resolve) => setTimeout(resolve, 600));
 
     // 2. Advance to 100% and hold for 2-3 seconds as requested
     setThinkingProgress(100);
-    setThinkingPhase("Synthesis 100% Complete • Commencing line-by-line delivery…");
+    setThinkingPhase("Draft ready • Delivering with sources…");
     await new Promise((resolve) => setTimeout(resolve, 2400));
   };
 
@@ -1490,10 +1490,10 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         currentProg = Math.min(currentProg + (Math.random() > 0.6 ? 1 : 0), 92);
       }
       setThinkingProgress(currentProg);
-      if (currentProg < 25) setThinkingPhase("Parsing legal intent & jurisdiction parameters…");
-      else if (currentProg < 50) setThinkingPhase("Consulting USPTO / MPEP examination guidelines…");
-      else if (currentProg < 75) setThinkingPhase("Synthesizing claim analysis with Nemotron 3 Ultra…");
-      else setThinkingPhase("Formulating authoritative legal response…");
+      if (currentProg < 25) setThinkingPhase("Parsing request & jurisdiction…");
+      else if (currentProg < 50) setThinkingPhase("Comparing features to retrieved passages…");
+      else if (currentProg < 75) setThinkingPhase("Checking quotes and citations…");
+      else setThinkingPhase("Drafting for practitioner review…");
     }, 240);
 
     try {
@@ -1503,13 +1503,14 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       // If an interview session is already active (WAITING_FOR_USER), or if the user is initiating a document interview:
       const existingSession = baseChat.documentSession;
       const switchedTask = Boolean(existingSession && isTaskSwitch(clean));
-      const switchToNewTask = switchedTask && /\b(let'?s do (an? )?nda instead|start (an? )?nda|switch to (patentability|novelty|fto|invalidity|prior art|landscapes?)|new matter|forget this application)\b/i.test(clean);
       if (switchedTask) baseChat.documentSession = null;
       const effectiveSession = switchedTask ? null : existingSession;
 
-      const isCancellation = /\b(cancel|abort|stop|quit|exit)\s+(?:the\s+)?(?:interview|drafting|session|process)\b/i.test(clean);
+      const isCancellation = /^(cancel|abort|stop|quit|exit)(\s+(the\s+)?(interview|drafting|session|process))?$/i.test(clean.trim()) ||
+                             /\b(cancel|abort|stop|quit|exit)\s+(?:the\s+)?(?:interview|drafting|session|process)\b/i.test(clean);
+      const hasAlternativeInstruction = /\b(nda|patent|trademark|contract|license|agreement|draft|make|create|write|develop|switch|let'?s|instead|what|how|why|tell)\b/i.test(clean);
 
-      if ((isCancellation || (switchedTask && !switchToNewTask)) && existingSession) {
+      if (isCancellation && !hasAlternativeInstruction && existingSession) {
         clearInterval(progressTimer);
         await transitionToComplete();
         const cancelMsg = "Document drafting interview has been cancelled. How else can I assist with your matter?";
@@ -2384,7 +2385,8 @@ export default function ChatPage({ onHome, onAuthRequired }) {
               ref={searchInputRef}
               type="text"
               className="beebotSearchInput"
-              placeholder="Search"
+              aria-label="Search conversations"
+              placeholder="Search conversations"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -2581,8 +2583,9 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                           deleteChat(chat.id);
                         }}
                         title="Delete chat"
+                        aria-label={`Delete chat: ${chat.title || "Untitled Conversation"}`}
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="w-3 h-3" aria-hidden="true" focusable="false" />
                       </button>
                     </div>
                   ))}
@@ -2736,14 +2739,17 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                 {greeting}, {displayName}
               </div>
 
-              <div className="beebotHeroHeadline">
-                How Can I <span>Assist You Today?</span>
-              </div>
+              <h1 className="beebotHeroHeadline">
+                What matter <span>shall we work on?</span>
+              </h1>
+              <p className="beebotHeroSub">
+                Research, drafting, and clearance — every line linked to evidence.
+              </p>
 
               {/* Floating Center Composer */}
               <div className={`beebotComposerCard ${isDictating ? "is-dictating" : ""}`}>
                 {isDictating && (
-                  <div className="beebotDictationBanner">
+                  <div className="beebotDictationBanner" role="status" aria-live="polite">
                     <div className="beebotDictationLeft">
                       <div className="beebotDictationPulseWrap">
                         <div className="beebotDictationRadar" />
@@ -2772,7 +2778,9 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                 )}
                 <textarea
                   className="beebotComposerInput"
-                  placeholder={isDictating ? "Listening... Your spoken words appear here live as you talk..." : "✦ Initiate a query or send a command to the AI..."}
+                  aria-label="Message SallyIP. Press Enter to send, Shift plus Enter for a new line"
+                  enterKeyHint="send"
+                  placeholder={isDictating ? "Listening... Your spoken words appear here live as you talk..." : "Describe your invention, paste an office action, or ask about prior art..."}
                   rows={2}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
@@ -2799,6 +2807,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                       className="beebotPillBtn"
                       onClick={() => uploadInputRef.current?.click()}
                       title="Attach documents"
+                      aria-label="Attach document"
                     >
                       <Paperclip />
                     </button>
@@ -2874,14 +2883,16 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                   </div>
 
                   <button
+                    type="button"
                     className="beebotSendBtn"
+                    aria-label="Send message"
                     disabled={!input.trim() || loading}
                     onClick={() => {
                       if (isDictatingRef.current) stopDictation();
                       send(input);
                     }}
                   >
-                    <Send className="w-3.5 h-3.5" />
+                    <Send className="w-3.5 h-3.5" aria-hidden="true" focusable="false" />
                   </button>
                 </div>
               </div>
@@ -2922,7 +2933,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
           ) : (
             /* Active Message Thread Layout */
             <div className={`beebotActiveChatView${docPanel ? " doc-open" : ""}`}>
-              <div className="beebotThread" ref={threadRef}>
+              <div className="beebotThread" ref={threadRef} role="log" aria-label="Conversation with SallyIP" aria-live="off">
                 {messages.map((message, index) => (
                   <div
                     key={index}
@@ -3041,7 +3052,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
 
                       {/* Percentage Progress Bar before 100% */}
                       {!isWriting && (
-                        <div className="beebotProgressSection">
+                        <div className="beebotProgressSection" role="status" aria-live="polite" aria-atomic="true">
                           <div className="beebotProgressBarTrack">
                             <div
                               className="beebotProgressBarFill"
@@ -3057,7 +3068,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
 
                       {/* Once 100% reached: Live line-by-line typing */}
                       {isWriting && (
-                        <div className="beebotStreamingText">
+                        <div className="beebotStreamingText" aria-busy="true">
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>
                             {streamingAnswer}
                           </ReactMarkdown>
@@ -3075,7 +3086,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
               <div className="beebotBottomComposerWrap">
                 <div className={`beebotComposerCard ${isDictating ? "is-dictating" : ""}`}>
                   {isDictating && (
-                    <div className="beebotDictationBanner">
+                    <div className="beebotDictationBanner" role="status" aria-live="polite">
                       <div className="beebotDictationLeft">
                         <div className="beebotDictationPulseWrap">
                           <div className="beebotDictationRadar" />
@@ -3104,7 +3115,9 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                   )}
                   <textarea
                     className="beebotComposerInput"
-                    placeholder={isDictating ? "Listening... Your spoken words appear here live as you talk..." : "Ask SallyIP a follow-up or command..."}
+                    aria-label="Message SallyIP. Press Enter to send, Shift plus Enter for a new line"
+                    enterKeyHint="send"
+                    placeholder={isDictating ? "Listening... Your spoken words appear here live as you talk..." : "Ask a follow-up about this matter..."}
                     rows={1}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
@@ -3123,6 +3136,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                         className="beebotPillBtn"
                         onClick={() => uploadInputRef.current?.click()}
                         title="Attach document"
+                        aria-label="Attach document"
                       >
                         <Paperclip />
                       </button>
@@ -3130,6 +3144,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                         type="button"
                         className={`beebotPillBtn ${deepResearch ? "active" : ""}`}
                         onClick={() => setDeepResearch((v) => !v)}
+                        aria-pressed={deepResearch}
                       >
                         <Telescope />
                         <span>{deepResearch ? "Reasoning On" : "Reasoning"}</span>
@@ -3194,14 +3209,16 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                       </button>
                     </div>
                     <button
+                      type="button"
                       className="beebotSendBtn"
+                      aria-label="Send message"
                       disabled={!input.trim() || loading}
                       onClick={() => {
                         if (isDictatingRef.current) stopDictation();
                         send(input);
                       }}
                     >
-                      <Send className="w-3.5 h-3.5" />
+                      <Send className="w-3.5 h-3.5" aria-hidden="true" focusable="false" />
                     </button>
                   </div>
                 </div>
@@ -3255,20 +3272,24 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       )}
 
       {/* Sally Official Documents Catalogue Modal (20 Verified Documents) */}
-      <SallyDocumentsModal
-        isOpen={documentsModalOpen}
-        onClose={() => setDocumentsModalOpen(false)}
-        onSelectDocument={(doc) => {
-          setDocumentsModalOpen(false);
-          setInput(doc.command);
-          setTimeout(() => {
-            const inputEl = document.querySelector('.beebotInput');
-            if (inputEl) {
-              inputEl.focus();
-            }
-          }, 50);
-        }}
-      />
+      {documentsModalOpen && (
+        <Suspense fallback={null}>
+          <SallyDocumentsModal
+            isOpen={documentsModalOpen}
+            onClose={() => setDocumentsModalOpen(false)}
+            onSelectDocument={(doc) => {
+              setDocumentsModalOpen(false);
+              setInput(doc.command);
+              setTimeout(() => {
+                const inputEl = document.querySelector('.beebotInput');
+                if (inputEl) {
+                  inputEl.focus();
+                }
+              }, 50);
+            }}
+          />
+        </Suspense>
+      )}
 
       {/* Workspaces Launcher Modal */}
       {toolsOpen && (

@@ -56,15 +56,21 @@ test('CONFIDENTIAL_IP retrieval degrades to lexical-only without embedding fetch
 });
 
 test('embeddings/rerank handlers reject confidential free-model calls with 403', async () => {
+  const { assertEmbeddingAllowed, assertRerankAllowed } = await import('../../src/lib/provider-policy.js');
+  assert.throws(() => assertEmbeddingAllowed({ model: 'liquid/lfm-2.5-embedding-350m:free', mode: 'CONFIDENTIAL_IP' }), (e) => e.code === 'CONFIDENTIAL_EMBEDDING_BLOCKED');
+  assert.throws(() => assertRerankAllowed({ model: 'nvidia/llama-nemotron-rerank-vl-1b-v2:free', mode: 'CONFIDENTIAL_IP' }), (e) => e.code === 'CONFIDENTIAL_RERANK_BLOCKED');
+});
+
+test('embeddings/rerank handlers require authentication (401 without session)', async () => {
   const emb = (await import('../../api/_handlers/embeddings.js')).default;
   const rer = (await import('../../api/_handlers/rerank.js')).default;
   const res = (code) => ({ code, body: null, status(c) { this.code = c; return this; }, json(b) { this.body = b; return this; } });
   process.env.SALLYIP_EXECUTION_MODE = 'CONFIDENTIAL_IP';
-  process.env.SALLYIP_EMBEDDING_MODEL = 'liquid/lfm-2.5-embedding-350m:free';
-  process.env.SALLYIP_RERANK_MODEL = 'nvidia/llama-nemotron-rerank-vl-1b-v2:free';
-  const r1 = res(); await emb({ method: 'POST', body: { input: 'secret invention' } }, r1);
-  assert.equal(r1.code, 403);
-  const r2 = res(); await rer({ method: 'POST', body: { query: 'secret', documents: [{ text: 'passage' }] } }, r2);
-  assert.equal(r2.code, 403);
+  process.env.DATABASE_URL = 'postgres://user:pass@localhost:5432/db'; // test placeholder dummy
+  const r1 = res(); await emb({ method: 'POST', headers: {}, body: { input: 'secret invention' } }, r1);
+  assert.ok([401, 503].includes(r1.code), `expected 401/503, got ${r1.code}`);
+  const r2 = res(); await rer({ method: 'POST', headers: {}, body: { query: 'secret', documents: [{ text: 'passage' }] } }, r2);
+  assert.ok([401, 503].includes(r2.code), `expected 401/503, got ${r2.code}`);
   delete process.env.SALLYIP_EXECUTION_MODE;
+  delete process.env.DATABASE_URL;
 });

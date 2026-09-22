@@ -68,7 +68,7 @@ export function TrademarksPage({ route }) {
       links={[['Office action defense', '/office-action-defense'], ['Verification logs', '/verification-logs'], ['Solutions', '/solutions']]}>
       <Reveal><ProductShot id="chat-actions-focus" /></Reveal>
       <Reveal><div style={{ marginTop: 20 }}><TrademarkDemo /></div></Reveal>
-      <Reveal><div style={{ marginTop: 24 }}><h3 style={{ fontSize: 22 }}>The clearance process, step by step</h3><ol style={{ color: '#b8bdc9', lineHeight: 1.75, fontSize: 14.5 }}><li><b style={{ color: '#fff' }}>Knockout</b> — identical marks, identical goods; fast elimination.</li><li><b style={{ color: '#fff' }}>Similarity expansion</b> — phonetic, visual, conceptual variants across classes.</li><li><b style={{ color: '#fff' }}>Factor analysis</b> — similarity, relatedness, channels, strength, and jurisdiction factors.</li><li><b style={{ color: '#fff' }}>Risk judgment</b> — counsel decides; SallyIP records evidence + decision.</li></ol></div></Reveal>
+      <Reveal><div style={{ marginTop: 24 }}><h2 className="ent-h2" style={{ fontSize: 22 }}>The clearance process, step by step</h2><ol style={{ color: '#b8bdc9', lineHeight: 1.75, fontSize: 14.5 }}><li><b style={{ color: '#fff' }}>Knockout</b> — identical marks, identical goods; fast elimination.</li><li><b style={{ color: '#fff' }}>Similarity expansion</b> — phonetic, visual, conceptual variants across classes.</li><li><b style={{ color: '#fff' }}>Factor analysis</b> — similarity, relatedness, channels, strength, and jurisdiction factors.</li><li><b style={{ color: '#fff' }}>Risk judgment</b> — counsel decides; SallyIP records evidence + decision.</li></ol></div></Reveal>
     </AreaShell>
   );
 }

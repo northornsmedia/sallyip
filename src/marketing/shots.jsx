@@ -93,8 +93,8 @@ export function ProductShot({ id, eager = false, className = '' }) {
 // synthetic content, always labelled DEMO DATA. Not a screenshot.
 export function VerifiedPanel({ eyebrow, rows, note = 'DEMO DATA — workspace pattern, synthetic content for illustration.' }) {
   return (
-    <div className="ent-shot" role="img" aria-label={`${eyebrow}. ${note}`}>
-      <div className="ent-shot-head"><span>{eyebrow}</span><span className="ent-live"><i />DEMO DATA</span></div>
+    <section className="ent-shot" aria-label={eyebrow}>
+      <div className="ent-shot-head"><span>{eyebrow}</span><span className="ent-live"><i aria-hidden="true" />DEMO DATA</span></div>
       <div className="ent-shot-body">
         {rows.map((r, i) => (
           <div key={i} className="ent-vrow">
@@ -104,6 +104,6 @@ export function VerifiedPanel({ eyebrow, rows, note = 'DEMO DATA — workspace p
         ))}
         <div className="ent-demo-note" style={{ padding: '10px 0 0' }}>{note}</div>
       </div>
-    </div>
+    </section>
   );
 }

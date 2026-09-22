@@ -21,6 +21,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import SallyTopNav from './sally-topnav';
+import ModernGradientFooter from './modern-gradient-footer';
 
 const MODULES = [
   {
@@ -146,166 +147,310 @@ const MODULES = [
 
 const CATEGORIES = ['All', 'Prosecution', 'Patentability', 'Clearance', 'Trademarks', 'Litigation', 'Infrastructure'];
 
-export default function ModulesPage({ onHome, onChat, onAuth, onPricing }) {
+export default function ModulesPage({
+  onHome,
+  onChat,
+  onAuth,
+  onPricing,
+  onBenchmarks,
+  onLifecycle,
+  onPerformance,
+  onSecurity,
+  onNavigate,
+}) {
   const [selectedCat, setSelectedCat] = useState('All');
 
   const filteredModules = selectedCat === 'All'
     ? MODULES
     : MODULES.filter((m) => m.category === selectedCat);
 
+  const handleNav = (target) => {
+    if (onNavigate) {
+      onNavigate(target);
+    } else {
+      if (target === 'home') onHome ? onHome() : (window.location.hash = 'home');
+      else if (target === 'pricing') onPricing ? onPricing() : (window.location.hash = 'pricing');
+      else if (target === 'benchmarks') onBenchmarks ? onBenchmarks() : (window.location.hash = 'benchmarks');
+      else if (target === 'lifecycle') onLifecycle ? onLifecycle() : (window.location.hash = 'lifecycle');
+      else if (target === 'performance') onPerformance ? onPerformance() : (window.location.hash = 'performance');
+      else if (target === 'security') onSecurity ? onSecurity() : (window.location.hash = 'security');
+      else if (target === 'chat') onChat ? onChat() : (window.location.hash = 'chat');
+      else if (target === 'auth') onAuth ? onAuth() : (window.location.hash = 'auth');
+      else window.location.hash = target;
+    }
+  };
+
   return (
-    <div className="sally-home" style={{ minHeight: '100vh', background: '#09090b', color: '#f8fafc' }}>
+    <div style={{ minHeight: '100vh', background: '#000000', color: '#ffffff', fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif' }}>
       <SallyTopNav
         activePage="modules"
-        onNavigate={(page) => {
-          if (page === 'home') onHome();
-          else if (page === 'pricing') onPricing ? onPricing() : (window.location.hash = 'pricing');
-          else if (page === 'chat') onChat();
-          else if (page === 'auth') onAuth();
-          else window.location.hash = page;
-        }}
-        onOpenChat={onChat}
-        onOpenAuth={onAuth}
+        onNavigate={handleNav}
+        onOpenChat={() => handleNav('chat')}
+        onOpenAuth={() => handleNav('auth')}
       />
 
-      <main style={{ maxWidth: 1240, margin: '0 auto', padding: '120px 24px 80px' }}>
+      <main style={{ maxWidth: 1440, margin: '0 auto', padding: 'clamp(70px, 9vh, 110px) clamp(20px, 3.5vw, 48px) 80px' }}>
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: 56 }}>
+        <div style={{ textAlign: 'center', maxWidth: 960, margin: '0 auto clamp(44px, 5vh, 60px)' }}>
           <div
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: 8,
-              background: 'rgba(99, 102, 241, 0.12)',
-              border: '1px solid rgba(99, 102, 241, 0.3)',
-              borderRadius: 999,
+              background: '#0d0e14',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              borderRadius: 9999,
               padding: '6px 16px',
-              fontSize: 13,
+              fontSize: 11,
               fontWeight: 600,
-              color: '#818cf8',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: '#a1a1aa',
               marginBottom: 20,
             }}
           >
-            <Layers size={16} />
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} />
+            <Layers size={13} style={{ color: '#10b981' }} />
             <span>INTELLIGENCE MODULES ARCHITECTURE</span>
           </div>
 
           <h1
             style={{
-              fontSize: 'clamp(36px, 5vw, 56px)',
-              fontWeight: 800,
-              letterSpacing: '-0.03em',
-              lineHeight: 1.15,
+              fontSize: 'clamp(38px, 5vw, 68px)',
+              fontWeight: 700,
+              letterSpacing: '-0.04em',
+              lineHeight: 1.08,
               color: '#ffffff',
               margin: '0 auto 20px',
-              maxWidth: 900,
             }}
           >
-            Specialized legal AI workspaces,{' '}
-            <span style={{ background: 'linear-gradient(135deg, #818cf8 0%, #c084fc 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              engineered for IP practice.
-            </span>
+            Specialized Legal AI Workspaces,
+            <br />
+            Engineered for IP Practice.
           </h1>
 
-          <p style={{ fontSize: 18, color: '#94a3b8', maxWidth: 760, margin: '0 auto', lineHeight: 1.6 }}>
+          <p style={{ fontSize: 'clamp(16px, 1.4vw, 19px)', color: '#9496a1', maxWidth: 760, margin: '0 auto 32px', lineHeight: 1.6 }}>
             Every SallyIP module is built specifically for patent attorneys, trademark practitioners, and IP strategists—combining verified legal retrieval with autonomous analytical workflows.
           </p>
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, flexWrap: 'wrap' }}>
+            <button
+              onClick={() => handleNav('chat')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                height: 46,
+                padding: '0 28px',
+                background: '#ffffff',
+                color: '#000000',
+                borderRadius: 9999,
+                fontSize: 14,
+                fontWeight: 600,
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Launch Studio <ArrowRight size={15} />
+            </button>
+            <button
+              onClick={() => handleNav('pricing')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                height: 46,
+                padding: '0 26px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                color: '#ffffff',
+                borderRadius: 9999,
+                fontSize: 14,
+                fontWeight: 500,
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                cursor: 'pointer',
+              }}
+            >
+              View Pricing & Plans
+            </button>
+          </div>
+        </div>
+
+        {/* Workspaces Visual Proof Showcase */}
+        <div
+          style={{
+            maxWidth: 1100,
+            margin: '0 auto 52px',
+            borderRadius: 18,
+            overflow: 'hidden',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            background: '#08090d',
+            boxShadow: '0 24px 60px rgba(0, 0, 0, 0.6)',
+          }}
+        >
+          <div
+            style={{
+              padding: '12px 20px',
+              background: '#0d0e14',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <div style={{ display: 'flex', gap: 7 }}>
+              <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#27272a' }} />
+              <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#27272a' }} />
+              <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#27272a' }} />
+            </div>
+            <span style={{ fontSize: 11, color: '#71717a', fontFamily: 'ui-monospace, monospace' }}>
+              Specialist Legal Workspaces · 8 Shipped Modules
+            </span>
+            <span style={{ fontSize: 11, color: '#10b981', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} />
+              Verified In-Product
+            </span>
+          </div>
+          <picture>
+            <source srcSet="/shots/sallyip-workspaces.webp" type="image/webp" />
+            <img
+              src="/shots/sallyip-workspaces.png"
+              alt="Specialist Legal Workspaces modal showing 8 modules"
+              style={{
+                display: 'block',
+                width: '100%',
+                height: 'auto',
+                imageRendering: '-webkit-optimize-contrast',
+              }}
+              loading="eager"
+              decoding="async"
+            />
+          </picture>
+          <div
+            style={{
+              padding: '12px 22px',
+              background: '#090a0f',
+              borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              fontSize: 12,
+              color: '#94a3b8',
+              flexWrap: 'wrap',
+              gap: 8,
+            }}
+          >
+            <span>US Patent Drafter, Contract Review, Playbooks Desk, FTO, Claim Chart Builder, Prior Art, Trademark Intelligence & Knowledge Graph.</span>
+            <button
+              onClick={() => handleNav('chat')}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#60a5fa',
+                cursor: 'pointer',
+                fontSize: 12,
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              Open Workspaces <ArrowRight size={13} />
+            </button>
+          </div>
         </div>
 
         {/* Category Filter Pills */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 44 }}>
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCat(cat)}
-              style={{
-                background: selectedCat === cat ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.04)',
-                border: selectedCat === cat ? '1px solid #818cf8' : '1px solid rgba(255, 255, 255, 0.08)',
-                color: selectedCat === cat ? '#ffffff' : '#94a3b8',
-                fontSize: 13,
-                fontWeight: 600,
-                padding: '8px 18px',
-                borderRadius: 999,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              {cat}
-            </button>
-          ))}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 44 }}>
+          {CATEGORIES.map((cat) => {
+            const isSelected = selectedCat === cat;
+            return (
+              <button
+                key={cat}
+                onClick={() => setSelectedCat(cat)}
+                style={{
+                  background: isSelected ? 'rgba(255, 255, 255, 0.12)' : '#08090d',
+                  border: isSelected ? '1px solid rgba(255, 255, 255, 0.25)' : '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: 9999,
+                  padding: '8px 18px',
+                  fontSize: 13,
+                  fontWeight: isSelected ? 600 : 500,
+                  color: isSelected ? '#ffffff' : '#8e8e99',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {cat}
+              </button>
+            );
+          })}
         </div>
 
         {/* Modules Grid */}
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-            gap: 24,
-            marginBottom: 64,
+            gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+            gap: 20,
+            marginBottom: 'clamp(48px, 6vh, 80px)',
           }}
         >
-          {filteredModules.map((m) => {
+          {filteredModules.map((m, i) => {
             const Icon = m.icon;
             return (
               <motion.div
                 key={m.id}
-                layout
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
+                transition={{ duration: 0.3, delay: i * 0.05 }}
                 style={{
-                  background: 'rgba(18, 18, 24, 0.85)',
+                  background: '#08090d',
                   border: '1px solid rgba(255, 255, 255, 0.08)',
                   borderRadius: 20,
-                  padding: '28px 28px 24px',
+                  padding: 28,
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
-                  boxShadow: '0 10px 25px -10px rgba(0,0,0,0.5)',
                 }}
               >
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <div
                       style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 12,
-                        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(168, 85, 247, 0.15) 100%)',
-                        border: '1px solid rgba(99, 102, 241, 0.3)',
+                        width: 40,
+                        height: 40,
+                        borderRadius: 10,
+                        background: 'rgba(255, 255, 255, 0.04)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
                     >
-                      <Icon size={22} color="#818cf8" />
+                      <Icon size={18} color="#10b981" />
                     </div>
-
                     <span
                       style={{
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: '#818cf8',
-                        background: 'rgba(99, 102, 241, 0.12)',
-                        border: '1px solid rgba(99, 102, 241, 0.25)',
-                        borderRadius: 6,
-                        padding: '3px 8px',
+                        fontSize: 10.5,
+                        fontWeight: 600,
+                        letterSpacing: '0.06em',
+                        color: '#a1a1aa',
+                        background: '#0e1017',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        padding: '4px 10px',
+                        borderRadius: 9999,
                       }}
                     >
                       {m.badge}
                     </span>
                   </div>
 
-                  <h3 style={{ fontSize: 20, fontWeight: 700, color: '#ffffff', margin: '0 0 10px' }}>{m.name}</h3>
-                  <p style={{ fontSize: 14, color: '#94a3b8', lineHeight: 1.6, margin: '0 0 20px' }}>{m.description}</p>
+                  <h3 style={{ fontSize: 18, fontWeight: 600, color: '#ffffff', margin: '0 0 8px' }}>{m.name}</h3>
+                  <p style={{ fontSize: 13.5, color: '#94a3b8', lineHeight: 1.6, margin: '0 0 20px' }}>{m.description}</p>
 
                   <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)', paddingTop: 16, marginBottom: 20 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
-                      Key Features
-                    </div>
-                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      {m.highlights.map((h, i) => (
-                        <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, color: '#cbd5e1' }}>
+                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 9 }}>
+                      {m.highlights.map((h, j) => (
+                        <li key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: 9, fontSize: 12.5, color: '#cbd5e1', lineHeight: 1.5 }}>
                           <CheckCircle2 size={14} color="#10b981" style={{ flexShrink: 0, marginTop: 2 }} />
                           <span>{h}</span>
                         </li>
@@ -314,18 +459,28 @@ export default function ModulesPage({ onHome, onChat, onAuth, onPricing }) {
                   </div>
                 </div>
 
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, fontSize: 12, color: '#94a3b8', borderTop: '1px solid rgba(255, 255, 255, 0.06)', paddingTop: 14 }}>
-                    <span><strong>Benchmarked:</strong> {m.metric}</span>
-                    <span style={{ color: '#10b981' }}>{m.speed}</span>
+                <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)', paddingTop: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#34d399' }}>{m.metric}</div>
+                    <div style={{ fontSize: 11, color: '#64748b' }}>{m.speed}</div>
                   </div>
-
                   <button
-                    className="sh-btn-white"
-                    onClick={onChat}
-                    style={{ width: '100%', padding: '10px 16px', fontSize: 13, fontWeight: 600, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 }}
+                    onClick={() => handleNav('chat')}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      background: 'rgba(255, 255, 255, 0.06)',
+                      border: '1px solid rgba(255, 255, 255, 0.12)',
+                      borderRadius: 9999,
+                      padding: '7px 14px',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: '#ffffff',
+                      cursor: 'pointer',
+                    }}
                   >
-                    Launch {m.name.split('&')[0]} <ArrowRight size={14} />
+                    Open <ArrowRight size={13} />
                   </button>
                 </div>
               </motion.div>
@@ -333,6 +488,12 @@ export default function ModulesPage({ onHome, onChat, onAuth, onPricing }) {
           })}
         </div>
       </main>
+
+      {/* Modern Gradient Footer */}
+      <ModernGradientFooter
+        onDemoClick={() => handleNav('chat')}
+        onNavigate={handleNav}
+      />
     </div>
   );
 }

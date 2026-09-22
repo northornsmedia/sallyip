@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowDown, Check, Download, Sparkles } from 'lucide-react';
+import { ArrowRight, Check, ShieldCheck } from 'lucide-react';
 import './modern-gradient-footer.css';
 
 export default function ModernGradientFooter({
@@ -29,96 +29,97 @@ export default function ModernGradientFooter({
   };
 
   return (
-    <div className="viroka-footer-root">
-      {/* Ambient Radial Glows */}
-      <div className="viroka-ambient-glow-top" />
-      <div className="viroka-ambient-glow-bottom" />
-
-      {/* Perspective 3D Wireframe Grid Horizon */}
-      <div className="viroka-grid-floor">
-        <div className="viroka-grid-floor-lines" />
-      </div>
-
+    <footer className="viroka-footer-root">
       <div className="viroka-footer-inner">
-        {/* 1. Hero / CTA Block */}
+        {/* 1. Hero / CTA Block (Apple Minimalist) */}
         <div className="viroka-cta-hero">
-          <div className="viroka-logo-squircle">
+          <div className="viroka-brand-pill">
             <img
               src="/sallyip-brand-mark.png"
               alt="SallyIP"
-              className="viroka-logo-img"
+              className="viroka-brand-logo"
             />
+            <span>SALLYIP STUDIO</span>
           </div>
 
           <h2 className="viroka-cta-title">
-            Uncover a new approach to IP intelligence
+            The standard in verified legal intelligence.
           </h2>
 
           <p className="viroka-cta-desc">
-            Get SallyIP now and be part of a community of patent attorneys,
-            legal engineers, and innovators across Fortune 500 companies.
+            Experience the patent intelligence copilot trusted by leading patent boutiques,
+            corporate IP departments, and Fortune 500 legal engineering teams.
           </p>
 
-          <button
-            type="button"
-            className="viroka-cta-btn"
-            onClick={onDemoClick ? onDemoClick : () => handleLink('chat')}
-          >
-            <span>Get started for free</span>
-            <Download size={16} />
-          </button>
+          <div className="viroka-cta-actions">
+            <button
+              type="button"
+              className="sh-btn-apple"
+              onClick={onDemoClick ? onDemoClick : () => handleLink('chat')}
+            >
+              <span>Launch SallyIP Studio</span>
+              <ArrowRight size={14} />
+            </button>
+            <button
+              type="button"
+              className="sh-btn-minimal"
+              onClick={() => handleLink('pricing')}
+            >
+              <span>Compare Plans</span>
+            </button>
+          </div>
         </div>
 
         {/* 2. 4-Column Navigation Links */}
         <div className="viroka-links-grid">
           {/* Column 1 */}
           <div>
-            <div className="viroka-col-header">// Product</div>
+            <div className="viroka-col-header">Product</div>
             <ul className="viroka-col-list">
-              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('modules')}>What's New</button></li>
-              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('modules')}>Novelty Search</button></li>
-              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('modules')}>Claim Charts</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('modules')}>What's New in 2026</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('modules')}>Prior Art Radar</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('modules')}>Novelty Limitation Mapping</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('modules')}>Claim Charts & EoU</button></li>
               <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('modules')}>Office Action Defense</button></li>
-              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('modules')}>Developer API</button></li>
-              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('modules')}>All Modules</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('modules')}>Developer API & SDK</button></li>
             </ul>
           </div>
 
           {/* Column 2 */}
           <div>
-            <div className="viroka-col-header">// Support</div>
+            <div className="viroka-col-header">Practice Areas</div>
             <ul className="viroka-col-list">
-              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('chat')}>Documentation</button></li>
-              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('chat')}>Help Center</button></li>
-              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('chat')}>Support Community</button></li>
-              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('security')}>Enterprise Support</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('chat')}>Patent Drafting Studio</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('chat')}>FTO Product Clearance</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('chat')}>Trademark Screening</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('security')}>Enterprise Department Vault</button></li>
               <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('security')}>Verification Logs</button></li>
-              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('security')}>System Audits</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('security')}>Audit Trails</button></li>
             </ul>
           </div>
 
           {/* Column 3 */}
           <div>
-            <div className="viroka-col-header">// Resources</div>
+            <div className="viroka-col-header">Resources</div>
             <ul className="viroka-col-list">
-              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('benchmarks')}>Our Benchmarks</button></li>
-              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('lifecycle')}>Lifecycle Guide</button></li>
-              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('pricing')}>Pricing</button></li>
-              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('performance')}>Roadmap</button></li>
-              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('pricing')}>Free for Education</button></li>
-              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('benchmarks')}>Newsletter</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('pricing')}>Pricing & Subscriptions</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('benchmarks')}>Open Benchmarks</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('lifecycle')}>Patent Lifecycle Guide</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('performance')}>System Performance</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('pricing')}>Academic Scholarship</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('benchmarks')}>Research Notes</button></li>
             </ul>
           </div>
 
           {/* Column 4 */}
           <div>
-            <div className="viroka-col-header">// About</div>
+            <div className="viroka-col-header">Company & Trust</div>
             <ul className="viroka-col-list">
-              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('home')}>About Us</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('home')}>About SallyIP</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('security')}>Zero Retention Policy</button></li>
               <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('security')}>Security & Compliance</button></li>
-              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('performance')}>Performance</button></li>
+              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('security')}>SOC 2 & ISO Standards</button></li>
               <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('home')}>Careers</button></li>
-              <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('home')}>Partners</button></li>
               <li><button type="button" className="viroka-nav-link" onClick={() => handleLink('security')}>Trust Center</button></li>
             </ul>
           </div>
@@ -130,10 +131,10 @@ export default function ModernGradientFooter({
         {/* 4. Newsletter & Signup Bottom Split */}
         <div className="viroka-bottom-split">
           <div className="viroka-newsletter-info">
-            <h4>Never miss an update</h4>
+            <h4>SallyIP Research Notes</h4>
             <p>
-              Get all the latest legal intelligence, statutory updates, and product releases from SallyIP.
-              Delivered directly to your inbox. We'll rarely send more than once a month.
+              Receive statutory patent intelligence, benchmark scorecards, and model updates.
+              Zero promotional spam. Strictly once per month.
             </p>
           </div>
 
@@ -141,14 +142,14 @@ export default function ModernGradientFooter({
             <div className="viroka-input-row">
               <input
                 type="email"
-                placeholder="example@gmail.com"
+                placeholder="attorney@firm.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="viroka-email-input"
                 required
               />
               <button type="submit" className="viroka-join-btn">
-                {submitted ? 'Joined!' : 'Join'}
+                {submitted ? 'Subscribed' : 'Subscribe'}
               </button>
             </div>
 
@@ -159,20 +160,26 @@ export default function ModernGradientFooter({
                 onChange={(e) => setAgreed(e.target.checked)}
                 className="viroka-consent-checkbox"
               />
-              <span>I agree to receive product and research updates from SallyIP</span>
+              <span>Receive monthly IP research notes and release advisories</span>
             </label>
           </form>
         </div>
 
-        {/* 5. Legal Bar */}
+        {/* 5. Legal & Status Bar */}
         <div className="viroka-legal-bar">
-          <span>© 2026 SallyIP. Designed for Legal Excellence</span>
+          <div className="viroka-status-pill">
+            <span className="viroka-status-dot" />
+            <span>All Systems Operational · 99.98% Uptime SLA</span>
+          </div>
+
           <div className="viroka-legal-links">
-            <a href="#privacy" className="viroka-legal-link">Privacy Policy</a>
-            <a href="#terms" className="viroka-legal-link">Terms of Service</a>
+            <span className="viroka-copy-text">© 2026 SallyIP Inc. Built for Intellectual Property Practitioners.</span>
+            <a href="#privacy" className="viroka-legal-link">Privacy</a>
+            <a href="#terms" className="viroka-legal-link">Terms</a>
+            <a href="#security" className="viroka-legal-link">Security</a>
           </div>
         </div>
       </div>
-    </div>
+    </footer>
   );
 }

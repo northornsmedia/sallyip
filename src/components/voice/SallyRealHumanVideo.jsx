@@ -23,12 +23,49 @@ export function SallyRealHumanVideo({
   isMuted = false,
   activeVoiceName = 'Aria (Neural)',
   className = '',
+  poster = '/images/sally_human_avatar.jpg',
+  onVideoError = null,
 }) {
   const listeningVideoRef = useRef(null);
   const speakingVideoRef = useRef(null);
+  const containerRef = useRef(null);
   const [activeStream, setActiveStream] = useState('listening'); // 'listening' | 'speaking'
   const [audioLevel, setAudioLevel] = useState(0);
+  const [visible, setVisible] = useState(true);
   const animFrameRef = useRef(null);
+  const lastLevelRef = useRef(0);
+  const lastUpdateRef = useRef(0);
+  const speakingPreloadedRef = useRef(false);
+
+  const reportError = () => { try { onVideoError && onVideoError(); } catch {} };
+
+  // Pause both streams when tab hidden or viewport offscreen (perf + battery)
+  useEffect(() => {
+    const onVis = () => {
+      if (document.hidden) {
+        try { listeningVideoRef.current?.pause(); speakingVideoRef.current?.pause(); } catch {}
+      } else if (visible) {
+        try { (activeStream === 'speaking' ? speakingVideoRef.current : listeningVideoRef.current)?.play()?.catch(() => {}); } catch {}
+      }
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, [visible, activeStream]);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver((es) => {
+      es.forEach((e) => {
+        setVisible(e.isIntersecting);
+        if (!e.isIntersecting) {
+          try { listeningVideoRef.current?.pause(); speakingVideoRef.current?.pause(); } catch {}
+        }
+      });
+    }, { threshold: 0.05 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   // Synchronize video streams based on conversational state
   useEffect(() => {
@@ -37,10 +74,16 @@ export function SallyRealHumanVideo({
 
     const lVid = listeningVideoRef.current;
     const sVid = speakingVideoRef.current;
+    if (document.hidden || !visible) return;
 
     if (isSpeaking) {
       if (sVid) {
-        sVid.currentTime = 0;
+        // Preload speaking clip on first use instead of at mount (saves ~1.8MB initial)
+        if (!speakingPreloadedRef.current) {
+          speakingPreloadedRef.current = true;
+          try { sVid.preload = 'auto'; sVid.load(); } catch {}
+        }
+        try { sVid.currentTime = 0; } catch {}
         sVid.play().catch(() => {});
       }
     } else {
@@ -51,33 +94,38 @@ export function SallyRealHumanVideo({
         sVid.pause();
       }
     }
-  }, [state]);
+  }, [state, visible]);
 
   // Ensure listening video autoplays in loop
   useEffect(() => {
     const lVid = listeningVideoRef.current;
-    if (lVid) {
+    if (lVid && visible && !document.hidden) {
       lVid.play().catch(() => {});
     }
-  }, []);
+  }, [visible]);
 
-  // WebAudio Analyser loop for audio reactive rim glow
+  // WebAudio Analyser loop for audio reactive rim glow (throttled to ~10fps to avoid re-render storm)
   useEffect(() => {
     if (!analyserNode) return;
     const freqData = new Uint8Array(32);
 
-    const checkAudio = () => {
-      if (state === VOICE_STATES.SPEAKING) {
+    const checkAudio = (t) => {
+      if (state === VOICE_STATES.SPEAKING && visible && !document.hidden) {
         try {
           analyserNode.getByteFrequencyData(freqData);
           let sum = 0;
           for (let i = 0; i < 32; i++) sum += freqData[i];
           const avg = sum / (32 * 255);
-          setAudioLevel(avg);
+          if (Math.abs(avg - lastLevelRef.current) > 0.05 && t - lastUpdateRef.current > 100) {
+            lastLevelRef.current = avg;
+            lastUpdateRef.current = t;
+            setAudioLevel(avg);
+          }
         } catch {
-          setAudioLevel(0);
+          if (lastLevelRef.current !== 0) { lastLevelRef.current = 0; setAudioLevel(0); }
         }
-      } else {
+      } else if (lastLevelRef.current !== 0) {
+        lastLevelRef.current = 0;
         setAudioLevel(0);
       }
       animFrameRef.current = requestAnimationFrame(checkAudio);
@@ -87,10 +135,11 @@ export function SallyRealHumanVideo({
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
-  }, [analyserNode, state]);
+  }, [analyserNode, state, visible]);
 
   return (
     <div
+      ref={containerRef}
       className={`sally-real-video-container ${className}`}
       style={{
         position: 'absolute',
@@ -115,6 +164,10 @@ export function SallyRealHumanVideo({
         loop
         muted
         playsInline
+        preload="auto"
+        poster={poster}
+        aria-label="Sally listening"
+        onError={reportError}
         style={{
           position: 'absolute',
           top: 0,
@@ -128,13 +181,17 @@ export function SallyRealHumanVideo({
         }}
       />
 
-      {/* Speaking Real Human Video Stream */}
+      {/* Speaking Real Human Video Stream (deferred load until first speak) */}
       <video
         ref={speakingVideoRef}
         src="/videos/sally_real_speaking.mp4"
         loop
         muted
         playsInline
+        preload="none"
+        poster={poster}
+        aria-label="Sally speaking"
+        onError={reportError}
         style={{
           position: 'absolute',
           top: 0,

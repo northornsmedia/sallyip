@@ -27,6 +27,7 @@ const engineUrl=(engine,env)=>{
 const engineCredential=(engine,env)=>{
   if(!engine) return null
   if(engine.key && env[engine.key]) return env[engine.key]
+  if(engine.key === 'NVIDIA_API_KEY') return env.NVIDIA_API_KEY || null
   if(engine.key === 'OPENROUTER_API_KEY') return env.OPENROUTER_API_KEY || env.OPENROUTER_SPEECH_API_KEY || null
   if(engine.key === 'GEMINI_API_KEY' || engine.key === 'GOOGLE_API_KEY') return env.GEMINI_API_KEY || env.GOOGLE_API_KEY || null
   return !engine.baseUrl ? (env.OPENROUTER_API_KEY || env.OPENROUTER_SPEECH_API_KEY) : null
@@ -54,6 +55,18 @@ export function isTruncatedOrCutOff(text) {
 // SALLYIP_PRIMARY_NAME, SALLYIP_PRIMARY_WEIGHT, SALLYIP_PRIMARY_BASE_URL)
 // SALLYIP_EXTRA_ENGINES=[{"slug":"...","name":"...","key":"ENV_NAME","weight":20}]
 export function resolveEngines(env={}){
+  const disableFallback = ['1', 'true'].includes(String(env.SALLYIP_DISABLE_FALLBACK || env.SALLYIP_STRICT_PRIMARY || '').trim().toLowerCase())
+  if(disableFallback && env.SALLYIP_PRIMARY_MODEL){
+    const primarySlug = String(env.SALLYIP_PRIMARY_MODEL).trim()
+    return [{
+      slug: primarySlug,
+      name: String(env.SALLYIP_PRIMARY_NAME || primarySlug).slice(0, 80),
+      key: String(env.SALLYIP_PRIMARY_KEY || 'NVIDIA_API_KEY').slice(0, 80),
+      baseUrl: env.SALLYIP_PRIMARY_BASE_URL ? String(env.SALLYIP_PRIMARY_BASE_URL).slice(0, 160) : undefined,
+      weight: Math.min(100, Math.max(1, Number(env.SALLYIP_PRIMARY_WEIGHT) || 100)),
+      role: 'Primary exclusive reasoning engine',
+    }]
+  }
   const engines=[...CHAT_ENGINES]
   if(env.AI_GATEWAY_API_KEY && !engines.some(e => e.key === 'AI_GATEWAY_API_KEY')){
     const gwModel = env.AI_GATEWAY_MODEL || 'poolside/laguna-s-2.1-free'
@@ -369,12 +382,13 @@ export async function orchestrateSallyStreaming(messages,env,siteUrl=(process.en
     role: 'Fast fallback reasoning'
   }
 
-  const rawPipeline = [geminiEngine, openRouterFlash, ...nemotronEngines]
+  const disableFallback = ['1', 'true'].includes(String(env.SALLYIP_DISABLE_FALLBACK || env.SALLYIP_STRICT_PRIMARY || '').trim().toLowerCase())
+  const rawPipeline = disableFallback ? [geminiEngine] : [geminiEngine, openRouterFlash, ...nemotronEngines]
   const pipeline = rawPipeline.filter((e, idx, arr) => arr.findIndex(x => x.slug === e.slug && (x.baseUrl || '') === (e.baseUrl || '')) === idx)
 
   // Allow explicit engine choice if specified (before policy gate so unapproved preference fails closed)
   const preferredSlug = String(options.preferredEngine || '').trim()
-  if (preferredSlug && preferredSlug !== 'auto') {
+  if (!disableFallback && preferredSlug && preferredSlug !== 'auto') {
     const hitIdx = pipeline.findIndex(e => e.slug === preferredSlug)
     if (hitIdx > 0) {
       const [hit] = pipeline.splice(hitIdx, 1)

@@ -6,7 +6,7 @@ Google patent public data = discovery/enrichment only; never overrides official 
 | provider | jurisdiction | tier | status | creds | canonical record |
 |---|---|---|---|---|---|
 | EPO OPS | EP/WO | OFFICIAL PRIMARY | live, key-gated | EPO_OPS_KEY/SECRET | publication no, country, kind, title, espacenet URL (`official-search-service.js:20`) |
-| EUIPO | EU | OFFICIAL PRIMARY | live, key-gated, sandbox blocked | EUIPO_CLIENT_ID/SECRET | app no, mark, classes, owner, status |
+| EUIPO | EU | OFFICIAL PRIMARY | live, key-gated, sandbox blocked | EUIPO_CLIENT_ID/EUIPO_CLIENT_SECRET | app no, mark, classes, owner, status |
 | USPTO Patent Search | US | OFFICIAL PRIMARY | live beta, key-gated | USPTO_API_KEY | patent/publication no, title, date |
 | CourtListener | US | COURT/TRIBUNAL | live, token-gated | COURTLISTENER_TOKEN | case name, court, opinion |
 | WIPO | WO | OFFICIAL PRIMARY | NOT WIRED — P1 gap | — | TODO adapter |

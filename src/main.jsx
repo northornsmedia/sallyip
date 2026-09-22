@@ -1,8 +1,6 @@
 import React, { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { AnimatePresence, motion } from "framer-motion";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import {
   ArrowRight,
   BarChart3,
@@ -62,7 +60,7 @@ const ModulesPage = lazy(() => import("@/components/modules-page"));
 const PerformancePage = lazy(() => import("@/components/performance-page"));
 const SecurityPage = lazy(() => import("@/components/security-page"));
 const BenchmarksPage = lazy(() => import("@/components/benchmarks-page"));
-import VoiceChatWidget from "@/components/voice-chat-widget";
+const VoiceChatWidget = lazy(() => import("@/components/voice-chat-widget"));
 import "./marketing/enterprise.css";
 import EnterpriseApp from "./marketing/router";
 import { isMarketingPath } from "./marketing/site";
@@ -70,7 +68,6 @@ import "./home-redesign.css";
 import "./styles.css";
 import "./brand.css";
 import "./premium.css";
-import "./chat-workspace.css";
 import "./modern-clean-chat.css";
 
 const jobs = [
@@ -142,14 +139,16 @@ const go = (p) => {
 function BrandMark({ className = "" }) {
   return (
     <span className={"brandMark " + className}>
-      <img src="/sallyip-logo.png" alt="SallyIP" />
+      <img src="/sallyip-logo.png" alt="SallyIP" width={21} height={21} loading="lazy" decoding="async" />
     </span>
   );
 }
 function Logo({ light = false }) {
   return (
     <button
+      type="button"
       className={"logo " + (light ? "light" : "")}
+      aria-label="SallyIP home"
       onClick={() => go("home")}
     >
       <BrandMark />
@@ -214,9 +213,7 @@ function Landing() {
           </div>
           <Reveal>
             <h1>
-              IP intelligence,
-              <br />
-              <span>from creation to enforcement.</span>
+              IP intelligence, from creation to <span>enforcement.</span>
             </h1>
             <p>
               A verification-first AI workspace for intellectual-property
@@ -1783,73 +1780,296 @@ function Table({ heads, rows, click }) {
 function App() {
   const [page, setPage] = useState(route());
   const [mPath, setMPath] = useState(() => window.location.pathname.replace(/\/$/, "") || "/");
+
+  const navigateTo = (target) => {
+    const routeMap = {
+      home: "/",
+      pricing: "/pricing",
+      benchmarks: "/benchmarks",
+      security: "/security",
+      lifecycle: "/lifecycle",
+      modules: "/modules",
+      performance: "/performance",
+      transparency: "/transparency",
+      chat: "#chat",
+      auth: "#auth",
+      accessadmin: "#accessadmin",
+    };
+
+    if (target === "chat" || target === "auth" || target === "accessadmin") {
+      go(target);
+      return;
+    }
+
+    const path = routeMap[target] || (target.startsWith("/") ? target : `/${target}`);
+    window.history.pushState({}, "", path);
+    setMPath(path);
+    setPage(target);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   useEffect(() => {
-    const h = () => setPage(route());
-    const onPop = () => setMPath(window.location.pathname.replace(/\/$/, "") || "/");
+    const h = () => {
+      setPage(route());
+      setMPath(window.location.pathname.replace(/\/$/, "") || "/");
+    };
+    const onPop = () => {
+      setPage(route());
+      setMPath(window.location.pathname.replace(/\/$/, "") || "/");
+    };
     // Legacy hash marketing routes redirect to clean enterprise paths (no hash public pages).
-    const hashRedirects = { home: "/", pricing: "/pricing", benchmarks: "/benchmarks", security: "/security", lifecycle: "/lifecycle-guide", modules: "/modules", performance: "/performance", transparency: "/verification-logs" };
+    const isRoot = window.location.pathname === "/" || window.location.pathname === "";
+    const hashRedirects = {
+      home: "/",
+      pricing: "/pricing",
+      benchmarks: "/benchmarks",
+      security: "/security",
+      lifecycle: "/lifecycle",
+      modules: "/modules",
+      performance: "/performance",
+      transparency: "/transparency",
+    };
     const cur = route();
-    if (location.hash && hashRedirects[cur]) {
+    if (isRoot && location.hash && hashRedirects[cur]) {
       window.history.pushState({}, "", hashRedirects[cur]);
       setMPath(hashRedirects[cur]);
+      setPage(cur);
     }
     addEventListener("hashchange", h);
     addEventListener("popstate", onPop);
-    return () => { removeEventListener("hashchange", h); removeEventListener("popstate", onPop); };
+    return () => {
+      removeEventListener("hashchange", h);
+      removeEventListener("popstate", onPop);
+    };
   }, []);
+
   // Authenticated / app hashes take precedence even on marketing paths (e.g. /product#chat).
-  const appHashes = new Set(["auth", "chat", "accessadmin", "train", "jobs", "job", "datasets", "models", "model", "points", "dashboard", "transparency"]);
+  const appHashes = new Set([
+    "home",
+    "pricing",
+    "benchmarks",
+    "security",
+    "lifecycle",
+    "modules",
+    "performance",
+    "auth",
+    "chat",
+    "accessadmin",
+    "train",
+    "jobs",
+    "job",
+    "datasets",
+    "models",
+    "model",
+    "points",
+    "dashboard",
+    "transparency",
+  ]);
+
   const hashPage = route();
-  const pathname = mPath === "" ? "/" : mPath;
-  const showMarketing = isMarketingPath(pathname) && !appHashes.has(hashPage);
+  const cleanPath = (mPath === "" ? "/" : mPath).replace(/\/$/, "");
+
+  // Priority 1: Auth / Chat / AccessAdmin
+  if (hashPage === "chat" || page === "chat") {
+    return (
+      <Suspense fallback={<div className="ent-root"><div className="ent-wrap" style={{ padding: "120px 28px" }}>Loading SallyIP…</div></div>}>
+        <ChatPage onHome={() => navigateTo("home")} onAuthRequired={() => navigateTo("auth")} />
+        <Suspense fallback={null}><VoiceChatWidget /></Suspense>
+      </Suspense>
+    );
+  }
+  if (hashPage === "auth" || page === "auth") {
+    return (
+      <Suspense fallback={<div className="ent-root"><div className="ent-wrap" style={{ padding: "120px 28px" }}>Loading SallyIP…</div></div>}>
+        <AuthPage
+          onHome={() => navigateTo("home")}
+          onSuccess={(u) => {
+            if (u) {
+              try { localStorage.setItem("sallyip-user", JSON.stringify(u)); } catch {}
+            }
+            navigateTo("chat");
+          }}
+        />
+        <Suspense fallback={null}><VoiceChatWidget /></Suspense>
+      </Suspense>
+    );
+  }
+  if (hashPage === "accessadmin" || page === "accessadmin") {
+    return (
+      <Suspense fallback={<div className="ent-root"><div className="ent-wrap" style={{ padding: "120px 28px" }}>Loading SallyIP…</div></div>}>
+        <BrainAdminPage onHome={() => navigateTo("home")} />
+        <Suspense fallback={null}><VoiceChatWidget /></Suspense>
+      </Suspense>
+    );
+  }
+
+  // Priority 2: The 6 Independent Dedicated Full Pages
+  const isLifecycle = cleanPath === "/lifecycle" || cleanPath === "/lifecycle-guide" || hashPage === "lifecycle" || page === "lifecycle";
+  const isModules = cleanPath === "/modules" || hashPage === "modules" || page === "modules";
+  const isPerformance = cleanPath === "/performance" || hashPage === "performance" || page === "performance";
+  const isSecurity = cleanPath === "/security" || hashPage === "security" || page === "security";
+  const isPricing = cleanPath === "/pricing" || hashPage === "pricing" || page === "pricing";
+  const isBenchmarks = cleanPath === "/benchmarks" || hashPage === "benchmarks" || page === "benchmarks";
+  const isTransparency = cleanPath === "/transparency" || cleanPath === "/verification-logs" || hashPage === "transparency" || page === "transparency";
+
+  if (isLifecycle) {
+    return (
+      <Suspense fallback={<div className="ent-root"><div className="ent-wrap" style={{ padding: "120px 28px" }}>Loading SallyIP…</div></div>}>
+        <LifecyclePage
+          onNavigate={navigateTo}
+          onHome={() => navigateTo("home")}
+          onChat={() => navigateTo("chat")}
+          onAuth={() => navigateTo("auth")}
+          onPricing={() => navigateTo("pricing")}
+          onBenchmarks={() => navigateTo("benchmarks")}
+          onModules={() => navigateTo("modules")}
+          onPerformance={() => navigateTo("performance")}
+          onSecurity={() => navigateTo("security")}
+        />
+        <Suspense fallback={null}><VoiceChatWidget /></Suspense>
+      </Suspense>
+    );
+  }
+
+  if (isModules) {
+    return (
+      <Suspense fallback={<div className="ent-root"><div className="ent-wrap" style={{ padding: "120px 28px" }}>Loading SallyIP…</div></div>}>
+        <ModulesPage
+          onNavigate={navigateTo}
+          onHome={() => navigateTo("home")}
+          onChat={() => navigateTo("chat")}
+          onAuth={() => navigateTo("auth")}
+          onPricing={() => navigateTo("pricing")}
+          onBenchmarks={() => navigateTo("benchmarks")}
+          onLifecycle={() => navigateTo("lifecycle")}
+          onPerformance={() => navigateTo("performance")}
+          onSecurity={() => navigateTo("security")}
+        />
+        <Suspense fallback={null}><VoiceChatWidget /></Suspense>
+      </Suspense>
+    );
+  }
+
+  if (isPerformance) {
+    return (
+      <Suspense fallback={<div className="ent-root"><div className="ent-wrap" style={{ padding: "120px 28px" }}>Loading SallyIP…</div></div>}>
+        <PerformancePage
+          onNavigate={navigateTo}
+          onHome={() => navigateTo("home")}
+          onChat={() => navigateTo("chat")}
+          onAuth={() => navigateTo("auth")}
+          onPricing={() => navigateTo("pricing")}
+          onBenchmarks={() => navigateTo("benchmarks")}
+          onLifecycle={() => navigateTo("lifecycle")}
+          onModules={() => navigateTo("modules")}
+          onSecurity={() => navigateTo("security")}
+        />
+        <Suspense fallback={null}><VoiceChatWidget /></Suspense>
+      </Suspense>
+    );
+  }
+
+  if (isSecurity) {
+    return (
+      <Suspense fallback={<div className="ent-root"><div className="ent-wrap" style={{ padding: "120px 28px" }}>Loading SallyIP…</div></div>}>
+        <SecurityPage
+          onNavigate={navigateTo}
+          onHome={() => navigateTo("home")}
+          onChat={() => navigateTo("chat")}
+          onAuth={() => navigateTo("auth")}
+          onPricing={() => navigateTo("pricing")}
+          onBenchmarks={() => navigateTo("benchmarks")}
+          onLifecycle={() => navigateTo("lifecycle")}
+          onModules={() => navigateTo("modules")}
+          onPerformance={() => navigateTo("performance")}
+        />
+        <Suspense fallback={null}><VoiceChatWidget /></Suspense>
+      </Suspense>
+    );
+  }
+
+  if (isPricing) {
+    return (
+      <Suspense fallback={<div className="ent-root"><div className="ent-wrap" style={{ padding: "120px 28px" }}>Loading SallyIP…</div></div>}>
+        <PricingPage
+          onNavigate={navigateTo}
+          onHome={() => navigateTo("home")}
+          onChat={() => navigateTo("chat")}
+          onAuth={() => navigateTo("auth")}
+          onBenchmarks={() => navigateTo("benchmarks")}
+          onLifecycle={() => navigateTo("lifecycle")}
+          onModules={() => navigateTo("modules")}
+          onPerformance={() => navigateTo("performance")}
+          onSecurity={() => navigateTo("security")}
+        />
+        <Suspense fallback={null}><VoiceChatWidget /></Suspense>
+      </Suspense>
+    );
+  }
+
+  if (isBenchmarks) {
+    return (
+      <Suspense fallback={<div className="ent-root"><div className="ent-wrap" style={{ padding: "120px 28px" }}>Loading SallyIP…</div></div>}>
+        <BenchmarksPage
+          onNavigate={navigateTo}
+          onHome={() => navigateTo("home")}
+          onChat={() => navigateTo("chat")}
+          onAuth={() => navigateTo("auth")}
+          onPricing={() => navigateTo("pricing")}
+          onLifecycle={() => navigateTo("lifecycle")}
+          onModules={() => navigateTo("modules")}
+          onPerformance={() => navigateTo("performance")}
+          onSecurity={() => navigateTo("security")}
+        />
+        <Suspense fallback={null}><VoiceChatWidget /></Suspense>
+      </Suspense>
+    );
+  }
+
+  if (isTransparency) {
+    return (
+      <Suspense fallback={<div className="ent-root"><div className="ent-wrap" style={{ padding: "120px 28px" }}>Loading SallyIP…</div></div>}>
+        <TransparencyPage onHome={() => navigateTo("home")} onChat={() => navigateTo("chat")} onAuth={() => navigateTo("auth")} />
+        <Suspense fallback={null}><VoiceChatWidget /></Suspense>
+      </Suspense>
+    );
+  }
+
+  // Priority 3: Other Marketing Sub-Pages (EnterpriseApp)
+  const pathname = cleanPath === "" ? "/" : cleanPath;
+  const showMarketing = pathname !== "/" && isMarketingPath(pathname) && !appHashes.has(hashPage);
   if (showMarketing) {
     return (
       <>
         <Suspense fallback={<div className="ent-root"><div className="ent-wrap" style={{ padding: "120px 28px" }}>Loading SallyIP…</div></div>}>
           <EnterpriseApp path={pathname} />
         </Suspense>
-        <VoiceChatWidget />
+        <Suspense fallback={null}><VoiceChatWidget /></Suspense>
       </>
     );
   }
+
+  // Priority 4: Home Page Redesign
+  if (pathname === "/" || page === "home" || hashPage === "home") {
+    return (
+      <Suspense fallback={<div className="ent-root"><div className="ent-wrap" style={{ padding: "120px 28px" }}>Loading SallyIP…</div></div>}>
+        <HomePageRedesign
+          onNavigate={navigateTo}
+          onOpenChat={() => navigateTo("chat")}
+          onOpenAuth={() => navigateTo("auth")}
+          onOpenPricing={() => navigateTo("pricing")}
+          onOpenBenchmarks={() => navigateTo("benchmarks")}
+          onOpenTransparency={() => navigateTo("transparency")}
+        />
+        <Suspense fallback={null}><VoiceChatWidget /></Suspense>
+      </Suspense>
+    );
+  }
+
+  // Priority 5: Protected App Shell
   return (
     <Suspense fallback={<div className="ent-root"><div className="ent-wrap" style={{ padding: "120px 28px" }}>Loading SallyIP…</div></div>}>
-      {page === "home" ? (
-        <HomePageRedesign
-          onOpenChat={() => go("chat")}
-          onOpenAuth={() => go("auth")}
-          onOpenPricing={() => { window.history.pushState({}, "", "/pricing"); setMPath("/pricing"); scrollTo({ top: 0 }); }}
-          onOpenTransparency={() => go("transparency")}
-        />
-      ) : page === "lifecycle" ? (
-        <LifecyclePage onHome={() => go("home")} onChat={() => go("chat")} onAuth={() => go("auth")} onPricing={() => go("pricing")} />
-      ) : page === "modules" ? (
-        <ModulesPage onHome={() => go("home")} onChat={() => go("chat")} onAuth={() => go("auth")} onPricing={() => go("pricing")} />
-      ) : page === "performance" ? (
-        <PerformancePage onHome={() => go("home")} onChat={() => go("chat")} onAuth={() => go("auth")} onPricing={() => go("pricing")} />
-      ) : page === "security" ? (
-        <SecurityPage onHome={() => go("home")} onChat={() => go("chat")} onAuth={() => go("auth")} onPricing={() => go("pricing")} />
-      ) : page === "benchmarks" ? (
-        <BenchmarksPage onHome={() => go("home")} onChat={() => go("chat")} onAuth={() => go("auth")} onPricing={() => go("pricing")} />
-      ) : page === "accessadmin" ? (
-        <BrainAdminPage onHome={() => go("home")} />
-      ) : page === "auth" ? (
-        <AuthPage
-          onHome={() => go("home")}
-          onSuccess={(u) => {
-            if (u) {
-              try { localStorage.setItem("sallyip-user", JSON.stringify(u)); } catch {}
-            }
-            go("chat");
-          }}
-        />
-      ) : page === "chat" ? (
-        <ChatPage onHome={() => go("home")} onAuthRequired={() => go("auth")} />
-      ) : page === "pricing" ? (
-        <PricingPage onHome={() => go("home")} onChat={() => go("chat")} onAuth={() => go("auth")} />
-      ) : (
-        <ProtectedAppShell page={page} />
-      )}
+      <ProtectedAppShell page={page} />
       <VoiceChatWidget />
     </Suspense>
   );

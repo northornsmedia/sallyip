@@ -16,7 +16,8 @@
 ```bash
 # 1. Verify staging evidence exists and is recent
 cat docs/p0-2-staging-rls-evidence.json | jq '.after.rls_tables, .after.force_tables, .after.policy_count'
-# Expect: rls_tables >= 70, force_tables >= 70, policy_count >= 20
+# Expect: rls_tables >= 80, force_tables >= 80, policy_count >= 9
+# (055 ARRAY holds ~91 names; vintage skips missing tables; 9 sally_app_own_rows policies)
 
 # 2. Verify current prod state (read-only)
 node scripts/rls-staging-check.mjs
@@ -37,10 +38,10 @@ node --env-file=.env.local scripts/apply-migration.mjs database/055_tenant_isola
 ```
 
 Expected output:
-- ~70 tables with `ENABLE ROW LEVEL SECURITY`
-- ~70 tables with `FORCE ROW LEVEL SECURITY`
-- Roles `sally_app` and `sally_readonly` created
-- ~20 policies created (core tables)
+- ~91 tables with `ENABLE ROW LEVEL SECURITY` (055 ARRAY length; count varies by vintage)
+- ~91 tables with `FORCE ROW LEVEL SECURITY`
+- Roles `sally_app` and `sally_readonly` created (NOLOGIN; owner grants in prod)
+- 9 policies created (`sally_app_own_rows` on matters, conversations, generated_files, legal_sources, artifacts, legal_contracts, legal_workflow_runs, answer_citations, auth_sessions)
 
 ---
 
@@ -83,7 +84,7 @@ Expected output:
 ```bash
 # 1. RLS active
 node scripts/rls-staging-check.mjs
-# Expect: bypass_rls=false (for app user), rls_tables >= 70, force_tables >= 70
+# Expect: bypass_rls=false (for app user), rls_tables >= 80, force_tables >= 80
 
 # 2. Role permissions
 node scripts/p0-3-role-separation.mjs
@@ -119,7 +120,9 @@ Rollback immediately if ANY of:
 
 ```sql
 -- Run as ADMIN (owner) role
--- Disable RLS on all tables
+-- Disable RLS on all tables. Do NOT maintain a second static list:
+-- re-run the 055 ARRAY with DISABLE ROW LEVEL SECURITY + DROP POLICY, or
+-- enumerate live: SELECT tablename FROM pg_tables WHERE schemaname='public' AND rowsecurity
 DO $$
 DECLARE t text;
 BEGIN
@@ -127,7 +130,7 @@ BEGIN
     'matters','conversations','messages','generated_files','legal_sources',
     'source_passages','artifacts','artifact_versions','legal_contracts',
     'legal_workflow_runs','answer_citations','auth_sessions',
-    -- ... all ~70 tables from 055
+    -- ... extend from the 055 ARRAY (same source of truth), not a copy
   ] LOOP
     BEGIN
       EXECUTE format('ALTER TABLE IF EXISTS %I DISABLE ROW LEVEL SECURITY', t);

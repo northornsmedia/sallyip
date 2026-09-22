@@ -1,14 +1,38 @@
 import { synthesizeEdgeTTS } from '../../src/lib/edge-tts-service.js';
+import { neon } from '@neondatabase/serverless';
+import { getSessionUser } from '../../src/lib/auth.js';
+
+const VOICE_RE = /^[a-z]{2}-[A-Z]{2}-[A-Za-z]+Neural$/;
+const MAX_SPEECH_CHARS = 2000;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: { message: 'Method not allowed' } });
   }
 
+  if (!process.env.DATABASE_URL) {
+    return res.status(503).json({ error: { message: 'Service unavailable: database not configured', code: 'NOT_CONFIGURED' } });
+  }
+  try {
+    const sql = neon(process.env.DATABASE_URL);
+    const user = await getSessionUser(sql, req.headers?.cookie || '').catch(() => null);
+    if (!user || !user.id) {
+      return res.status(401).json({ error: { message: 'Unauthorized', code: 'UNAUTHORIZED' } });
+    }
+  } catch {
+    return res.status(503).json({ error: { message: 'Service unavailable', code: 'NOT_CONFIGURED' } });
+  }
+
   const { input, text, model, voice } = req.body || {};
   const speechText = String(input || text || '').trim();
   if (!speechText) {
     return res.status(400).json({ error: { message: 'input text is required' } });
+  }
+  if (speechText.length > MAX_SPEECH_CHARS) {
+    return res.status(400).json({ error: { message: `input text exceeds ${MAX_SPEECH_CHARS} characters`, code: 'VALIDATION_ERROR' } });
+  }
+  if (voice && (typeof voice !== 'string' || voice.length > 60 || !VOICE_RE.test(voice))) {
+    return res.status(400).json({ error: { message: 'Invalid voice identifier', code: 'VALIDATION_ERROR' } });
   }
 
   // 1. PRIMARY: Microsoft Edge Neural TTS (Free, high-fidelity neural voice)

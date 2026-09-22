@@ -16,14 +16,15 @@ import {
   Zap,
 } from 'lucide-react';
 import SallyTopNav from './sally-topnav';
+import ModernGradientFooter from './modern-gradient-footer';
 
 const METRICS = [
-  { label: 'Hybrid Vector Search', value: '48ms', sub: 'Neon Postgres + pgvector', icon: Database, color: '#818cf8' },
-  { label: 'P50 Inference Latency', value: '840ms', sub: 'Sub-second first token', icon: Zap, color: '#10b981' },
-  { label: 'P95 Complex Reasoning', value: '1.42s', sub: 'Full 5D verification graph', icon: Clock, color: '#f59e0b' },
-  { label: 'Infrastructure Uptime', value: '99.98%', sub: 'High-availability SLA', icon: Server, color: '#6366f1' },
-  { label: 'Cache Efficiency Lift', value: '42%', sub: 'Prompt KV cache hit rate', icon: Cpu, color: '#c084fc' },
-  { label: 'Zero-Dangling Integrity', value: '100.0%', sub: 'Zero unanchored labels', icon: ShieldCheck, color: '#10b981' },
+  { label: 'Hybrid Vector Search', value: '48ms', sub: 'Neon Postgres + pgvector', icon: Database, color: '#34d399' },
+  { label: 'P50 Inference Latency', value: '840ms', sub: 'Sub-second first token', icon: Zap, color: '#34d399' },
+  { label: 'P95 Complex Reasoning', value: '1.42s', sub: 'Full 5D verification graph', icon: Clock, color: '#60a5fa' },
+  { label: 'Infrastructure Uptime', value: '99.98%', sub: 'High-availability SLA', icon: Server, color: '#34d399' },
+  { label: 'Cache Efficiency Lift', value: '42%', sub: 'Prompt KV cache hit rate', icon: Cpu, color: '#a78bfa' },
+  { label: 'Zero-Dangling Integrity', value: '100.0%', sub: 'Zero unanchored labels', icon: ShieldCheck, color: '#34d399' },
 ];
 
 const TIERS = [
@@ -60,73 +61,135 @@ const CLUSTERS = [
   { region: 'Asia-Pacific (Tokyo)', latency: '72ms', status: 'Operational', load: '33%' },
 ];
 
-export default function PerformancePage({ onHome, onChat, onAuth, onPricing }) {
+export default function PerformancePage({
+  onHome,
+  onChat,
+  onAuth,
+  onPricing,
+  onBenchmarks,
+  onLifecycle,
+  onModules,
+  onSecurity,
+  onNavigate,
+}) {
+  const handleNav = (target) => {
+    if (onNavigate) {
+      onNavigate(target);
+    } else {
+      if (target === 'home') onHome ? onHome() : (window.location.hash = 'home');
+      else if (target === 'pricing') onPricing ? onPricing() : (window.location.hash = 'pricing');
+      else if (target === 'benchmarks') onBenchmarks ? onBenchmarks() : (window.location.hash = 'benchmarks');
+      else if (target === 'lifecycle') onLifecycle ? onLifecycle() : (window.location.hash = 'lifecycle');
+      else if (target === 'modules') onModules ? onModules() : (window.location.hash = 'modules');
+      else if (target === 'security') onSecurity ? onSecurity() : (window.location.hash = 'security');
+      else if (target === 'chat') onChat ? onChat() : (window.location.hash = 'chat');
+      else if (target === 'auth') onAuth ? onAuth() : (window.location.hash = 'auth');
+      else window.location.hash = target;
+    }
+  };
+
   return (
-    <div className="sally-home" style={{ minHeight: '100vh', background: '#09090b', color: '#f8fafc' }}>
+    <div style={{ minHeight: '100vh', background: '#000000', color: '#ffffff', fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif' }}>
       <SallyTopNav
         activePage="performance"
-        onNavigate={(page) => {
-          if (page === 'home') onHome();
-          else if (page === 'pricing') onPricing ? onPricing() : (window.location.hash = 'pricing');
-          else if (page === 'chat') onChat();
-          else if (page === 'auth') onAuth();
-          else window.location.hash = page;
-        }}
-        onOpenChat={onChat}
-        onOpenAuth={onAuth}
+        onNavigate={handleNav}
+        onOpenChat={() => handleNav('chat')}
+        onOpenAuth={() => handleNav('auth')}
       />
 
-      <main style={{ maxWidth: 1240, margin: '0 auto', padding: '120px 24px 80px' }}>
+      <main style={{ maxWidth: 1440, margin: '0 auto', padding: 'clamp(70px, 9vh, 110px) clamp(20px, 3.5vw, 48px) 80px' }}>
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: 56 }}>
+        <div style={{ textAlign: 'center', maxWidth: 960, margin: '0 auto clamp(44px, 5vh, 60px)' }}>
           <div
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: 8,
-              background: 'rgba(99, 102, 241, 0.12)',
-              border: '1px solid rgba(99, 102, 241, 0.3)',
-              borderRadius: 999,
+              background: '#0d0e14',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              borderRadius: 9999,
               padding: '6px 16px',
-              fontSize: 13,
+              fontSize: 11,
               fontWeight: 600,
-              color: '#818cf8',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: '#a1a1aa',
               marginBottom: 20,
             }}
           >
-            <Activity size={16} />
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} />
+            <Activity size={13} style={{ color: '#10b981' }} />
             <span>ENTERPRISE INFERENCE & RETRIEVAL LATENCY</span>
           </div>
 
           <h1
             style={{
-              fontSize: 'clamp(36px, 5vw, 56px)',
-              fontWeight: 800,
-              letterSpacing: '-0.03em',
-              lineHeight: 1.15,
+              fontSize: 'clamp(38px, 5vw, 68px)',
+              fontWeight: 700,
+              letterSpacing: '-0.04em',
+              lineHeight: 1.08,
               color: '#ffffff',
               margin: '0 auto 20px',
-              maxWidth: 900,
             }}
           >
-            Sub-second legal verification,{' '}
-            <span style={{ background: 'linear-gradient(135deg, #818cf8 0%, #c084fc 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              without compromising rigor.
-            </span>
+            Sub-Second Legal Verification,
+            <br />
+            Without Compromising Rigor.
           </h1>
 
-          <p style={{ fontSize: 18, color: '#94a3b8', maxWidth: 760, margin: '0 auto', lineHeight: 1.6 }}>
+          <p style={{ fontSize: 'clamp(16px, 1.4vw, 19px)', color: '#9496a1', maxWidth: 760, margin: '0 auto 32px', lineHeight: 1.6 }}>
             SallyIP pairs custom fine-tuned weights with distributed hybrid vector infrastructure, delivering real-time citation validation and quote verification at enterprise scale.
           </p>
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, flexWrap: 'wrap' }}>
+            <button
+              onClick={() => handleNav('chat')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                height: 46,
+                padding: '0 28px',
+                background: '#ffffff',
+                color: '#000000',
+                borderRadius: 9999,
+                fontSize: 14,
+                fontWeight: 600,
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Launch Studio <ArrowRight size={15} />
+            </button>
+            <button
+              onClick={() => handleNav('pricing')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                height: 46,
+                padding: '0 26px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                color: '#ffffff',
+                borderRadius: 9999,
+                fontSize: 14,
+                fontWeight: 500,
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                cursor: 'pointer',
+              }}
+            >
+              View Pricing & Plans
+            </button>
+          </div>
         </div>
 
         {/* Live Metrics Grid */}
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: 20,
-            marginBottom: 56,
+            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+            gap: 16,
+            marginBottom: 'clamp(48px, 6vh, 72px)',
           }}
         >
           {METRICS.map((m, i) => {
@@ -138,109 +201,144 @@ export default function PerformancePage({ onHome, onChat, onAuth, onPricing }) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: i * 0.05 }}
                 style={{
-                  background: 'rgba(18, 18, 24, 0.85)',
+                  background: '#08090d',
                   border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: 16,
+                  borderRadius: 18,
                   padding: 24,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                  <span style={{ fontSize: 13, color: '#94a3b8', fontWeight: 500 }}>{m.label}</span>
-                  <Icon size={18} color={m.color} />
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: '#a1a1aa' }}>{m.label}</span>
+                    <div
+                      style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 8,
+                        background: 'rgba(255, 255, 255, 0.04)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Icon size={16} color={m.color} />
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 34, fontWeight: 700, letterSpacing: '-0.04em', color: '#ffffff', marginBottom: 4 }}>
+                    {m.value}
+                  </div>
                 </div>
-                <div style={{ fontSize: 36, fontWeight: 800, color: '#ffffff', letterSpacing: '-0.03em' }}>{m.value}</div>
-                <div style={{ fontSize: 12, color: '#64748b', marginTop: 6 }}>{m.sub}</div>
+                <div style={{ fontSize: 12, color: '#64748b' }}>{m.sub}</div>
               </motion.div>
             );
           })}
         </div>
 
-        {/* Tier Architecture */}
-        <div
-          style={{
-            background: 'rgba(18, 18, 24, 0.85)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            borderRadius: 20,
-            padding: '32px 36px',
-            marginBottom: 56,
-          }}
-        >
-          <h3 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 6px', color: '#fff' }}>Authority Tier Retrieval Performance</h3>
-          <p style={{ fontSize: 14, color: '#94a3b8', margin: '0 0 28px' }}>
-            Retrieved passages are partitioned into hierarchical tiers to ensure binding primary law governs reasoning over administrative guidance and secondary treatises.
-          </p>
+        {/* Priority Hierarchy & Authority Slicing */}
+        <div style={{ marginBottom: 'clamp(48px, 6vh, 72px)' }}>
+          <div style={{ marginBottom: 28 }}>
+            <h2 style={{ fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 700, letterSpacing: '-0.03em', color: '#ffffff', margin: '0 0 8px' }}>
+              Statutory Authority Precedence Hierarchy
+            </h2>
+            <p style={{ fontSize: 15, color: '#94a3b8', margin: 0, lineHeight: 1.6 }}>
+              SallyIP resolves citation and entailment conflicts deterministically using strict statutory hierarchy tiers.
+            </p>
+          </div>
 
-          <div style={{ display: 'grid', gap: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {TIERS.map((t, i) => (
               <div
-                key={i}
+                key={t.tier}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.02)',
-                  border: '1px solid rgba(255, 255, 255, 0.06)',
-                  borderRadius: 14,
-                  padding: '20px 24px',
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  justifyContent: 'space-between',
+                  background: '#08090d',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: 18,
+                  padding: 24,
+                  display: 'grid',
+                  gridTemplateColumns: '120px 1.5fr 1fr',
+                  gap: 20,
                   alignItems: 'center',
-                  gap: 16,
                 }}
               >
-                <div style={{ flex: '1 1 400px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: '#818cf8', background: 'rgba(99, 102, 241, 0.15)', padding: '2px 8px', borderRadius: 4 }}>
-                      {t.tier}
-                    </span>
-                    <span style={{ fontSize: 16, fontWeight: 700, color: '#ffffff' }}>{t.name}</span>
-                  </div>
-                  <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 6 }}><strong>Sources:</strong> {t.authorities}</div>
-                  <div style={{ fontSize: 13, color: '#cbd5e1', lineHeight: 1.5 }}>{t.description}</div>
+                <div>
+                  <span
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: '#34d399',
+                      background: 'rgba(16, 185, 129, 0.12)',
+                      border: '1px solid rgba(16, 185, 129, 0.28)',
+                      padding: '4px 12px',
+                      borderRadius: 9999,
+                    }}
+                  >
+                    {t.tier}
+                  </span>
+                  <div style={{ fontSize: 11, color: '#64748b', marginTop: 8 }}>{t.sla}</div>
                 </div>
-
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>Index Retrieval</div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: '#10b981' }}>{t.sla}</div>
-                  <div style={{ fontSize: 11, color: '#818cf8', marginTop: 4 }}>{t.priority}</div>
+                <div>
+                  <h4 style={{ fontSize: 16, fontWeight: 600, color: '#fff', margin: '0 0 4px' }}>{t.name}</h4>
+                  <p style={{ fontSize: 13, color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>{t.description}</p>
+                </div>
+                <div style={{ fontSize: 12, color: '#64748b', fontStyle: 'italic' }}>
+                  {t.authorities}
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Global Cluster Status */}
+        {/* Global Edge Clusters */}
         <div
           style={{
-            background: 'rgba(18, 18, 24, 0.85)',
+            background: '#08090d',
             border: '1px solid rgba(255, 255, 255, 0.08)',
             borderRadius: 20,
-            padding: '32px 36px',
+            padding: '36px 40px',
+            marginBottom: 'clamp(48px, 6vh, 80px)',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
             <div>
-              <h3 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 4px', color: '#fff' }}>Global Dedicated Clusters</h3>
-              <p style={{ fontSize: 14, color: '#94a3b8', margin: 0 }}>All inference clusters operational with live regional failover.</p>
+              <h3 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 6px', color: '#fff' }}>Global Sovereign Retrieval Clusters</h3>
+              <p style={{ fontSize: 14, color: '#94a3b8', margin: 0 }}>Multi-region deployment maintaining strict data sovereignty and sub-100ms vector latency.</p>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#10b981', fontWeight: 600 }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-              All Systems Operational
-            </div>
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: '#34d399',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'rgba(16, 185, 129, 0.12)',
+                border: '1px solid rgba(16, 185, 129, 0.28)',
+                padding: '4px 12px',
+                borderRadius: 9999,
+              }}
+            >
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#34d399' }} /> All Systems Operational
+            </span>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-            {CLUSTERS.map((c, i) => (
+            {CLUSTERS.map((c) => (
               <div
-                key={i}
+                key={c.region}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.02)',
+                  background: '#040508',
                   border: '1px solid rgba(255, 255, 255, 0.06)',
-                  borderRadius: 12,
+                  borderRadius: 14,
                   padding: 18,
                 }}
               >
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 6 }}>{c.region}</div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#94a3b8', marginTop: 10 }}>
-                  <span>Latency: <strong style={{ color: '#cbd5e1' }}>{c.latency}</strong></span>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#fff', marginBottom: 6 }}>{c.region}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#64748b' }}>
+                  <span>Latency: <strong style={{ color: '#34d399' }}>{c.latency}</strong></span>
                   <span>Load: <strong style={{ color: '#cbd5e1' }}>{c.load}</strong></span>
                 </div>
               </div>
@@ -248,6 +346,12 @@ export default function PerformancePage({ onHome, onChat, onAuth, onPricing }) {
           </div>
         </div>
       </main>
+
+      {/* Modern Gradient Footer */}
+      <ModernGradientFooter
+        onDemoClick={() => handleNav('chat')}
+        onNavigate={handleNav}
+      />
     </div>
   );
 }

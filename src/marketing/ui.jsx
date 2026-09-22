@@ -11,6 +11,10 @@ export function useReveal() {
       el.classList.add('in');
       return;
     }
+    if (typeof IntersectionObserver === 'undefined') {
+      el.classList.add('in');
+      return;
+    }
     const io = new IntersectionObserver((es) => {
       es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
     }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
@@ -22,10 +26,12 @@ export function useReveal() {
 }
 
 export function go(path) {
-  if (window.location.pathname === path) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
-  window.history.pushState({}, '', path);
-  window.dispatchEvent(new PopStateEvent('popstate'));
-  window.scrollTo({ top: 0 });
+  try {
+    if (window.location.pathname === path) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    window.history.pushState({}, '', path);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    window.scrollTo({ top: 0 });
+  } catch { window.location.href = path; }
 }
 
 export function Reveal({ children, className = '', as: Tag = 'div' }) {
@@ -70,7 +76,7 @@ export function Split({ kicker, title, body, bullets = [], cta, visual, flip = f
         <p>{body}</p>
         {bullets.length > 0 && (
           <ul className="ent-bullets">
-            {bullets.map((b, i) => <li key={i}><Check />{b}</li>)}
+            {bullets.map((b, i) => <li key={i}><Check aria-hidden="true" focusable="false" />{b}</li>)}
           </ul>
         )}
         {cta}
@@ -83,7 +89,7 @@ export function Split({ kicker, title, body, bullets = [], cta, visual, flip = f
 export function Shot({ label, live = 'LIVE DEMO DATA', children }) {
   return (
     <div className="ent-shot">
-      <div className="ent-shot-head"><span>{label}</span><span className="ent-live"><i />{live}</span></div>
+      <div className="ent-shot-head"><span>{label}</span><span className="ent-live"><i aria-hidden="true" />{live}</span></div>
       <div className="ent-shot-body">{children}</div>
     </div>
   );
@@ -97,8 +103,8 @@ export function CTASection({ title, body }) {
           <h2>{title}</h2>
           <p>{body}</p>
           <div className="ent-hero-ctas">
-            <button className="ent-btn ent-btn-primary" onClick={() => go('/enterprise')}>Request a Demo <ArrowRight /></button>
-            <button className="ent-btn ent-btn-ghost" onClick={() => go('/product')}>Explore SallyIP</button>
+            <button type="button" className="ent-btn ent-btn-primary" onClick={() => go('/enterprise')}>Request a Demo <ArrowRight aria-hidden="true" focusable="false" /></button>
+            <button type="button" className="ent-btn ent-btn-ghost" onClick={() => go('/product')}>Explore SallyIP</button>
           </div>
         </Reveal>
       </div>

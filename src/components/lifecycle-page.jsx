@@ -18,6 +18,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import SallyTopNav from './sally-topnav';
+import ModernGradientFooter from './modern-gradient-footer';
 
 const LIFECYCLE_STAGES = [
   {
@@ -37,6 +38,9 @@ const LIFECYCLE_STAGES = [
     ],
     deliverables: ['Standardized IDF Package', 'Technical Concept Map', 'Statutory Classification Brief'],
     metric: '< 15 min intake time',
+    shotPng: '/shots/sallyip-chat-actions-focus.png',
+    shotWebp: '/shots/sallyip-chat-actions-focus.webp',
+    shotCaption: 'SallyIP quick-actions for prior-art search, FTO, and structured intake.',
   },
   {
     id: 'novelty',
@@ -55,6 +59,9 @@ const LIFECYCLE_STAGES = [
     ],
     deliverables: ['Patentability Landscape Report', 'Prior Art Feature Matrix', 'Freedom-to-File Recommendation'],
     metric: '98.8% authority recall',
+    shotPng: '/shots/sallyip-chat-home.png',
+    shotWebp: '/shots/sallyip-chat-home.webp',
+    shotCaption: 'SallyIP chat workspace — matter-scoped prior art search and model selection.',
   },
   {
     id: 'drafting',
@@ -73,6 +80,9 @@ const LIFECYCLE_STAGES = [
     ],
     deliverables: ['Complete Patent Application (Claims + Spec)', 'Antecedent Basis Audit', 'Drawing Briefs'],
     metric: '100% antecedent audit pass',
+    shotPng: '/shots/sallyip-patent-drafting.png',
+    shotWebp: '/shots/sallyip-patent-drafting.webp',
+    shotCaption: 'US Patent Drafting Workspace — provisional §111(b) and nonprovisional §111(a).',
   },
   {
     id: 'prosecution',
@@ -91,6 +101,9 @@ const LIFECYCLE_STAGES = [
     ],
     deliverables: ['Office Action Response Shell', 'Examiner Statistical Dossier', 'Claim Amendment Matrix'],
     metric: '4.2x faster response prep',
+    shotPng: '/shots/sallyip-patent-drafting-focus.png',
+    shotWebp: '/shots/sallyip-patent-drafting-focus.webp',
+    shotCaption: 'Filing choice & office action response rejection analysis.',
   },
   {
     id: 'portfolio',
@@ -109,6 +122,9 @@ const LIFECYCLE_STAGES = [
     ],
     deliverables: ['FTO Risk Opinion Memo', 'Family Tree Status Map', 'Portfolio Value Ranking'],
     metric: 'Zero missed statutory deadlines',
+    shotPng: '/shots/sallyip-workspaces.png',
+    shotWebp: '/shots/sallyip-workspaces.webp',
+    shotCaption: 'Specialist legal workspaces modal — FTO, claim charts, and patent tools.',
   },
   {
     id: 'enforcement',
@@ -127,70 +143,135 @@ const LIFECYCLE_STAGES = [
     ],
     deliverables: ['Infringement Claim Charts (EoU)', 'IPR Invalidity Contentions', 'Licensing Term Sheet'],
     metric: 'Court-ready citation accuracy',
+    shotPng: '/shots/sallyip-workspaces.png',
+    shotWebp: '/shots/sallyip-workspaces.webp',
+    shotCaption: 'Specialist workspaces — Claim Chart Builder, Prior Art, and Knowledge Graph.',
   },
 ];
 
-export default function LifecyclePage({ onHome, onChat, onAuth, onPricing }) {
+export default function LifecyclePage({
+  onHome,
+  onChat,
+  onAuth,
+  onPricing,
+  onBenchmarks,
+  onModules,
+  onPerformance,
+  onSecurity,
+  onNavigate,
+}) {
   const [activeStage, setActiveStage] = useState('drafting');
   const stage = LIFECYCLE_STAGES.find((s) => s.id === activeStage) || LIFECYCLE_STAGES[2];
 
+  const handleNav = (target) => {
+    if (onNavigate) {
+      onNavigate(target);
+    } else {
+      if (target === 'home') onHome ? onHome() : (window.location.hash = 'home');
+      else if (target === 'pricing') onPricing ? onPricing() : (window.location.hash = 'pricing');
+      else if (target === 'benchmarks') onBenchmarks ? onBenchmarks() : (window.location.hash = 'benchmarks');
+      else if (target === 'modules') onModules ? onModules() : (window.location.hash = 'modules');
+      else if (target === 'performance') onPerformance ? onPerformance() : (window.location.hash = 'performance');
+      else if (target === 'security') onSecurity ? onSecurity() : (window.location.hash = 'security');
+      else if (target === 'chat') onChat ? onChat() : (window.location.hash = 'chat');
+      else if (target === 'auth') onAuth ? onAuth() : (window.location.hash = 'auth');
+      else window.location.hash = target;
+    }
+  };
+
   return (
-    <div className="sally-home" style={{ minHeight: '100vh', background: '#09090b', color: '#f8fafc' }}>
+    <div style={{ minHeight: '100vh', background: '#000000', color: '#ffffff', fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif' }}>
       <SallyTopNav
         activePage="lifecycle"
-        onNavigate={(page) => {
-          if (page === 'home') onHome();
-          else if (page === 'pricing') onPricing ? onPricing() : (window.location.hash = 'pricing');
-          else if (page === 'chat') onChat();
-          else if (page === 'auth') onAuth();
-          else window.location.hash = page;
-        }}
-        onOpenChat={onChat}
-        onOpenAuth={onAuth}
+        onNavigate={handleNav}
+        onOpenChat={() => handleNav('chat')}
+        onOpenAuth={() => handleNav('auth')}
       />
 
-      <main style={{ maxWidth: 1240, margin: '0 auto', padding: '120px 24px 80px' }}>
+      <main style={{ maxWidth: 1440, margin: '0 auto', padding: 'clamp(70px, 9vh, 110px) clamp(20px, 3.5vw, 48px) 80px' }}>
         {/* Hero */}
-        <div style={{ textAlign: 'center', marginBottom: 56 }}>
+        <div style={{ textAlign: 'center', maxWidth: 960, margin: '0 auto clamp(44px, 5vh, 60px)' }}>
           <div
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: 8,
-              background: 'rgba(99, 102, 241, 0.12)',
-              border: '1px solid rgba(99, 102, 241, 0.3)',
-              borderRadius: 999,
+              background: '#0d0e14',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              borderRadius: 9999,
               padding: '6px 16px',
-              fontSize: 13,
+              fontSize: 11,
               fontWeight: 600,
-              color: '#818cf8',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: '#a1a1aa',
               marginBottom: 20,
             }}
           >
-            <GitBranch size={16} />
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} />
+            <GitBranch size={13} style={{ color: '#10b981' }} />
             <span>END-TO-END INTELLECTUAL PROPERTY LIFECYCLE</span>
           </div>
 
           <h1
             style={{
-              fontSize: 'clamp(36px, 5vw, 56px)',
-              fontWeight: 800,
-              letterSpacing: '-0.03em',
-              lineHeight: 1.15,
+              fontSize: 'clamp(38px, 5vw, 68px)',
+              fontWeight: 700,
+              letterSpacing: '-0.04em',
+              lineHeight: 1.08,
               color: '#ffffff',
               margin: '0 auto 20px',
-              maxWidth: 880,
             }}
           >
-            Connected intelligence across the{' '}
-            <span style={{ background: 'linear-gradient(135deg, #818cf8 0%, #c084fc 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              entire patent lifecycle.
-            </span>
+            Connected Intelligence Across the
+            <br />
+            Entire Patent Lifecycle.
           </h1>
 
-          <p style={{ fontSize: 18, color: '#94a3b8', maxWidth: 740, margin: '0 auto', lineHeight: 1.6 }}>
+          <p style={{ fontSize: 'clamp(16px, 1.4vw, 19px)', color: '#9496a1', maxWidth: 760, margin: '0 auto 32px', lineHeight: 1.6 }}>
             SallyIP unifies legal intelligence from early invention disclosure all the way through global prosecution, portfolio management, and federal enforcement.
           </p>
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, flexWrap: 'wrap' }}>
+            <button
+              onClick={() => handleNav('chat')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                height: 46,
+                padding: '0 28px',
+                background: '#ffffff',
+                color: '#000000',
+                borderRadius: 9999,
+                fontSize: 14,
+                fontWeight: 600,
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              Launch Studio <ArrowRight size={15} />
+            </button>
+            <button
+              onClick={() => handleNav('pricing')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                height: 46,
+                padding: '0 26px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                color: '#ffffff',
+                borderRadius: 9999,
+                fontSize: 14,
+                fontWeight: 500,
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                cursor: 'pointer',
+              }}
+            >
+              Explore Pricing & Plans
+            </button>
+          </div>
         </div>
 
         {/* Stage Navigation Pills */}
@@ -210,92 +291,188 @@ export default function LifecyclePage({ onHome, onChat, onAuth, onPricing }) {
                 key={s.id}
                 onClick={() => setActiveStage(s.id)}
                 style={{
-                  background: isSelected ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(168, 85, 247, 0.2) 100%)' : 'rgba(18, 18, 24, 0.8)',
-                  border: isSelected ? '1px solid #818cf8' : '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: 12,
+                  background: isSelected ? 'rgba(255, 255, 255, 0.12)' : '#08090d',
+                  border: isSelected ? '1px solid rgba(255, 255, 255, 0.25)' : '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: 14,
                   padding: '16px 14px',
                   textAlign: 'left',
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease',
+                  transition: 'all 0.15s ease',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: isSelected ? '#818cf8' : '#64748b' }}>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: isSelected ? '#ffffff' : '#64748b',
+                    }}
+                  >
                     {s.step}
                   </span>
-                  <Icon size={16} color={isSelected ? '#818cf8' : '#94a3b8'} />
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 600,
+                      color: isSelected ? '#34d399' : '#a1a1aa',
+                      background: isSelected ? 'rgba(16, 185, 129, 0.12)' : 'rgba(255, 255, 255, 0.04)',
+                      padding: '2px 6px',
+                      borderRadius: 4,
+                    }}
+                  >
+                    {s.badge}
+                  </span>
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: isSelected ? '#ffffff' : '#cbd5e1', lineHeight: 1.3 }}>
-                  {s.title.split('&')[0]}
+                <div style={{ fontSize: 13, fontWeight: 600, color: isSelected ? '#ffffff' : '#94a3b8', lineHeight: 1.3 }}>
+                  {s.title}
                 </div>
               </button>
             );
           })}
         </div>
 
-        {/* Active Stage Deep Dive */}
+        {/* Selected Stage Detail Showcase */}
         <motion.div
           key={stage.id}
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
           style={{
-            background: 'rgba(18, 18, 24, 0.9)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: 24,
-            padding: '40px 44px',
-            boxShadow: '0 20px 40px -15px rgba(0,0,0,0.5)',
+            background: '#08090d',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            borderRadius: 20,
+            padding: ' clamp(24px, 4vw, 44px)',
+            marginBottom: 'clamp(48px, 6vh, 80px)',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 20, marginBottom: 28 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16, marginBottom: 24 }}>
             <div>
-              <span
-                style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: '#818cf8',
-                  background: 'rgba(99, 102, 241, 0.15)',
-                  padding: '4px 10px',
-                  borderRadius: 6,
-                  display: 'inline-block',
-                  marginBottom: 10,
-                }}
-              >
-                {stage.badge} · {stage.step} OF 06
-              </span>
-              <h2 style={{ fontSize: 32, fontWeight: 800, margin: '0 0 8px', color: '#fff' }}>{stage.title}</h2>
-              <p style={{ fontSize: 16, color: '#94a3b8', margin: 0 }}>{stage.subtitle}</p>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#34d399', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4 }}>
+                Stage {stage.step} of 06
+              </div>
+              <h2 style={{ fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 700, letterSpacing: '-0.03em', color: '#ffffff', margin: 0 }}>
+                {stage.title}
+              </h2>
+              <p style={{ fontSize: 15, color: '#94a3b8', margin: '6px 0 0' }}>{stage.subtitle}</p>
             </div>
-
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500, marginBottom: 4 }}>KEY PERFORMANCE METRIC</div>
-              <div style={{ fontSize: 24, fontWeight: 800, color: '#10b981' }}>{stage.metric}</div>
+            <div
+              style={{
+                background: '#0e1017',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: 9999,
+                padding: '6px 16px',
+                fontSize: 12,
+                fontWeight: 600,
+                color: '#34d399',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <Sparkles size={13} />
+              <span>{stage.metric}</span>
             </div>
           </div>
 
-          <p style={{ fontSize: 16, color: '#cbd5e1', lineHeight: 1.7, marginBottom: 32 }}>
+          <p style={{ fontSize: 15, color: '#cbd5e1', lineHeight: 1.65, maxWidth: 880, marginBottom: 28 }}>
             {stage.description}
           </p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24, marginBottom: 36 }}>
-            <div>
-              <h4 style={{ fontSize: 14, fontWeight: 700, color: '#818cf8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 16 }}>
-                Core Capabilities
-              </h4>
+          {/* Authentic Product Screenshot Showcase */}
+          {stage.shotPng && (
+            <div
+              style={{
+                width: '100%',
+                borderRadius: 14,
+                overflow: 'hidden',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                background: '#040508',
+                marginBottom: 32,
+                boxShadow: '0 16px 48px rgba(0,0,0,0.55)',
+              }}
+            >
+              <picture>
+                <source srcSet={stage.shotWebp} type="image/webp" />
+                <img
+                  src={stage.shotPng}
+                  alt={stage.title}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    height: 'auto',
+                    maxHeight: 440,
+                    objectFit: 'cover',
+                    objectPosition: 'top',
+                    imageRendering: '-webkit-optimize-contrast',
+                  }}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </picture>
+              <div
+                style={{
+                  padding: '12px 20px',
+                  background: '#090a0f',
+                  borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: 12,
+                  color: '#94a3b8',
+                  flexWrap: 'wrap',
+                  gap: 8,
+                }}
+              >
+                <span>{stage.shotCaption}</span>
+                <span style={{ color: '#34d399', fontWeight: 600, fontSize: 11, letterSpacing: '0.04em' }}>
+                  VERIFIED PRODUCT WORKSPACE
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: 24,
+              marginBottom: 36,
+            }}
+          >
+            {/* Core Capabilities */}
+            <div
+              style={{
+                background: '#040508',
+                border: '1px solid rgba(255, 255, 255, 0.06)',
+                borderRadius: 14,
+                padding: 24,
+              }}
+            >
+              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#a1a1aa', marginBottom: 16 }}>
+                Automated Capabilities
+              </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {stage.capabilities.map((c, i) => (
-                  <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 14, color: '#cbd5e1', lineHeight: 1.5 }}>
-                    <CheckCircle2 size={16} color="#10b981" style={{ flexShrink: 0, marginTop: 3 }} />
-                    <span>{c}</span>
+                {stage.capabilities.map((cap, i) => (
+                  <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 13.5, color: '#cbd5e1', lineHeight: 1.5 }}>
+                    <CheckCircle2 size={16} color="#34d399" style={{ flexShrink: 0, marginTop: 2 }} />
+                    <span>{cap}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div>
-              <h4 style={{ fontSize: 14, fontWeight: 700, color: '#818cf8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 16 }}>
-                Automated Work Deliverables
-              </h4>
+            {/* Generated Deliverables */}
+            <div
+              style={{
+                background: '#040508',
+                border: '1px solid rgba(255, 255, 255, 0.06)',
+                borderRadius: 14,
+                padding: 24,
+              }}
+            >
+              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#a1a1aa', marginBottom: 16 }}>
+                Stage Work-Product Deliverables
+              </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {stage.deliverables.map((d, i) => (
                   <div
@@ -305,7 +482,7 @@ export default function LifecyclePage({ onHome, onChat, onAuth, onPricing }) {
                       border: '1px solid rgba(255, 255, 255, 0.06)',
                       borderRadius: 10,
                       padding: '12px 16px',
-                      fontSize: 14,
+                      fontSize: 13.5,
                       fontWeight: 600,
                       color: '#ffffff',
                       display: 'flex',
@@ -313,7 +490,7 @@ export default function LifecyclePage({ onHome, onChat, onAuth, onPricing }) {
                       gap: 10,
                     }}
                   >
-                    <FileCheck2 size={16} color="#818cf8" />
+                    <FileCheck2 size={16} color="#34d399" />
                     <span>{d}</span>
                   </div>
                 ))}
@@ -326,15 +503,32 @@ export default function LifecyclePage({ onHome, onChat, onAuth, onPricing }) {
               Full audit trail and provenance record attached to all stage outputs.
             </span>
             <button
-              className="sh-btn-white"
-              onClick={onChat}
-              style={{ padding: '10px 20px', fontSize: 14, fontWeight: 600 }}
+              onClick={() => handleNav('chat')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '10px 22px',
+                background: '#ffffff',
+                color: '#000000',
+                borderRadius: 9999,
+                fontSize: 13.5,
+                fontWeight: 600,
+                border: 'none',
+                cursor: 'pointer',
+              }}
             >
               Open Studio for {stage.title.split('&')[0]} <ArrowRight size={15} />
             </button>
           </div>
         </motion.div>
       </main>
+
+      {/* Modern Gradient Footer */}
+      <ModernGradientFooter
+        onDemoClick={() => handleNav('chat')}
+        onNavigate={handleNav}
+      />
     </div>
   );
 }

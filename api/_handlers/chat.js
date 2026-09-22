@@ -14,19 +14,17 @@ export default async function handler(req,res){
     const databaseUrl = process.env.DATABASE_URL;
     let sql = null;
     let user = null;
-    if (databaseUrl) {
-      try {
-        sql = neon(databaseUrl);
-        user = await getSessionUser(sql, req.headers.cookie).catch(() => null);
-        if (!user) {
-          user = (await sql`SELECT id,email,full_name,initials,role FROM users ORDER BY created_at ASC LIMIT 1`.catch(() => []))[0];
-        }
-      } catch (dbErr) {
-        console.warn('DB session resolution warning:', dbErr.message);
-      }
+    if (!databaseUrl) {
+      return res.status(503).json({ error: { message: 'Service unavailable: database not configured', code: 'NOT_CONFIGURED' } });
     }
-    if (!user) {
-      user = { id: '00000000-0000-0000-0000-000000000001', email: 'researcher@sallyip.com', full_name: 'Aman', role: 'researcher' };
+    try {
+      sql = neon(databaseUrl);
+      user = await getSessionUser(sql, req.headers?.cookie || '').catch(() => null);
+    } catch (dbErr) {
+      console.warn('DB session resolution warning:', dbErr.message);
+    }
+    if (!user || !user.id) {
+      return res.status(401).json({ error: { message: 'Unauthorized', code: 'UNAUTHORIZED' } });
     }
     const messages=req.body?.messages||[],latest=[...messages].reverse().find(message=>message.role==='user')?.content||''
     const matter=sql&&req.body?.matter_id?await getMatterContext(sql,user.id,req.body?.matter_id).catch(()=>null):null

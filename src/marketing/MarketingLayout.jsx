@@ -8,8 +8,9 @@ export default function MarketingLayout({ route, active, children }) {
   usePageMeta(route);
   return (
     <div className="ent-root" ref={ref}>
+      <a href="#main-content" className="ent-skip">Skip to main content</a>
       <MarketingNav active={active || (route ? route.path : '/')} />
-      <main>{children}</main>
+      <main id="main-content" tabIndex={-1}>{children}</main>
       <MarketingFooter />
     </div>
   );

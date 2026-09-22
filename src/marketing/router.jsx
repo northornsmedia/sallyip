@@ -25,33 +25,62 @@ function PageFor({ route }) {
 
 function CoreRouter({ route }) {
   return (
-    <Suspense fallback={<div className="ent-root"><div className="ent-wrap" style={{ padding: '120px 28px' }}>Loading…</div></div>}>
+    <Suspense fallback={<LoadingState label="Loading…" />}>
       <CoreSwitch route={route} />
     </Suspense>
   );
 }
-function CoreSwitch({ route }) {
+class RouteErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error: null }; this.headingRef = React.createRef(); }
+  static getDerivedStateFromError(error) { return { error }; }
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.error && !prevState.error && this.headingRef.current) this.headingRef.current.focus();
+  }
+  render() {
+    if (this.state.error) {
+      return <div className="ent-root"><div className="ent-wrap" style={{ padding: '120px 28px' }}><h1 ref={this.headingRef} tabIndex={-1}>Something went wrong.</h1><p>Please refresh or return home.</p><button type="button" className="ent-btn ent-btn-primary" onClick={() => { this.setState({ error: null }); window.location.href = '/'; }}>Go home</button></div></div>;
+    }
+    return this.props.children;
+  }
+}
+function useLazyModule(loader) {
   const [m, setM] = useState(null);
-  useEffect(() => { import('./pages/pages-core').then((mod) => setM(mod)); }, []);
-  if (!m) return <div className="ent-root"><div className="ent-wrap" style={{ padding: '120px 28px' }}>Loading…</div></div>;
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    loader().then((mod) => { if (alive) setM(mod); }).catch(() => { if (alive) setFailed(true); });
+    return () => { alive = false; };
+  }, []);
+  return { m, failed, retry: () => { setFailed(false); setM(null); loader().then(setM).catch(() => setFailed(true)); } };
+}
+function LoadFailed({ onRetry }) {
+  return <div className="ent-root"><div className="ent-wrap" style={{ padding: '120px 28px' }}><h1>Page failed to load.</h1><p>Check your connection and try again.</p><button type="button" className="ent-btn ent-btn-primary" onClick={onRetry}>Retry</button></div></div>;
+}
+function LoadingState({ label = 'Loading SallyIP…' }) {
+  return <div className="ent-root"><div className="ent-wrap" style={{ padding: '120px 28px' }}><div role="status" aria-live="polite">{label}</div></div></div>;
+}
+function CoreSwitch({ route }) {
+  const { m, failed, retry } = useLazyModule(() => import('./pages/pages-core'));
+  if (failed) return <LoadFailed onRetry={retry} />;
+  if (!m) return <LoadingState label="Loading…" />;
   const map = { product: m.ProductPage, solutions: m.SolutionsPage, enterprise: m.EnterprisePage, security: m.SecurityPage, benchmarks: m.BenchmarksPage, pricing: m.PricingPage };
   const C = map[route.kind] || m.ProductPage;
   return <C route={route} />;
 }
 
 function IpRouter({ route }) {
-  const [m, setM] = useState(null);
-  useEffect(() => { import('./pages/pages-ip').then((mod) => setM(mod)); }, []);
-  if (!m) return <div className="ent-root"><div className="ent-wrap" style={{ padding: '120px 28px' }}>Loading…</div></div>;
+  const { m, failed, retry } = useLazyModule(() => import('./pages/pages-ip'));
+  if (failed) return <LoadFailed onRetry={retry} />;
+  if (!m) return <LoadingState label="Loading…" />;
   const map = { 'ip-hub': m.IpHubPage, patents: m.PatentsPage, trademarks: m.TrademarksPage, copyright: m.CopyrightPage, 'design-rights': m.DesignRightsPage, 'trade-secrets': m.TradeSecretsPage, 'detail-novelty': m.NoveltyPage, 'detail-claims': m.ClaimChartsPage, 'detail-oa': m.OfficeActionPage };
   const C = map[route.kind] || m.IpHubPage;
   return <C route={route} />;
 }
 
 function CompanyRouter({ route }) {
-  const [m, setM] = useState(null);
-  useEffect(() => { import('./pages/pages-company').then((mod) => setM(mod)); }, []);
-  if (!m) return <div className="ent-root"><div className="ent-wrap" style={{ padding: '120px 28px' }}>Loading…</div></div>;
+  const { m, failed, retry } = useLazyModule(() => import('./pages/pages-company'));
+  if (failed) return <LoadFailed onRetry={retry} />;
+  if (!m) return <LoadingState label="Loading…" />;
   return <m.GenericPage route={route} />;
 }
 
@@ -65,15 +94,20 @@ export function useMarketingPath() {
   return path === '' ? '/' : path;
 }
 
+function NotFound({ path }) {
+  return <div className="ent-root"><div className="ent-wrap" style={{ padding: '120px 28px' }}><p className="ent-eyebrow">404</p><h1>Page not found.</h1><p>No page at {path}. Return to safety.</p><button className="ent-btn ent-btn-primary" onClick={() => { window.history.pushState({}, '', '/'); window.dispatchEvent(new PopStateEvent('popstate')); window.scrollTo(0, 0); }}>Go home</button></div></div>;
+}
 export default function EnterpriseApp({ path: propPath }) {
   const hookPath = useMarketingPath();
   const path = propPath || hookPath;
   const route = resolve(path);
-  if (!route) return null;
+  if (!route) return <NotFound path={path} />;
   return (
-    <Suspense fallback={<div className="ent-root"><div className="ent-wrap" style={{ padding: '120px 28px' }}>Loading SallyIP…</div></div>}>
-      <PageFor route={route} />
-    </Suspense>
+    <RouteErrorBoundary>
+      <Suspense fallback={<LoadingState />}>
+        <PageFor route={route} />
+      </Suspense>
+    </RouteErrorBoundary>
   );
 }
 
