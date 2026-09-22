@@ -30,14 +30,14 @@ jobs:
         run: npx playwright test tests/visual-regression.spec.ts --project=chromium
       - name: Upload visual report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: visual-report
           path: test-results/visual-report/
           retention-days: 7
       - name: Upload snapshots on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: failed-snapshots
           path: tests/__snapshots__/
