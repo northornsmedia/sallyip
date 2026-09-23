@@ -558,7 +558,7 @@ export default function BenchmarksPage({
             </div>
             <h2 className="bm-section-title">SallyIP vs. Generic LLMs & Legacy Tools</h2>
             <p className="bm-section-desc">
-              Why general-purpose foundation models cannot be trusted for patent prosecution or legal
+              Why general-purpose foundation models cannot be trusted for patent, trademark, and copyright prosecution or legal
               validity without deterministic citation gating.
             </p>
           </div>
@@ -572,7 +572,7 @@ export default function BenchmarksPage({
                     SallyIP Pro Studio
                   </th>
                   <th style={{ width: '22%' }}>Generic Foundation LLMs</th>
-                  <th style={{ width: '18%' }}>Legacy Patent Tools</th>
+                  <th style={{ width: '18%' }}>Legacy IP Tools</th>
                 </tr>
               </thead>
               <tbody>

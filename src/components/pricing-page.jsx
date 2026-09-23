@@ -251,7 +251,7 @@ export default function PricingPage({ onHome, onChat, onAuth, onBenchmarks, onNa
           </h1>
 
           <p className="app-pricing-subtitle">
-            Move from initial question → deep research → professional patent and trademark drafts in one unified workspace.
+            Move from initial question → deep research → professional patent, trademark, and copyright drafts in one unified workspace.
           </p>
 
           {/* Key Stats & Accreditations */}

@@ -421,11 +421,11 @@ export function SallyDocumentsModal({ isOpen, onClose, onSelectDocument }) {
                     borderRadius: 999,
                   }}
                 >
-                  {SALLY_DOCUMENTS.length} Verified Documents
+                  {SALLY_DOCUMENTS.length} Verified Documents · Patents, Trademarks &amp; Copyrights
                 </span>
               </div>
               <p className="beebotModalSubtitle" style={{ margin: '3px 0 0 0', color: '#64748b', fontSize: '0.84rem' }}>
-                Select any verified patent, priority filing, international entry, IP agreement, or legal opinion to begin drafting with Sally.
+                Verified Intellectual Property suite across Patents, Trademarks, and Copyrights — draft statutory filings, clearance opinions, and licensing instruments with Sally.
               </p>
             </div>
           </div>
@@ -475,7 +475,7 @@ export function SallyDocumentsModal({ isOpen, onClose, onSelectDocument }) {
             />
             <input
               type="text"
-              placeholder={`Search across all ${SALLY_DOCUMENTS.length} documents (e.g. #001, utility patent, NDA, claims, PCT, design)...`}
+              placeholder={`Search across patents, trademarks, copyrights, claims, FTO, and agreements (e.g. utility patent, trademark, copyright, NDA)...`}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{
@@ -742,7 +742,7 @@ export function SallyDocumentsModal({ isOpen, onClose, onSelectDocument }) {
           }}
         >
           <span>
-            Showing <strong>{filteredDocuments.length}</strong> of <strong>{SALLY_DOCUMENTS.length}</strong> official legal & patent documents
+            Showing <strong>{filteredDocuments.length}</strong> of <strong>{SALLY_DOCUMENTS.length}</strong> official intellectual property documents (Patents, Trademarks &amp; Copyrights)
           </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <ShieldCheck size={14} color="#10b981" />

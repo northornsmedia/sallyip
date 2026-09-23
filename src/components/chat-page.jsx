@@ -277,24 +277,25 @@ What would you like to do next with this invention (e.g. draft initial claims, f
   if (p === "hi" || p === "hello" || p === "hey" || p === "help") {
     return `Hello ${userName}! I am **SallyIP 4.2 Pro**, your specialized legal technology & intellectual property co-pilot.
 
-I am ready to assist you across key patent and legal workflows:
+I am ready to assist you across key intellectual property workflows:
 
-1. **Structured Patent Drafting (35 U.S.C. §§ 101 & 112)**
-   - Section-by-section US patent application drafting.
-   - Live antecedent basis verification and Alice Step 2A/2B abstractness screening.
+1. **Patents & Invention Drafting (35 U.S.C. §§ 101 & 112 / EPC)**
+   - Section-by-section US & International patent application drafting.
+   - Antecedent basis verification, claim cascading, and Alice abstractness screening.
 
-2. **Prior-Art & Novelty Retrieval**
-   - Multi-jurisdictional searching across USPTO, EPO, and WIPO databases.
-   - Limitation-by-limitation claim charting against closest references.
+2. **Trademarks & Brand Clearance**
+   - Direct mark clearance across USPTO, EUIPO, and Madrid Protocol registers.
+   - Likelihood-of-confusion analysis, Nice Class 1–45 scoping, and office action responses.
 
-3. **Freedom to Operate (FTO) & Risk Analysis**
-   - Product feature mapping against granted patent claims.
-   - Non-infringement opinion drafting and design-around recommendations.
+3. **Copyrights & Digital Asset Clearance**
+   - Fair-use four-factor risk assessments and authorship chain-of-title verification.
+   - Software licensing audit, DMCA compliance, and formal registration filing preparation.
 
-4. **Trademark Clearance & Prosecution**
-   - Direct mark clearance across EUIPO, USPTO, and common-law registries.
+4. **Freedom to Operate (FTO) & Prior-Art Radar**
+   - Multi-jurisdictional searching across 150M+ patents, marks, and publications.
+   - Limitation-by-limitation claim charting, invalidity opinions, and design-around guidance.
 
-What invention, matter, or legal question would you like to explore today?`;
+What IP matter, brand mark, or creative work would you like to explore today?`;
   }
 
   // 2.3 Verified 20 Statutory Documents Pipeline (Slot-Filling Intake & Direct Statutory Drafting)
@@ -661,7 +662,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         }
       }
     } catch {}
-    const defaultUser = { name: "Aman", email: "aman@sallyip.com", role: "Patent Practitioner" };
+    const defaultUser = { name: "Carlos", email: "carlos@sallyip.com", role: "Intellectual Property Counsel" };
     try { localStorage.setItem("sallyip-user", JSON.stringify(defaultUser)); } catch {}
     return defaultUser;
   });
@@ -2591,7 +2592,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                   </div>
                   <div className="beebotLibraryEmptyTitle">No Word Documents Yet</div>
                   <div className="beebotLibraryEmptyDesc">
-                    Any agreement, NDA, or patent drafted as a Word document will be stored here automatically.
+                    Any patent, trademark filing, copyright work, or NDA drafted as a Word document will be stored here automatically.
                   </div>
                   <button
                     type="button"
@@ -2699,8 +2700,8 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                 {userInitial}
               </div>
               <div className="beebotUserTexts">
-                <div className="beebotUserName">{user?.name || "Aman"}</div>
-                <div className="beebotUserEmail">{user?.email || "aman@sallyip.com"}</div>
+                <div className="beebotUserName">{user?.name || "Carlos"}</div>
+                <div className="beebotUserEmail">{user?.email || "carlos@sallyip.com"}</div>
               </div>
             </div>
             <ChevronsUpDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -2819,7 +2820,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                 <Plus className="w-3.5 h-3.5" />
                 <span>New Chat</span>
               </button>
-              <div className="beebotAvatarPill" title={user?.name || "Aman"}>
+              <div className="beebotAvatarPill" title={user?.name || "Carlos"}>
                 <span>{userInitial}</span>
               </div>
             </div>
@@ -2838,10 +2839,10 @@ export default function ChatPage({ onHome, onAuthRequired }) {
               </div>
 
               <h1 className="beebotHeroHeadline">
-                What matter <span>shall we work on?</span>
+                What IP matter <span>shall we work on?</span>
               </h1>
               <p className="beebotHeroSub">
-                Research, drafting, and clearance — every line linked to evidence.
+                Patents, Trademarks &amp; Copyrights — research, drafting, and clearance linked to evidence.
               </p>
 
               {/* Floating Center Composer */}
@@ -2878,7 +2879,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                   className="beebotComposerInput"
                   aria-label="Message SallyIP. Press Enter to send, Shift plus Enter for a new line"
                   enterKeyHint="send"
-                  placeholder={isDictating ? "Listening... Your spoken words appear here live as you talk..." : "Describe your invention, paste an office action, or ask about prior art..."}
+                  placeholder={isDictating ? "Listening... Your spoken words appear here live as you talk..." : "Describe an invention, trademark mark, copyright work, or paste an office action..."}
                   rows={2}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
@@ -2923,10 +2924,10 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                       type="button"
                       className="beebotPillBtn"
                       onClick={() => setActiveWorkspace("patent_draft")}
-                      title="Open US Patent Drafting Workspace"
+                      title="Open IP Drafting Workspace (Patents, Trademarks & Filings)"
                     >
                       <FileText className="w-3.5 h-3.5 text-indigo-500" />
-                      <span>Patent Drafter</span>
+                      <span>IP Drafter</span>
                     </button>
 
                     <button
@@ -2943,7 +2944,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                       type="button"
                       className="beebotPillBtn"
                       onClick={() => setDocumentsModalOpen(true)}
-                      title="Official Documents Catalogue (20 Verified Documents)"
+                      title="Official IP Documents Catalogue (Patents, Trademarks & Copyrights)"
                     >
                       <FileText className="w-3.5 h-3.5 text-emerald-500" />
                       <span>Documents</span>
@@ -3010,10 +3011,10 @@ export default function ChatPage({ onHome, onAuthRequired }) {
               {/* Capability suggestions */}
               <div className="beebotSuggestions">
                 {[
-                  { icon: <Telescope className="w-3.5 h-3.5" />, title: "Prior-art search", prompt: "Search prior art for the uploaded invention and rank the closest references." },
-                  { icon: <ShieldCheck className="w-3.5 h-3.5" />, title: "FTO analysis", prompt: "Run an FTO analysis for my product in the US. Ask me for anything missing." },
-                  { icon: <FileText className="w-3.5 h-3.5" />, title: "Draft US patent", prompt: "Draft a US provisional patent application scaffold from my invention disclosure, section by section." },
-                  { icon: <Scale className="w-3.5 h-3.5" />, title: "Clear a trademark", prompt: "Check whether my mark is clear for SaaS in the EU. Ask me for the mark first." },
+                  { icon: <Telescope className="w-3.5 h-3.5" />, title: "Patent Prior-Art & FTO", prompt: "Search prior art for the uploaded invention and rank the closest references." },
+                  { icon: <Scale className="w-3.5 h-3.5" />, title: "Trademark Clearance", prompt: "Check whether my trademark mark is clear for SaaS and AI services in the US and EU." },
+                  { icon: <Sparkles className="w-3.5 h-3.5" />, title: "Copyright & Fair Use", prompt: "Run a copyright clearance and fair-use risk analysis on this creative work and digital asset." },
+                  { icon: <FileText className="w-3.5 h-3.5" />, title: "Draft IP Filing", prompt: "Draft a US patent application scaffold from my invention disclosure, section by section." },
                 ].map((s) => (
                   <button
                     key={s.title}
@@ -3215,7 +3216,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                     className="beebotComposerInput"
                     aria-label="Message SallyIP. Press Enter to send, Shift plus Enter for a new line"
                     enterKeyHint="send"
-                    placeholder={isDictating ? "Listening... Your spoken words appear here live as you talk..." : "Ask a follow-up about this matter..."}
+                    placeholder={isDictating ? "Listening... Your spoken words appear here live as you talk..." : "Ask a follow-up about this IP matter (Patent, Trademark, Copyright)..."}
                     rows={1}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
@@ -3251,10 +3252,10 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                         type="button"
                         className="beebotPillBtn"
                         onClick={() => setActiveWorkspace("patent_draft")}
-                        title="Open US Patent Drafting Workspace"
+                        title="Open IP Drafting Workspace (Patents, Trademarks & Filings)"
                       >
                         <FileText className="w-3.5 h-3.5 text-indigo-500" />
-                        <span>Patent Drafter</span>
+                        <span>IP Drafter</span>
                       </button>
                       <button
                         type="button"
@@ -3270,7 +3271,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                         type="button"
                         className="beebotPillBtn"
                         onClick={() => setDocumentsModalOpen(true)}
-                        title="Official Documents Catalogue (20 Verified Documents)"
+                        title="Official IP Documents Catalogue (Patents, Trademarks & Copyrights)"
                       >
                         <FileText className="w-3.5 h-3.5 text-emerald-500" />
                         <span>Documents</span>
@@ -3401,8 +3402,8 @@ export default function ChatPage({ onHome, onAuthRequired }) {
           >
             <div className="beebotModalHeader">
               <div>
-                <h3 className="beebotModalTitle">Specialist Legal Workspaces</h3>
-                <p className="beebotModalSubtitle">Select a specialized module for active matter analysis.</p>
+                <h3 className="beebotModalTitle">Specialist IP Workspaces</h3>
+                <p className="beebotModalSubtitle">Select a specialized module for Patent, Trademark, and Copyright analysis.</p>
               </div>
               <button
                 onClick={() => setToolsOpen(false)}
@@ -3425,10 +3426,10 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                   <div className="beebotTileIcon">
                     <FileText className="w-4 h-4 text-indigo-600" />
                   </div>
-                  <div className="beebotTileName">US Patent Drafter</div>
+                  <div className="beebotTileName">Patent & IP Drafter</div>
                 </div>
                 <div className="beebotTileDesc">
-                  § 101 Alice screen, § 112 antecedent basis checks, claims, and full USPTO specification.
+                  Draft patents, trademark filings, and IP specifications with automated statutory screening.
                 </div>
               </button>
 
@@ -3443,10 +3444,10 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                   <div className="beebotTileIcon">
                     <ShieldCheck className="w-4 h-4 text-emerald-600" />
                   </div>
-                  <div className="beebotTileName">Contract Review</div>
+                  <div className="beebotTileName">Contract & IP Licensing Review</div>
                 </div>
                 <div className="beebotTileDesc">
-                  Automated contract redlining, risk flags, and institutional playbook enforcement.
+                  Automated IP licensing redlining, copyright assignment checks, and institutional playbook enforcement.
                 </div>
               </button>
 
@@ -3587,10 +3588,10 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                   <div className="beebotTileIcon">
                     <FolderKanban className="w-4 h-4 text-violet-600" />
                   </div>
-                  <div className="beebotTileName">Knowledge Graph & Citations</div>
+                  <div className="beebotTileName">IP Knowledge Graph & Citations</div>
                 </div>
                 <div className="beebotTileDesc">
-                  Patent families, citation ledgers, prosecution histories, and litigation evidence.
+                  Patent families, trademark registries, copyright registers, and litigation evidence.
                 </div>
               </button>
             </div>

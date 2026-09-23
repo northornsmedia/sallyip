@@ -31,9 +31,9 @@ const LIFECYCLE_STAGES = [
     id: "ideation",
     num: "01",
     label: "Ideation",
-    eyebrow: "PATENT IDEATION",
+    eyebrow: "IP IDEATION",
     title: "Capture and evaluate novel concepts early.",
-    desc: "Transform raw technical disclosures and invention memos into structured patentability insights before drafting starts.",
+    desc: "Transform raw technical disclosures, brand assets, and creative memos into structured IP insights before drafting starts.",
     checks: [
       "Rapid invention disclosure ingestion",
       "Automatic novelty & non-obviousness screening",
@@ -43,8 +43,8 @@ const LIFECYCLE_STAGES = [
     previewTitle: "Invention Disclosure: Distributed Ledger Consensus",
     shotPng: "/shots/sallyip-chat-actions-focus.png",
     shotWebp: "/shots/sallyip-chat-actions-focus.webp",
-    shotAlt: "SallyIP quick actions for prior-art search, FTO, and patent drafting",
-    shotCaption: "Start from the work — prior art, FTO, drafting, or clearance.",
+    shotAlt: "SallyIP quick actions for prior-art search, trademark clearance, and IP drafting",
+    shotCaption: "Start from the work — patents, trademarks, copyrights, or clearance.",
     docx: "Invention_Summary.docx"
   },
   {
@@ -71,9 +71,9 @@ const LIFECYCLE_STAGES = [
     id: "drafting",
     num: "03",
     label: "Drafting",
-    eyebrow: "PATENT DRAFTING",
-    title: "Draft patents in hours, not weeks.",
-    desc: "Generate complete, jurisdiction-compliant patent applications from invention disclosures. Claims, specifications, and abstracts—all structured and ready for review.",
+    eyebrow: "PATENTS, TRADEMARKS & DRAFTING",
+    title: "Draft IP filings in hours, not weeks.",
+    desc: "Generate complete, jurisdiction-compliant patent applications, trademark filings, and copyright documentation from initial disclosures. Structured and ready for review.",
     checks: [
       "Full application generation",
       "USPTO/EPO compliance checks",
@@ -111,9 +111,9 @@ const LIFECYCLE_STAGES = [
     id: "risk",
     num: "05",
     label: "Risk Assessment",
-    eyebrow: "FREEDOM TO OPERATE",
-    title: "Identify infringement risks before product launch.",
-    desc: "Map active patent claims against product features to generate comprehensive Freedom-to-Operate and invalidity charts.",
+    eyebrow: "FREEDOM TO OPERATE & CLEARANCE",
+    title: "Identify infringement risks before product and brand launch.",
+    desc: "Map active patent claims, registered trademarks, and copyright assets against product features to generate comprehensive clearance charts.",
     checks: [
       "Element-by-element claim charting",
       "Invalidity contention generation",
@@ -123,7 +123,7 @@ const LIFECYCLE_STAGES = [
     previewTitle: "Infringement Risk Matrix: Q3 Product Release",
     shotPng: "/shots/sallyip-workspaces.png",
     shotWebp: "/shots/sallyip-workspaces.webp",
-    shotAlt: "Specialist Legal Workspaces modal with 8 modules",
+    shotAlt: "Specialist IP Workspaces modal with 8 modules",
     shotCaption: "Specialist workspaces — FTO, claim charts, prior art, trademarks, and knowledge graph.",
     docx: "FTO_Clearance_Memo.docx"
   }
@@ -137,7 +137,7 @@ const HERO_TABS = [
     png: "/shots/sallyip-chat-home.png",
     webp: "/shots/sallyip-chat-home.webp",
     alt: "SallyIP Chat Workspace showing Matter Tabs, Model Picker, and Quick Actions",
-    caption: "SallyIP Chat Workspace — matter-scoped, with instant actions for prior art, FTO, and patent drafting.",
+    caption: "SallyIP Chat Workspace — matter-scoped, with instant actions for patents, trademarks, copyrights, and clearance.",
     sub: "MATTER-SCOPED · 4.2 PRO · AUDIT LOGGED"
   },
   {
@@ -146,8 +146,8 @@ const HERO_TABS = [
     type: "image",
     png: "/shots/sallyip-workspaces.png",
     webp: "/shots/sallyip-workspaces.webp",
-    alt: "Specialist Legal Workspaces Modal showing the 8 shipped modules",
-    caption: "The 8 specialized legal workspaces — drafting, review, playbooks, FTO, claim charts, prior art, trademarks, and knowledge graph.",
+    alt: "Specialist IP Workspaces Modal showing the 8 shipped modules",
+    caption: "The 8 specialized IP workspaces — patent drafting, trademark clearance, contract review, playbooks, FTO, claim charts, prior art, and knowledge graph.",
     sub: "8 SPECIALIZED MODULES · INSTANT LAUNCH"
   },
   {
@@ -413,8 +413,8 @@ export default function HomePageRedesign({
               </h1>
 
               <p className="sh-hero-subtitle">
-                An Apple-grade, verification-first platform for patent attorneys and IP teams.
-                Every assertion is backed by retrieved statutory evidence.
+                An Apple-grade, verification-first platform for patent, trademark, and copyright counsel.
+                Every assertion across IP drafting and clearance is backed by retrieved statutory evidence.
               </p>
 
               <div className="sh-hero-ctas">
@@ -731,11 +731,11 @@ export default function HomePageRedesign({
               <h2 className="sh-modules-title">
                 Engineered for
                 <br />
-                patent practice.
+                full IP practice.
               </h2>
 
               <p className="sh-modules-desc">
-                Designed around the exact statutory realities of patent practice—not adapted to them.
+                Designed around the statutory realities of Patents, Trademarks, and Copyrights—not adapted to them.
               </p>
             </motion.div>
 
@@ -744,9 +744,9 @@ export default function HomePageRedesign({
               <motion.div className="sh-module-card span-2" style={{ y: smoothModCard1Y }}>
                 <div>
                   <div className="sh-card-num">MODULE 01</div>
-                  <h3 className="sh-card-title">Patent drafting & claim architecture</h3>
+                  <h3 className="sh-card-title">Patent, trademark &amp; claim architecture</h3>
                   <p className="sh-card-text">
-                    Generate complete patent applications from invention disclosures. Independent and dependent claims, technical specifications, and abstracts—fully structured and USPTO/EPO compliant.
+                    Generate complete patent applications and trademark clearance filings from disclosures. Independent and dependent claims, technical specifications, and classification schedules—fully structured and USPTO/EPO compliant.
                   </p>
 
                   <div className="sh-module-preview-shot">
@@ -822,9 +822,9 @@ export default function HomePageRedesign({
               <motion.div className="sh-module-card" style={{ y: smoothModCard3Y }}>
                 <div>
                   <div className="sh-card-num">MODULE 03</div>
-                  <h3 className="sh-card-title">150M+ Prior art radar</h3>
+                  <h3 className="sh-card-title">150M+ Prior art &amp; registry radar</h3>
                   <p className="sh-card-text">
-                    Search across 150M+ global patents with semantic understanding. Surface limitation-level prior art with exact passage quotes.
+                    Search across 150M+ global patents, trademark registries, and published works with semantic understanding. Surface limitation-level evidence with exact quotes.
                   </p>
                   <div className="sh-module-preview-shot">
                     <picture>
@@ -866,9 +866,9 @@ export default function HomePageRedesign({
               <motion.div className="sh-module-card" style={{ y: smoothModCard5Y }}>
                 <div>
                   <div className="sh-card-num">MODULE 05</div>
-                  <h3 className="sh-card-title">Freedom to operate & FTO</h3>
+                  <h3 className="sh-card-title">Freedom to operate &amp; IP clearance</h3>
                   <p className="sh-card-text">
-                    Identify infringement risks prior to product launch. Map target claims against competitor technology to construct robust clearance charts.
+                    Identify infringement risks prior to product launch across patents, trademarks, and copyright works. Map target claims against competitor technology to construct robust clearance charts.
                   </p>
                   <div className="sh-module-preview-shot">
                     <picture>
@@ -893,7 +893,7 @@ export default function HomePageRedesign({
             <div className="sh-metrics-grid">
               <motion.div className="sh-metric-box" style={{ y: smoothMetricOddY }}>
                 <div className="sh-metric-val">150M+</div>
-                <div className="sh-metric-sub">Global patent records indexed & searchable</div>
+                <div className="sh-metric-sub">Global patent &amp; trademark records indexed &amp; searchable</div>
               </motion.div>
 
               <motion.div className="sh-metric-box" style={{ y: smoothMetricEvenY }}>

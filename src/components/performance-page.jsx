@@ -46,11 +46,11 @@ const TIERS = [
   },
   {
     tier: 'Tier 3',
-    name: 'Secondary Doctrine & Global Patent Corpus',
-    authorities: '100M+ USPTO/EPO/WIPO specifications, Chisum on Patents, academic treatises',
+    name: 'Secondary Doctrine & Global IP Corpora',
+    authorities: '150M+ global patents, trademark registries, copyright deposits, and leading legal treatises',
     sla: '< 65ms hybrid fusion',
     priority: 'Persuasive / Factual Evidence',
-    description: 'Used for prior art comparison, state-of-the-art context, and technical feature similarity mapping. Quoted text is strictly checked against source substrings.',
+    description: 'Used for prior art comparison, trademark clearance, and technical feature similarity mapping. Quoted text is strictly checked against source substrings.',
   },
 ];
 

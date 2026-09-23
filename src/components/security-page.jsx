@@ -24,7 +24,7 @@ const SECURITY_PILLARS = [
     badge: 'LEGAL PRIVILEGE',
     icon: EyeOff,
     description:
-      'Your confidential client disclosures, draft patent claims, and litigation work-product are strictly ephemeral. SallyIP never uses customer data to fine-tune or train baseline models.',
+      'Your confidential client disclosures, draft patent claims, trademark filings, copyright works, and litigation work-product are strictly ephemeral. SallyIP never uses customer data to fine-tune or train baseline models.',
     points: [
       'Statutory attorney-client privilege protection under ABA Model Rule 1.6',
       'Ephemeral session processing with automated memory purging',
@@ -169,7 +169,7 @@ export default function SecurityPage({ onHome, onChat, onAuth, onPricing, onBenc
           </h1>
 
           <p style={{ fontSize: 'clamp(16px, 1.4vw, 19px)', color: '#9496a1', maxWidth: 760, margin: '0 auto 32px', lineHeight: 1.6 }}>
-            SallyIP is engineered from the silicon up for intellectual property counsel. We treat client invention disclosures and litigation strategies with strict cryptographic isolation and zero data retention.
+            SallyIP is engineered from the silicon up for intellectual property counsel. We treat client invention disclosures, trademark filings, copyright assets, and litigation strategies with strict cryptographic isolation and zero data retention.
           </p>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, flexWrap: 'wrap' }}>

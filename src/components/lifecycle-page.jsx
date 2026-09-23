@@ -108,23 +108,23 @@ const LIFECYCLE_STAGES = [
   {
     id: 'portfolio',
     step: '05',
-    title: 'FTO Clearance & Portfolio Operations',
-    subtitle: 'Continuous product clearance radar and family tree management',
+    title: 'FTO, Trademark & Copyright Clearance',
+    subtitle: 'Continuous product clearance, brand protection, and asset management',
     icon: FolderGit2,
     badge: 'STAGE 5',
     description:
-      'Monitor competitive patent filings and evaluate product roadmaps against active third-party claims. Manage annuity decisions, terminal disclaimer dependencies, and international filing deadlines without human error.',
+      'Monitor competitive patent filings, registered marks, and copyright assets against product roadmaps. Manage annuity decisions, trademark renewals, and international filing deadlines without human error.',
     capabilities: [
       'Product feature-to-claim clearance matrices (Freedom-to-Operate)',
       'Global patent family priority tree visualization (PCT, Paris Convention)',
       'Maintenance fee & annuity value scoring based on citation velocity',
-      'Competitor filing radar alerts on newly published applications',
+      'Competitor filing radar alerts on newly published applications & marks',
     ],
     deliverables: ['FTO Risk Opinion Memo', 'Family Tree Status Map', 'Portfolio Value Ranking'],
     metric: 'Zero missed statutory deadlines',
     shotPng: '/shots/sallyip-workspaces.png',
     shotWebp: '/shots/sallyip-workspaces.webp',
-    shotCaption: 'Specialist legal workspaces modal — FTO, claim charts, and patent tools.',
+    shotCaption: 'Specialist IP workspaces modal — FTO, trademark clearance, claim charts, and IP tools.',
   },
   {
     id: 'enforcement',
@@ -225,11 +225,11 @@ export default function LifecyclePage({
           >
             Connected Intelligence Across the
             <br />
-            Entire Patent Lifecycle.
+            Entire IP Lifecycle.
           </h1>
 
           <p style={{ fontSize: 'clamp(16px, 1.4vw, 19px)', color: '#9496a1', maxWidth: 760, margin: '0 auto 32px', lineHeight: 1.6 }}>
-            SallyIP unifies legal intelligence from early invention disclosure all the way through global prosecution, portfolio management, and federal enforcement.
+            SallyIP unifies legal intelligence across Patents, Trademarks, and Copyrights—from early innovation capture all the way through clearance, prosecution, registration, and enforcement.
           </p>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, flexWrap: 'wrap' }}>

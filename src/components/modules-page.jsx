@@ -143,9 +143,26 @@ const MODULES = [
     metric: 'Zero-Retention Guarantee',
     speed: '48ms hybrid retrieval',
   },
+  {
+    id: 'copyright',
+    name: 'Copyright Clearance & Digital Assets',
+    category: 'Copyrights',
+    badge: 'MEDIA & CODE',
+    icon: Sparkles,
+    description:
+      'Multi-prong copyright clearance, software license audits, authorship provenance, and statutory fair-use risk assessments across creative works and digital assets.',
+    highlights: [
+      'Four-factor statutory fair-use risk breakdown',
+      'Open-source license compliance & attribution tracking',
+      'DMCA safe harbor audits & notice evaluation',
+      'Copyright registration preparation & deposit cataloging',
+    ],
+    metric: '100% Attribution Traceability',
+    speed: '< 2.1s asset scan',
+  },
 ];
 
-const CATEGORIES = ['All', 'Prosecution', 'Patentability', 'Clearance', 'Trademarks', 'Litigation', 'Infrastructure'];
+const CATEGORIES = ['All', 'Prosecution', 'Patentability', 'Clearance', 'Trademarks', 'Copyrights', 'Litigation', 'Infrastructure'];
 
 export default function ModulesPage({
   onHome,
@@ -224,13 +241,13 @@ export default function ModulesPage({
               margin: '0 auto 20px',
             }}
           >
-            Specialized Legal AI Workspaces,
+            Specialized IP AI Workspaces,
             <br />
-            Engineered for IP Practice.
+            Engineered for Full Practice.
           </h1>
 
           <p style={{ fontSize: 'clamp(16px, 1.4vw, 19px)', color: '#9496a1', maxWidth: 760, margin: '0 auto 32px', lineHeight: 1.6 }}>
-            Every SallyIP module is built specifically for patent attorneys, trademark practitioners, and IP strategists—combining verified legal retrieval with autonomous analytical workflows.
+            Every SallyIP module is built specifically for patent counsel, trademark attorneys, and copyright practitioners—combining verified legal retrieval with autonomous analytical workflows across all intellectual property domains.
           </p>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, flexWrap: 'wrap' }}>

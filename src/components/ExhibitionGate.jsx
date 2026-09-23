@@ -60,7 +60,7 @@ export default function ExhibitionGate({ onAuthenticated, onCancel }) {
             Sign in
           </h1>
           <p style={{ fontSize: "13px", color: "#64748b", margin: 0, lineHeight: "1.4" }}>
-            Enter your credentials to continue to the workspace.
+            Enter your credentials to continue to the IP workspace.
           </p>
         </div>
 
