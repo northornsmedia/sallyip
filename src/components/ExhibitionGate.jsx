@@ -1,191 +1,128 @@
 import React, { useState } from "react";
-import { ShieldCheck, Lock, ArrowRight, Eye, EyeOff, Sparkles, Building2 } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function ExhibitionGate({ onAuthenticated, onCancel }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setError("");
-    setIsSubmitting(true);
+    setBusy(true);
 
-    const cleanUser = username.trim().toLowerCase();
-    const cleanPass = password.trim();
+    const u = username.trim().toLowerCase();
+    const p = password.trim();
 
-    if (cleanUser === "carlos" && cleanPass === "northons") {
+    if (u === "carlos" && p === "northons") {
       try {
         localStorage.setItem("sally_exhibition_auth", "granted");
         sessionStorage.setItem("sally_exhibition_auth", "granted");
       } catch {}
-      setTimeout(() => {
-        onAuthenticated();
-      }, 150);
+      onAuthenticated();
     } else {
-      setTimeout(() => {
-        setError("Invalid exhibition credentials. Please verify username and password.");
-        setIsSubmitting(false);
-      }, 200);
+      setError("Invalid username or password");
+      setBusy(false);
     }
   };
 
   return (
     <div style={{
       minHeight: "100vh",
-      width: "100%",
+      width: "100vw",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      background: "radial-gradient(circle at 50% 20%, #0d1726 0%, #050811 100%)",
-      color: "#e2e8f0",
-      fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-      padding: "24px",
+      backgroundColor: "#f8fafc",
+      color: "#0f172a",
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      padding: "20px",
       boxSizing: "border-box"
     }}>
       <div style={{
         width: "100%",
-        maxWidth: "440px",
-        background: "rgba(15, 23, 42, 0.75)",
-        backdropFilter: "blur(20px)",
-        border: "1px solid rgba(255, 255, 255, 0.1)",
-        borderRadius: "20px",
-        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 40px rgba(16, 185, 129, 0.1)",
-        padding: "36px 32px",
-        position: "relative",
-        overflow: "hidden"
+        maxWidth: "380px",
+        backgroundColor: "#ffffff",
+        border: "1px solid #e2e8f0",
+        borderRadius: "12px",
+        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)",
+        padding: "32px 28px",
+        boxSizing: "border-box"
       }}>
-        {/* Glow accent */}
-        <div style={{
-          position: "absolute",
-          top: "-60px",
-          right: "-60px",
-          width: "140px",
-          height: "140px",
-          background: "radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 70%)",
-          borderRadius: "50%",
-          pointerEvents: "none"
-        }} />
-
-        <div style={{ textAlign: "center", marginBottom: "28px" }}>
-          <div style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "56px",
-            height: "56px",
-            borderRadius: "16px",
-            background: "linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 78, 59, 0.4))",
-            border: "1px solid rgba(16, 185, 129, 0.4)",
-            marginBottom: "16px",
-            boxShadow: "0 8px 16px rgba(16, 185, 129, 0.2)"
-          }}>
-            <Lock style={{ width: "26px", height: "26px", color: "#34d399" }} />
+        <div style={{ marginBottom: "24px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
+            <img src="/sallyip-brand-mark.png" alt="SallyIP" style={{ width: "32px", height: "32px", borderRadius: "8px" }} />
+            <span style={{ fontSize: "18px", fontWeight: "700", color: "#0f172a", letterSpacing: "-0.02em" }}>Sally IP</span>
           </div>
-
-          <div style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-            padding: "4px 12px",
-            borderRadius: "9999px",
-            background: "rgba(16, 185, 129, 0.12)",
-            border: "1px solid rgba(16, 185, 129, 0.25)",
-            fontSize: "12px",
-            fontWeight: "600",
-            color: "#6ee7b7",
-            letterSpacing: "0.05em",
-            textTransform: "uppercase",
-            marginBottom: "12px"
-          }}>
-            <Sparkles style={{ width: "12px", height: "12px" }} />
-            Exhibition Floor Gate
-          </div>
-
-          <h1 style={{
-            fontSize: "24px",
-            fontWeight: "700",
-            color: "#ffffff",
-            margin: "0 0 8px 0",
-            letterSpacing: "-0.02em"
-          }}>
-            Sally IP • Private Demo
+          <h1 style={{ fontSize: "20px", fontWeight: "600", color: "#0f172a", margin: "0 0 6px 0", letterSpacing: "-0.02em" }}>
+            Sign in
           </h1>
-          <p style={{
-            fontSize: "14px",
-            color: "#94a3b8",
-            margin: 0,
-            lineHeight: "1.5"
-          }}>
-            Please enter authorized exhibition credentials to unlock the interactive drafting workspace.
+          <p style={{ fontSize: "13px", color: "#64748b", margin: 0, lineHeight: "1.4" }}>
+            Enter your credentials to continue to the workspace.
           </p>
         </div>
 
         {error && (
           <div style={{
-            background: "rgba(239, 68, 68, 0.12)",
-            border: "1px solid rgba(239, 68, 68, 0.35)",
-            color: "#fca5a5",
-            padding: "12px 14px",
-            borderRadius: "10px",
+            backgroundColor: "#fef2f2",
+            border: "1px solid #fecaca",
+            color: "#b91c1c",
+            padding: "10px 12px",
+            borderRadius: "8px",
             fontSize: "13px",
-            marginBottom: "20px",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px"
+            marginBottom: "18px"
           }}>
-            <ShieldCheck style={{ width: "16px", height: "16px", flexShrink: 0 }} />
-            <span>{error}</span>
+            {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: "18px" }}>
+          <div style={{ marginBottom: "16px" }}>
             <label style={{
               display: "block",
               fontSize: "13px",
-              fontWeight: "600",
-              color: "#cbd5e1",
-              marginBottom: "8px"
+              fontWeight: "500",
+              color: "#334155",
+              marginBottom: "6px"
             }}>
-              Exhibition Username
+              Username
             </label>
             <input
               type="text"
               autoFocus
-              autoComplete="off"
+              autoComplete="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="e.g. carlos"
+              placeholder="carlos"
               required
               style={{
                 width: "100%",
-                padding: "12px 14px",
-                background: "rgba(30, 41, 59, 0.7)",
-                border: "1px solid rgba(255, 255, 255, 0.12)",
-                borderRadius: "10px",
-                color: "#ffffff",
+                padding: "10px 12px",
+                backgroundColor: "#ffffff",
+                border: "1px solid #cbd5e1",
+                borderRadius: "8px",
+                color: "#0f172a",
                 fontSize: "14px",
-                boxSizing: "border-box",
                 outline: "none",
-                transition: "all 0.2s ease"
+                boxSizing: "border-box",
+                transition: "border-color 0.15s ease"
               }}
-              onFocus={(e) => e.target.style.borderColor = "#10b981"}
-              onBlur={(e) => e.target.style.borderColor = "rgba(255, 255, 255, 0.12)"}
+              onFocus={(e) => e.target.style.borderColor = "#4f46e5"}
+              onBlur={(e) => e.target.style.borderColor = "#cbd5e1"}
             />
           </div>
 
-          <div style={{ marginBottom: "24px" }}>
+          <div style={{ marginBottom: "22px" }}>
             <label style={{
               display: "block",
               fontSize: "13px",
-              fontWeight: "600",
-              color: "#cbd5e1",
-              marginBottom: "8px"
+              fontWeight: "500",
+              color: "#334155",
+              marginBottom: "6px"
             }}>
-              Access Passcode
+              Password
             </label>
             <div style={{ position: "relative" }}>
               <input
@@ -193,29 +130,29 @@ export default function ExhibitionGate({ onAuthenticated, onCancel }) {
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter access passcode"
+                placeholder="••••••••"
                 required
                 style={{
                   width: "100%",
-                  padding: "12px 42px 12px 14px",
-                  background: "rgba(30, 41, 59, 0.7)",
-                  border: "1px solid rgba(255, 255, 255, 0.12)",
-                  borderRadius: "10px",
-                  color: "#ffffff",
+                  padding: "10px 38px 10px 12px",
+                  backgroundColor: "#ffffff",
+                  border: "1px solid #cbd5e1",
+                  borderRadius: "8px",
+                  color: "#0f172a",
                   fontSize: "14px",
-                  boxSizing: "border-box",
                   outline: "none",
-                  transition: "all 0.2s ease"
+                  boxSizing: "border-box",
+                  transition: "border-color 0.15s ease"
                 }}
-                onFocus={(e) => e.target.style.borderColor = "#10b981"}
-                onBlur={(e) => e.target.style.borderColor = "rgba(255, 255, 255, 0.12)"}
+                onFocus={(e) => e.target.style.borderColor = "#4f46e5"}
+                onBlur={(e) => e.target.style.borderColor = "#cbd5e1"}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 style={{
                   position: "absolute",
-                  right: "10px",
+                  right: "8px",
                   top: "50%",
                   transform: "translateY(-50%)",
                   background: "none",
@@ -227,43 +164,35 @@ export default function ExhibitionGate({ onAuthenticated, onCancel }) {
                   alignItems: "center"
                 }}
               >
-                {showPassword ? <EyeOff style={{ width: "18px", height: "18px" }} /> : <Eye style={{ width: "18px", height: "18px" }} />}
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>
 
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={busy}
             style={{
               width: "100%",
-              padding: "14px",
-              background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+              padding: "10px 16px",
+              backgroundColor: "#4f46e5",
               color: "#ffffff",
               border: "none",
-              borderRadius: "10px",
+              borderRadius: "8px",
               fontSize: "14px",
-              fontWeight: "600",
-              cursor: isSubmitting ? "wait" : "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "8px",
-              boxShadow: "0 10px 20px -5px rgba(16, 185, 129, 0.4)",
-              transition: "transform 0.1s ease, filter 0.2s ease"
+              fontWeight: "500",
+              cursor: busy ? "wait" : "pointer",
+              transition: "background-color 0.15s ease"
             }}
-            onMouseOver={(e) => e.currentTarget.style.filter = "brightness(1.08)"}
-            onMouseOut={(e) => e.currentTarget.style.filter = "brightness(1)"}
-            onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.98)"}
-            onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = "#4338ca"}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = "#4f46e5"}
           >
-            <span>{isSubmitting ? "Verifying Access…" : "Unlock Exhibition Workspace"}</span>
-            <ArrowRight style={{ width: "16px", height: "16px" }} />
+            {busy ? "Signing in…" : "Sign in"}
           </button>
         </form>
 
         {onCancel && (
-          <div style={{ textAlign: "center", marginTop: "18px" }}>
+          <div style={{ textAlign: "center", marginTop: "16px" }}>
             <button
               type="button"
               onClick={onCancel}
@@ -271,32 +200,17 @@ export default function ExhibitionGate({ onAuthenticated, onCancel }) {
                 background: "none",
                 border: "none",
                 color: "#64748b",
-                fontSize: "13px",
+                fontSize: "12px",
                 cursor: "pointer",
-                padding: "4px 8px"
+                padding: "4px"
               }}
-              onMouseOver={(e) => e.currentTarget.style.color = "#94a3b8"}
+              onMouseOver={(e) => e.currentTarget.style.color = "#0f172a"}
               onMouseOut={(e) => e.currentTarget.style.color = "#64748b"}
             >
-              ← Back to Public Overview
+              Back to home
             </button>
           </div>
         )}
-
-        <div style={{
-          marginTop: "24px",
-          paddingTop: "16px",
-          borderTop: "1px solid rgba(255, 255, 255, 0.08)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "6px",
-          fontSize: "12px",
-          color: "#64748b"
-        }}>
-          <Building2 style={{ width: "13px", height: "13px" }} />
-          <span>Northorns Media • Exhibition Security Shield</span>
-        </div>
       </div>
     </div>
   );
