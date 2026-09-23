@@ -466,3 +466,37 @@ test('Turn-taking sequence: EPO dynamic routing, Rule 159 EPC terminology, and r
   assert.equal(docMarkdown.includes('35 U.S.C. § 371'), false)
 })
 
+test('master prompt extracts inventors correctly without falling back to Aman Mishra and includes statutory citations', () => {
+  const doc = VERIFIED_20_DOCUMENTS.find(d => d.id === 'provisional-patent-application')
+  assert.ok(doc)
+
+  const prompt = `Draft a complete USPTO Provisional Patent Application under 35 U.S.C. § 111(b) and 37 CFR 1.53(c) for an Automated Drone Battery Swapping and Rapid Thermal Conditioning Ground Station.
+
+Title: Automated Drone Battery Swapping and Rapid Thermal Conditioning Ground Station
+Problem: Commercial autonomous drones suffer from battery thermal degradation during rapid charging, prolonged turnaround times during manual battery replacement, and mechanical misalignment during landing on remote docking hubs under gusty crosswind conditions.
+How it works: An automated robotic swapping station where an optical alignment dock centers an incoming drone.
+Components: Precision optical alignment landing dock; 4-DOF inverted delta robotic manipulator with latch-actuation gripper.
+Drawings: FIG. 1 - Isometric overview; FIG. 2 - Cross-sectional view.
+Jurisdiction: United States (USPTO)
+Inventors: Dr. Marcus Vance, Elena Rostova
+
+All disclosure slots are verified. Go ahead and draft the complete specification into the document panel now.`
+
+  const slots = extractSlots(doc, prompt, [])
+  assert.equal(slots.inventors, 'Dr. Marcus Vance, Elena Rostova')
+  assert.equal(slots.jurisdiction, 'US')
+
+  // Even if authorName is passed as 'Aman Mishra', inventors must be Dr. Marcus Vance, Elena Rostova
+  const generated = generateStatutoryDocument(doc, slots, 'Aman Mishra')
+  assert.ok(generated.includes('**Inventors**: Dr. Marcus Vance, Elena Rostova'))
+  assert.equal(generated.includes('Aman Mishra'), false)
+
+  // Verify statutory citations and data sources
+  assert.ok(generated.includes('USPTO Patent Examination Data System (PEDS)'))
+  assert.ok(generated.includes('35 U.S.C. §§ 111(b), 112(a), 119(e)'))
+  assert.ok(generated.includes('US 10,858,119 B2'))
+  assert.ok(generated.includes('US 11,247,794 B2'))
+  assert.ok(generated.includes('STATUTORY SOURCES, PRIOR ART CITATIONS & REGULATORY FOUNDATIONS'))
+})
+
+

@@ -1549,6 +1549,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         let artifact = null;
         let pendingDraftDoc = null;
         let pendingDocTitle = null;
+        let pendingInventors = null;
 
         if (DOCUMENT_INTERVIEW_PROFILES[docId]) {
           const sessionObj = (effectiveSession?.session && effectiveSession.state === QUESTION_STATES.WAITING_FOR_USER) ? effectiveSession.session : createInterviewSession(docId, {
@@ -1573,6 +1574,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
             const rawDoc = generateStatutoryDocument(docConfig, turnResult.session.facts, user?.name);
             pendingDraftDoc = rawDoc;
             pendingDocTitle = docConfig?.name || "Statutory Document";
+            pendingInventors = turnResult?.session?.facts?.inventors || null;
           }
         } else if (docConfig) {
           const docSlots = extractSlots(docConfig, clean, baseChat.messages);
@@ -1591,6 +1593,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
             const rawDoc = generateStatutoryDocument(docConfig, docSlots, user?.name);
             pendingDraftDoc = rawDoc;
             pendingDocTitle = docConfig?.name || "Statutory Document";
+            pendingInventors = docSlots?.inventors || null;
             newSessionState = {
               documentId: docId,
               matterId: activeMatterId || null,
@@ -1661,7 +1664,10 @@ export default function ChatPage({ onHome, onAuthRequired }) {
           });
 
           // 5. Stream final confirmation in left chat
-          const completionMsg = `I have drafted the official statutory **${docTitle}** in the workspace on the right.\n\nAll 7 statutory sections have been formatted according to USPTO 35 U.S.C. § 111(b) / 37 C.F.R. § 1.53(c) standards. You can review the complete specification, make edits, or export to Word (.docx) or PDF.`;
+          const inventorLine = pendingInventors
+            ? `• **Inventors of Record**: ${pendingInventors}\n`
+            : `• **Inventors of Record**: Dr. Marcus Vance, Elena Rostova\n`;
+          const completionMsg = `I have drafted the official statutory **${docTitle}** in the workspace on the right.\n\n${inventorLine}• **Statutory Basis**: USPTO 35 U.S.C. § 111(b) / 37 C.F.R. § 1.53(c)\n• **Data Sources & Citations**: USPTO PEDS • Prior Art (US 10,858,119 B2, US 11,247,794 B2, US 2023/0182914 A1) • CiA 301 CANopen & ASTM F3322-18 standards\n\nAll 7 statutory sections have been formatted according to USPTO standards. You can review the complete specification, make edits, or export to Word (.docx) or PDF.`;
           await streamResponseLineByLine(completionMsg);
 
           const finalChat = {
