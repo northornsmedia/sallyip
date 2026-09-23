@@ -1,0 +1,12 @@
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
+
+console.log({
+  SALLYIP_PRIMARY_MODEL: process.env.SALLYIP_PRIMARY_MODEL,
+  SALLYIP_PRIMARY_KEY: process.env.SALLYIP_PRIMARY_KEY,
+  SALLYIP_PRIMARY_BASE_URL: process.env.SALLYIP_PRIMARY_BASE_URL,
+  SALLYIP_PRIMARY_NAME: process.env.SALLYIP_PRIMARY_NAME,
+  SALLYIP_DISABLE_FALLBACK: process.env.SALLYIP_DISABLE_FALLBACK,
+  SALLYIP_STRICT_PRIMARY: process.env.SALLYIP_STRICT_PRIMARY,
+  has_NVIDIA_API_KEY: Boolean(process.env.NVIDIA_API_KEY),
+});
