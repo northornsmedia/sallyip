@@ -61,6 +61,7 @@ const PerformancePage = lazy(() => import("@/components/performance-page"));
 const SecurityPage = lazy(() => import("@/components/security-page"));
 const BenchmarksPage = lazy(() => import("@/components/benchmarks-page"));
 const VoiceChatWidget = lazy(() => import("@/components/voice-chat-widget"));
+const ExhibitionGate = lazy(() => import("@/components/ExhibitionGate"));
 import "./marketing/enterprise.css";
 import EnterpriseApp from "./marketing/router";
 import { isMarketingPath } from "./marketing/site";
@@ -1780,6 +1781,16 @@ function Table({ heads, rows, click }) {
 function App() {
   const [page, setPage] = useState(route());
   const [mPath, setMPath] = useState(() => window.location.pathname.replace(/\/$/, "") || "/");
+  const [exhibitionAuth, setExhibitionAuth] = useState(() => {
+    try {
+      return (
+        sessionStorage.getItem("sally_exhibition_auth") === "granted" ||
+        localStorage.getItem("sally_exhibition_auth") === "granted"
+      );
+    } catch {
+      return false;
+    }
+  });
 
   const navigateTo = (target) => {
     const routeMap = {
@@ -1871,6 +1882,17 @@ function App() {
 
   // Priority 1: Auth / Chat / AccessAdmin
   if (hashPage === "chat" || page === "chat") {
+    if (!exhibitionAuth) {
+      return (
+        <Suspense fallback={<div className="ent-root"><div className="ent-wrap" style={{ padding: "120px 28px" }}>Loading SallyIP…</div></div>}>
+          <ExhibitionGate
+            onAuthenticated={() => setExhibitionAuth(true)}
+            onCancel={() => navigateTo("home")}
+          />
+        </Suspense>
+      );
+    }
+
     return (
       <Suspense fallback={<div className="ent-root"><div className="ent-wrap" style={{ padding: "120px 28px" }}>Loading SallyIP…</div></div>}>
         <ChatPage onHome={() => navigateTo("home")} onAuthRequired={() => navigateTo("auth")} />
