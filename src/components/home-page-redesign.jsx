@@ -592,20 +592,7 @@ export default function HomePageRedesign({
               )}
             </motion.div>
 
-            {/* Understated Minimalist Client / Partner Trust Strip */}
-            <div className="sh-hero-trust">
-              <div className="sh-trust-label">
-                Trusted by leading patent boutiques and corporate IP departments
-              </div>
-              <div className="sh-trust-logos">
-                <span className="sh-trust-logo">ELLIUM IP</span>
-                <span className="sh-trust-logo">COLGATE-PALMOLIVE</span>
-                <span className="sh-trust-logo">MORGAN LEWIS</span>
-                <span className="sh-trust-logo">BRAKE HUGHES BELLERMANN</span>
-                <span className="sh-trust-logo">FINNEGAN</span>
-                <span className="sh-trust-logo">LEECH TISHMAN</span>
-              </div>
-            </div>
+
           </div>
         </section>
 
