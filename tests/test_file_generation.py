@@ -67,5 +67,35 @@ class FileGenerationTests(unittest.TestCase):
         self.assertIn("spreadsheetml", xlsx_mime)
 
 
+    def test_markdown_bold_and_dividers_render_cleanly(self):
+        from pypdf import PdfReader
+        from docx import Document
+
+        raw_md = """# EUROPEAN PATENT APPLICATION
+**Statutory Authority**: EPC Article 75
+**Target Jurisdiction**: EPO
+---
+## 1. TITLE
+**AUTOMATED DRONE BATTERY SWAPPING**
+"""
+        # Test PDF
+        _, _, pdf_data = build_file("pdf", "European Patent", raw_md)
+        pdf_text = "\n".join(page.extract_text() or "" for page in PdfReader(io.BytesIO(pdf_data)).pages)
+        self.assertNotIn("**", pdf_text, "PDF must not contain raw markdown asterisks '**'")
+        self.assertIn("Statutory Authority", pdf_text)
+        self.assertIn("AUTOMATED DRONE BATTERY SWAPPING", pdf_text)
+
+        # Test DOCX
+        _, _, docx_data = build_file("docx", "European Patent", raw_md)
+        doc = Document(io.BytesIO(docx_data))
+        all_para_text = [p.text for p in doc.paragraphs]
+        for t in all_para_text:
+            self.assertNotIn("**", t, f"DOCX paragraph must not contain raw asterisks: {t}")
+        # Check that bold runs exist
+        all_runs = [r for p in doc.paragraphs for r in p.runs]
+        bold_runs = [r.text for r in all_runs if r.bold]
+        self.assertTrue(any("Statutory Authority" in b for b in bold_runs), "Expected 'Statutory Authority' to be bold run in DOCX")
+
+
 if __name__ == "__main__":
     unittest.main()
