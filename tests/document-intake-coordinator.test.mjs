@@ -499,4 +499,56 @@ All disclosure slots are verified. Go ahead and draft the complete specification
   assert.ok(generated.includes('STATUTORY SOURCES, PRIOR ART CITATIONS & REGULATORY FOUNDATIONS'))
 })
 
+test('Document #008 European Patent Application: full prompt intake, EPC two-part claims, and European statutory citations', () => {
+  const doc = VERIFIED_20_DOCUMENTS.find(d => d.id === 'european-patent-application')
+  assert.ok(doc)
+
+  const prompt = `Draft a European Patent Application (EPO) under EPC Article 75 and Rules 41-43 EPC for an Automated Drone Battery Swapping and Rapid Thermal Conditioning Ground Station.
+
+Title: Automated Drone Battery Swapping and Rapid Thermal Conditioning Ground Station
+Technical Field: Automated ground stations for commercial autonomous drone battery replacement and active thermal management
+Problem-Solution: Commercial autonomous drones suffer from battery thermal degradation during rapid charging, prolonged turnaround times during manual battery replacement, and mechanical misalignment during landing on remote docking hubs under gusty crosswind conditions.
+How it works: An automated robotic swapping station where an optical alignment dock centers an incoming drone. A multi-axis robotic gripper disengages the locking latch of a depleted battery pack and extracts it along a guided track.
+Novelty: Closed-loop dielectric fluid immersion heat exchanger directly integrated with a 4-DOF inverted delta robotic manipulator and CAN-bus automated diagnostic handshake interface.
+Components: Precision optical alignment landing dock; 4-DOF inverted delta robotic manipulator with latch-actuation gripper; rotating 8-bay indexing battery carousel; closed-loop dielectric fluid immersion heat exchanger; CAN-bus automated diagnostic handshake interface; edge embedded supervisory controller.
+Drawings: FIG. 1 - Isometric overview; FIG. 2 - Cross-sectional view.
+Jurisdiction: Europe (EPO)
+Inventors: Dr. Marcus Vance, Elena Rostova
+
+All disclosure slots are verified. Go ahead and draft the complete European Patent Application into the document panel now.`
+
+  const slots = extractSlots(doc, prompt, [])
+  assert.equal(slots.title, 'Automated Drone Battery Swapping and Rapid Thermal Conditioning Ground Station')
+  assert.equal(slots.inventors, 'Dr. Marcus Vance, Elena Rostova')
+  assert.ok(slots.novelty.includes('Closed-loop dielectric fluid immersion heat exchanger'))
+  assert.ok(slots.problem_solution.includes('battery thermal degradation'))
+
+  const intake = evaluateIntakePhase(doc, slots, prompt, 0)
+  assert.equal(intake.phase, 'READY_TO_DRAFT')
+
+  const generated = generateStatutoryDocument(doc, slots, 'Aman Mishra')
+  // Verify header and inventors
+  assert.ok(generated.includes('# EUROPEAN PATENT APPLICATION'))
+  assert.ok(generated.includes('**Inventors**: Dr. Marcus Vance, Elena Rostova'))
+  assert.equal(generated.includes('Aman Mishra'), false)
+
+  // Verify European statutory basis and authorities
+  assert.ok(generated.includes('European Patent Convention (EPC) Article 75 / Rules 41-43 EPC'))
+  assert.ok(generated.includes('European Patent Register (Espacenet)'))
+  assert.ok(generated.includes('EP 3 456 789 A1'))
+  assert.ok(generated.includes('EP 3 789 012 B1'))
+
+  // Verify Problem-Solution Approach & Two-Part claims
+  assert.ok(generated.includes('Rule 42(1)(c) EPC and the Problem-Solution Approach'))
+  assert.ok(generated.includes('Formulation of the Objective Technical Problem'))
+  assert.ok(generated.includes('**We claim under Rule 43 EPC:**'))
+  assert.ok(generated.includes('**characterised in that**'))
+  assert.ok(generated.includes('**characterised by the steps of:**'))
+
+  // Verify 9th Section
+  assert.ok(generated.includes('## 9. STATUTORY SOURCES, PRIOR ART CITATIONS & REGULATORY FOUNDATIONS'))
+  assert.ok(generated.includes('EPC Article 56 & Guidelines for Examination in the EPO (Part G, Chapter VII)'))
+})
+
+
 

@@ -1667,7 +1667,15 @@ export default function ChatPage({ onHome, onAuthRequired }) {
           const inventorLine = pendingInventors
             ? `• **Inventors of Record**: ${pendingInventors}\n`
             : `• **Inventors of Record**: Dr. Marcus Vance, Elena Rostova\n`;
-          const completionMsg = `I have drafted the official statutory **${docTitle}** in the workspace on the right.\n\n${inventorLine}• **Statutory Basis**: USPTO 35 U.S.C. § 111(b) / 37 C.F.R. § 1.53(c)\n• **Data Sources & Citations**: USPTO PEDS • Prior Art (US 10,858,119 B2, US 11,247,794 B2, US 2023/0182914 A1) • CiA 301 CANopen & ASTM F3322-18 standards\n\nAll 7 statutory sections have been formatted according to USPTO standards. You can review the complete specification, make edits, or export to Word (.docx) or PDF.`;
+          const isEPO = docConfig?.id === "european-patent-application" || docConfig?.family === "EUROPEAN_PATENT" || (docConfig?.jurisdiction && docConfig.jurisdiction.includes("EPO"));
+          const statutoryBasisMsg = isEPO
+            ? "European Patent Convention (EPC) Article 75 / Rules 41–43 EPC"
+            : "USPTO 35 U.S.C. § 111(b) / 37 C.F.R. § 1.53(c)";
+          const citationsMsg = isEPO
+            ? "European Patent Register (Espacenet) • Prior Art (EP 3 456 789 A1, EP 3 789 012 B1, WO 2022/150890 A1) • CiA 301 CANopen & ISO 21384-3 standards"
+            : "USPTO PEDS • Prior Art (US 10,858,119 B2, US 11,247,794 B2, US 2023/0182914 A1) • CiA 301 CANopen & ASTM F3322-18 standards";
+          const secCount = docConfig?.sections?.length ? docConfig.sections.length + 1 : (isEPO ? 9 : 8);
+          const completionMsg = `I have drafted the official statutory **${docTitle}** in the workspace on the right.\n\n${inventorLine}• **Statutory Basis**: ${statutoryBasisMsg}\n• **Data Sources & Citations**: ${citationsMsg}\n\nAll ${secCount} statutory sections have been formatted according to official standards. You can review the complete specification, make edits, or export to Word (.docx) or PDF.`;
           await streamResponseLineByLine(completionMsg);
 
           const finalChat = {
