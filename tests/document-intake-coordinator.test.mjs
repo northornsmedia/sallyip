@@ -550,5 +550,57 @@ All disclosure slots are verified. Go ahead and draft the complete European Pate
   assert.ok(generated.includes('EPC Article 56 & Guidelines for Examination in the EPO (Part G, Chapter VII)'))
 })
 
+test('Document #017 Patent Invalidity Opinion: full prompt intake, 11 statutory sections, claim charts, and PTAB forum strategy', () => {
+  const prompt = `Prepare a formal Patent Invalidity Opinion under 35 U.S.C. §§ 102, 103, and 112 against US Patent 10,858,119 B2.
+
+Target Patent: US Patent 10,858,119 B2
+Title: Automated Drone Battery Swapping and Rapid Thermal Conditioning Ground Station
+Challenged Claims: Claims 1, 5, 8, 12, and 15
+Patent Owner: SkyVault Logistics Corp.
+Petitioner: AeroMatrix Dynamics Corp.
+Prior Art References: EP 3 456 789 A1 (Kowalski et al.), US Patent 9,452,830 B1 (Chen et al.), US Patent Pub. 2018/0297711 A1 (Harrington et al.)
+Grounds: 35 U.S.C. § 102 Anticipation, 35 U.S.C. § 103 Obviousness, and 35 U.S.C. § 112 Lack of Written Description
+PHOSITA: Master's degree in robotics or mechanical engineering with 3+ years in autonomous UAV docking systems and thermal battery management.
+Jurisdiction: United States (USPTO / PTAB / U.S. District Court)`
+
+  const doc = identifyDocument(prompt)
+  assert.equal(doc.id, 'patent-invalidity-opinion')
+  assert.equal(doc.sections.length, 11)
+
+  const slots = extractSlots(doc, prompt, [])
+  assert.ok(slots.target_patent.includes('10,858,119'))
+  assert.ok(slots.challenged_claims.includes('Claims 1'))
+  assert.ok(slots.prior_art_references.includes('EP 3 456 789 A1'))
+  assert.ok(slots.grounds.includes('102'))
+  assert.ok(slots.petitioner.includes('AeroMatrix'))
+
+  const intake = evaluateIntakePhase(doc, slots, prompt, 0)
+  assert.equal(intake.phase, 'READY_TO_DRAFT')
+
+  const generated = generateStatutoryDocument(doc, slots, 'Aman Mishra')
+  assert.ok(generated.startsWith('# PATENT INVALIDITY OPINION'))
+  assert.equal(generated.includes('Aman Mishra'), false)
+  assert.ok(generated.includes('AeroMatrix Dynamics Corp'))
+  assert.ok(generated.includes('SkyVault Logistics Corp'))
+  assert.ok(generated.includes('US Patent 10,858,119 B2'))
+
+  // Verify all 11 sections exist
+  for (let i = 0; i < doc.sections.length; i++) {
+    assert.ok(
+      generated.includes(`## ${i + 1}. ${doc.sections[i].toUpperCase()}`),
+      `Missing section ${i + 1}: ${doc.sections[i]}`
+    )
+  }
+
+  // Verify substantive litigation content
+  assert.ok(generated.includes('Invalidation Probability Matrix'))
+  assert.ok(generated.includes('92% (High)'))
+  assert.ok(generated.includes('Element-by-Element Claim Chart: Claim 1 vs. EP 3 456 789 A1 (Kowalski)'))
+  assert.ok(generated.includes('KSR Int\'l Co. v. Teleflex Inc.'))
+  assert.ok(generated.includes('Phillips v. AWH Corp.'))
+  assert.ok(generated.includes('Inter Partes Review (IPR) Petition before PTAB'))
+})
+
+
 
 

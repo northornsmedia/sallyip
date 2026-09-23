@@ -1640,7 +1640,16 @@ export default function ChatPage({ onHome, onAuthRequired }) {
             }));
             const line = lines[i];
             const isHeading = line.startsWith("#");
-            const delay = isHeading ? 75 : Math.max(12, Math.min(60, line.length * 1.2));
+            const isBlank = !line.trim();
+            const isTable = line.startsWith("|");
+            // Calibrated, smooth exhibition drafting cadence so spectators can clearly follow line-by-line
+            const delay = isHeading
+              ? 220
+              : isBlank
+              ? 45
+              : isTable
+              ? 70
+              : Math.max(65, Math.min(145, line.length * 1.5));
             await new Promise((resolve) => setTimeout(resolve, delay));
           }
           await new Promise((resolve) => setTimeout(resolve, 300));
@@ -1664,18 +1673,30 @@ export default function ChatPage({ onHome, onAuthRequired }) {
           });
 
           // 5. Stream final confirmation in left chat
-          const inventorLine = pendingInventors
-            ? `• **Inventors of Record**: ${pendingInventors}\n`
-            : `• **Inventors of Record**: Dr. Marcus Vance, Elena Rostova\n`;
+          const isInvalidity = docConfig?.id === "patent-invalidity-opinion";
           const isEPO = docConfig?.id === "european-patent-application" || docConfig?.family === "EUROPEAN_PATENT" || (docConfig?.jurisdiction && docConfig.jurisdiction.includes("EPO"));
-          const statutoryBasisMsg = isEPO
+
+          let entityLine = `• **Inventors of Record**: ${pendingInventors || "Dr. Marcus Vance, Elena Rostova"}\n`;
+          if (isInvalidity) {
+            entityLine = `• **Target Patent**: US Patent 10,858,119 B2\n• **Challenger / Petitioner**: AeroMatrix Dynamics Corp.\n• **Invalidation Risk**: High Invalidation Probability (92% Anticipation / 88% Obviousness)\n`;
+          }
+
+          const statutoryBasisMsg = isInvalidity
+            ? "35 U.S.C. §§ 102/103/112 / Inter Partes Review (35 U.S.C. §§ 311–319)"
+            : isEPO
             ? "European Patent Convention (EPC) Article 75 / Rules 41–43 EPC"
             : "USPTO 35 U.S.C. § 111(b) / 37 C.F.R. § 1.53(c)";
-          const citationsMsg = isEPO
+
+          const citationsMsg = isInvalidity
+            ? "USPTO Patent Center • PTAB Trial Docket • Prior Art (EP 3 456 789 A1, US 9,452,830 B1, US 2018/0297711 A1) • Phillips & KSR Standards"
+            : isEPO
             ? "European Patent Register (Espacenet) • Prior Art (EP 3 456 789 A1, EP 3 789 012 B1, WO 2022/150890 A1) • CiA 301 CANopen & ISO 21384-3 standards"
             : "USPTO PEDS • Prior Art (US 10,858,119 B2, US 11,247,794 B2, US 2023/0182914 A1) • CiA 301 CANopen & ASTM F3322-18 standards";
-          const secCount = docConfig?.sections?.length ? docConfig.sections.length + 1 : (isEPO ? 9 : 8);
-          const completionMsg = `I have drafted the official statutory **${docTitle}** in the workspace on the right.\n\n${inventorLine}• **Statutory Basis**: ${statutoryBasisMsg}\n• **Data Sources & Citations**: ${citationsMsg}\n\nAll ${secCount} statutory sections have been formatted according to official standards. You can review the complete specification, make edits, or export to Word (.docx) or PDF.`;
+
+          const secCount = docConfig?.sections?.length || (isInvalidity ? 11 : isEPO ? 9 : 8);
+          const completionMsg = isInvalidity
+            ? `I have prepared the formal litigation-grade **${docTitle}** in the workspace on the right.\n\n${entityLine}• **Statutory Basis**: ${statutoryBasisMsg}\n• **Data Sources & Citations**: ${citationsMsg}\n\nAll ${secCount} statutory sections including full claim charts, anticipation analysis, KSR obviousness combinations, and PTAB forum selection strategy have been generated. You can review the complete opinion, make edits, or export to Word (.docx) or PDF.`
+            : `I have drafted the official statutory **${docTitle}** in the workspace on the right.\n\n${entityLine}• **Statutory Basis**: ${statutoryBasisMsg}\n• **Data Sources & Citations**: ${citationsMsg}\n\nAll ${secCount} statutory sections have been formatted according to official standards. You can review the complete specification, make edits, or export to Word (.docx) or PDF.`;
           await streamResponseLineByLine(completionMsg);
 
           const finalChat = {
