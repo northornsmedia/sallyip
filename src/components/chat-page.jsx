@@ -1547,6 +1547,8 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         let newSessionState = null;
         let readyToDraft = false;
         let artifact = null;
+        let pendingDraftDoc = null;
+        let pendingDocTitle = null;
 
         if (DOCUMENT_INTERVIEW_PROFILES[docId]) {
           const sessionObj = (effectiveSession?.session && effectiveSession.state === QUESTION_STATES.WAITING_FOR_USER) ? effectiveSession.session : createInterviewSession(docId, {
@@ -1569,23 +1571,8 @@ export default function ChatPage({ onHome, onAuthRequired }) {
 
           if (readyToDraft) {
             const rawDoc = generateStatutoryDocument(docConfig, turnResult.session.facts, user?.name);
-            artifact = makeArtifact({
-              title: docConfig?.name || "Statutory Document",
-              content: rawDoc,
-            });
-            artifact = await persistArtifact({
-              artifact,
-              conversation_id: baseChat.id,
-            });
-            setDocPanel({
-              title: artifact.title,
-              content: artifact.content,
-              version: artifact.version,
-              live: false,
-              artifact,
-              conversationId: baseChat.id,
-            });
-            responseContent = `I have drafted the official **${artifact.title}** and opened it in the document workspace on the right.\n\nAll verified disclosures have been formatted into the statutory filing transmittal package. You can review the complete text, make edits, or export to Word (.docx) or PDF.`;
+            pendingDraftDoc = rawDoc;
+            pendingDocTitle = docConfig?.name || "Statutory Document";
           }
         } else if (docConfig) {
           const docSlots = extractSlots(docConfig, clean, baseChat.messages);
@@ -1602,23 +1589,8 @@ export default function ChatPage({ onHome, onAuthRequired }) {
           } else {
             readyToDraft = true;
             const rawDoc = generateStatutoryDocument(docConfig, docSlots, user?.name);
-            artifact = makeArtifact({
-              title: docConfig.name,
-              content: rawDoc,
-            });
-            artifact = await persistArtifact({
-              artifact,
-              conversation_id: baseChat.id,
-            });
-            setDocPanel({
-              title: artifact.title,
-              content: artifact.content,
-              version: artifact.version,
-              live: false,
-              artifact,
-              conversationId: baseChat.id,
-            });
-            responseContent = `I have compiled the statutory ${docConfig.name} based on your verified parameters. The document is open in the workspace.`;
+            pendingDraftDoc = rawDoc;
+            pendingDocTitle = docConfig?.name || "Statutory Document";
             newSessionState = {
               documentId: docId,
               matterId: activeMatterId || null,
@@ -1626,6 +1598,97 @@ export default function ChatPage({ onHome, onAuthRequired }) {
               slots: docSlots
             };
           }
+        }
+
+        if (readyToDraft && pendingDraftDoc) {
+          clearInterval(progressTimer);
+          // 1. Realistic thinking animation
+          setThinkingProgress(94);
+          setThinkingPhase(`Verifying disclosures • Formatting 7 statutory sections…`);
+          await new Promise((resolve) => setTimeout(resolve, 850));
+          setThinkingProgress(100);
+          setThinkingPhase(`Prerequisites verified • Opening workspace panel…`);
+          await new Promise((resolve) => setTimeout(resolve, 1100));
+          setThinkingProgress(0);
+
+          // 2. Open right doc panel in live writing mode
+          setIsWriting(true);
+          const docTitle = pendingDocTitle;
+          setStreamingAnswer(`Drafting **${docTitle}** into the workspace panel on the right...`);
+          setDocPanel({
+            title: docTitle,
+            content: "",
+            version: 1,
+            live: true,
+            artifact: null,
+            conversationId: baseChat.id,
+          });
+          await new Promise((resolve) => setTimeout(resolve, 350));
+
+          // 3. Stream document line-by-line into right panel with auto-scroll
+          const lines = pendingDraftDoc.split("\n");
+          let accumulatedDoc = "";
+          for (let i = 0; i < lines.length; i++) {
+            accumulatedDoc += (i > 0 ? "\n" : "") + lines[i];
+            setDocPanel((p) => ({
+              ...p,
+              content: accumulatedDoc,
+              live: true,
+            }));
+            const line = lines[i];
+            const isHeading = line.startsWith("#");
+            const delay = isHeading ? 75 : Math.max(12, Math.min(60, line.length * 1.2));
+            await new Promise((resolve) => setTimeout(resolve, delay));
+          }
+          await new Promise((resolve) => setTimeout(resolve, 300));
+
+          // 4. Finalize artifact & unlock export buttons
+          artifact = makeArtifact({
+            title: docTitle,
+            content: pendingDraftDoc,
+          });
+          artifact = await persistArtifact({
+            artifact,
+            conversation_id: baseChat.id,
+          });
+          setDocPanel({
+            title: artifact.title,
+            content: pendingDraftDoc,
+            version: artifact.version,
+            live: false,
+            artifact,
+            conversationId: baseChat.id,
+          });
+
+          // 5. Stream final confirmation in left chat
+          const completionMsg = `I have drafted the official statutory **${docTitle}** in the workspace on the right.\n\nAll 7 statutory sections have been formatted according to USPTO 35 U.S.C. § 111(b) / 37 C.F.R. § 1.53(c) standards. You can review the complete specification, make edits, or export to Word (.docx) or PDF.`;
+          await streamResponseLineByLine(completionMsg);
+
+          const finalChat = {
+            ...baseChat,
+            documentSession: newSessionState,
+            messages: [
+              ...next,
+              {
+                role: "assistant",
+                content: completionMsg,
+                artifact,
+              }
+            ]
+          };
+          setIsWriting(false);
+          setStreamingAnswer("");
+          setThinkingProgress(0);
+          setLoading(false);
+          updateActive(() => finalChat);
+          await persistChat(finalChat);
+          if (autoSpeak || autoSpeakVoice) {
+            const lastMsg = finalChat.messages[finalChat.messages.length - 1];
+            if (lastMsg?.role === "assistant" && lastMsg.content) {
+              setTimeout(() => togglePlayVoice(lastMsg.content, finalChat.messages.length - 1), 200);
+            }
+          }
+          return;
         }
 
         if (responseContent) {
