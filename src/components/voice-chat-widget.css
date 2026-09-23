@@ -13,6 +13,11 @@ body.sally-video-call-active .voice-widget-root {
   display: none;
 }
 
+/* Elevate floating voice widget when doc panel is active so it never overlaps exports */
+body:has(.docPanel) .voice-widget-root {
+  bottom: 84px;
+}
+
 .sally-human3d-stage {
   position: absolute;
   inset: 0;
