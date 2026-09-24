@@ -37,8 +37,10 @@ import voiceSpeakHandler from './_handlers/voice-speak.js'
 import voiceTranscribeHandler from './_handlers/voice-transcribe.js'
 import voiceCancelHandler from './_handlers/voice-cancel.js'
 import voiceSessionHandler from './_handlers/voice-session.js'
+import liveSearchHandler from './_handlers/live-search.js'
 
 const handlers = {
+  'live-search': liveSearchHandler,
   'voice/speak': voiceSpeakHandler,
   'voice/transcribe': voiceTranscribeHandler,
   'voice/cancel': voiceCancelHandler,

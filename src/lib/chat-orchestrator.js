@@ -59,7 +59,7 @@ export async function orchestrateChat(sql,user,body,env){
         }
       }
     }catch(error){
-      const evidence=await retrieveHybridEvidence(sql,user.id,body.matter_id,latest,{limit:8,embeddingKey:env.OPENROUTER_EMBEDDING_API_KEY,embeddingModel:env.SALLYIP_EMBEDDING_MODEL,mode:env.SALLYIP_EXECUTION_MODE})
+      const evidence=await retrieveHybridEvidence(sql,user.id,body.matter_id,latest,{limit:8,embeddingKey:env.OPENROUTER_EMBEDDING_API_KEY,embeddingModel:env.SALLYIP_EMBEDDING_MODEL,mode:env.SALLYIP_EXECUTION_MODE,enableLiveSearch:true})
       const verification=verificationSummary(evidence,route)
       const contextMessage={role:'system',content:`SALLY TASK ROUTE\nTask: ${plan.task_class}\nSpecialists: ${route.specialists.join(', ')}\n\nAutomated workflow failed: ${error.message}\n\n${matterContextPrompt(matter)}\n\n${evidencePrompt(evidence)}\n\nProvide a helpful next-step answer. Explain what is missing, what Sally can still do in chat, and do not fabricate legal conclusions.`}
       const result=await orchestrateSally([contextMessage,...messages],env,siteUrlFor(env,body.host))
@@ -87,7 +87,7 @@ export async function orchestrateChat(sql,user,body,env){
     }
   }
 
-  const evidence=await retrieveHybridEvidence(sql,user.id,body.matter_id,latest,{limit:body.deep_research?14:8,embeddingKey:env.OPENROUTER_EMBEDDING_API_KEY,embeddingModel:env.SALLYIP_EMBEDDING_MODEL,mode:env.SALLYIP_EXECUTION_MODE})
+  const evidence=await retrieveHybridEvidence(sql,user.id,body.matter_id,latest,{limit:body.deep_research?14:8,embeddingKey:env.OPENROUTER_EMBEDDING_API_KEY,embeddingModel:env.SALLYIP_EMBEDDING_MODEL,mode:env.SALLYIP_EXECUTION_MODE,enableLiveSearch:true})
   const verification=verificationSummary(evidence,route)
   const revision=intent.revision&&artifact
   const documentRequest=intent.intent==='DRAFT_LEGAL_DOCUMENT'||intent.intent==='EDIT_DOCUMENT'||revision
