@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   ArrowRight,
@@ -160,8 +160,20 @@ export default function LifecyclePage({
   onSecurity,
   onNavigate,
 }) {
-  const [activeStage, setActiveStage] = useState('drafting');
-  const stage = LIFECYCLE_STAGES.find((s) => s.id === activeStage) || LIFECYCLE_STAGES[2];
+  const [activeStage, setActiveStage] = useState(LIFECYCLE_STAGES[0].id);
+  const stage = LIFECYCLE_STAGES.find((s) => s.id === activeStage) || LIFECYCLE_STAGES[0];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveStage((prevStage) => {
+        const currentIndex = LIFECYCLE_STAGES.findIndex((s) => s.id === prevStage);
+        const nextIndex = (currentIndex + 1) % LIFECYCLE_STAGES.length;
+        return LIFECYCLE_STAGES[nextIndex].id;
+      });
+    }, 3000);
+
+    return () => clearInterval(timer);
+  }, [activeStage]);
 
   const handleNav = (target) => {
     if (onNavigate) {

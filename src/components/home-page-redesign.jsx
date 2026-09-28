@@ -222,11 +222,24 @@ export default function HomePageRedesign({
   onOpenBenchmarks,
   onOpenTransparency
 }) {
-  const [activeStage, setActiveStage] = useState("drafting");
+  const [activeStage, setActiveStage] = useState(LIFECYCLE_STAGES[0].id);
   const [activeStudioTab, setActiveStudioTab] = useState("claim-draft");
   const [activeHeroTab, setActiveHeroTab] = useState("chat-home");
 
-  const stageData = LIFECYCLE_STAGES.find((s) => s.id === activeStage) || LIFECYCLE_STAGES[2];
+  const stageData = LIFECYCLE_STAGES.find((s) => s.id === activeStage) || LIFECYCLE_STAGES[0];
+
+  // Auto-switch lifecycle stages every 3 seconds (01 -> 02 -> 03 -> 04 -> 05 -> 01 ...)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveStage((prevStage) => {
+        const currentIndex = LIFECYCLE_STAGES.findIndex((s) => s.id === prevStage);
+        const nextIndex = (currentIndex + 1) % LIFECYCLE_STAGES.length;
+        return LIFECYCLE_STAGES[nextIndex].id;
+      });
+    }, 3000);
+
+    return () => clearInterval(timer);
+  }, [activeStage]);
   const studioData = STUDIO_TABS.find((t) => t.id === activeStudioTab) || STUDIO_TABS[0];
   const currentHeroTab = HERO_TABS.find((t) => t.id === activeHeroTab) || HERO_TABS[0];
 
@@ -628,7 +641,13 @@ export default function HomePageRedesign({
                     >
                       <span className="sh-tab-num">{s.num}</span>
                       <span className="sh-tab-label">{s.label}</span>
-                      {isActive && <div className="sh-tab-dot" />}
+                      {isActive && (
+                        <motion.div
+                          layoutId="lifecycleActiveTabDot"
+                          className="sh-tab-dot"
+                          transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                        />
+                      )}
                     </button>
                   );
                 })}
