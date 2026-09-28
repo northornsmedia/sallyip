@@ -17,6 +17,7 @@ import {
   BookOpen,
   Filter
 } from 'lucide-react';
+import './verification-inspector-modal.css';
 
 export default function VerificationInspectorModal({ isOpen, onClose, message }) {
   const [activeTab, setActiveTab] = useState('propositions');
@@ -66,20 +67,20 @@ export default function VerificationInspectorModal({ isOpen, onClose, message })
         verdict = 'INFERENCE';
       }
 
-      const supporting = citeIndices.map(idx => {
-        const s = sources[idx - 1];
+      const supporting = citeIndices.map(sIdx => {
+        const s = sources[sIdx - 1];
         return s ? {
-          source_index: idx,
-          title: s.title || `Source S${idx}`,
-          citation: s.citation || `[S${idx}]`,
+          source_index: sIdx,
+          title: s.title || `Source S${sIdx}`,
+          citation: s.citation || `[S${sIdx}]`,
           jurisdiction: s.jurisdiction || 'US',
           authority_tier: s.authority_tier || 1,
           locator: s.locator || 'Authority Record',
           excerpt: s.content ? s.content.slice(0, 200) + '...' : 'Verified statutory / case law record.'
         } : {
-          source_index: idx,
-          title: `Source [S${idx}]`,
-          citation: `[S${idx}]`,
+          source_index: sIdx,
+          title: `Source [S${sIdx}]`,
+          citation: `[S${sIdx}]`,
           jurisdiction: 'US',
           authority_tier: 1,
           locator: 'Official Record',
@@ -168,146 +169,133 @@ export default function VerificationInspectorModal({ isOpen, onClose, message })
     const c = cat.charAt(0);
     switch (c) {
       case 'A':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">A: DIRECTLY SUPPORTED</span>;
+        return <span className="verificationCatBadge cat-A">A: DIRECTLY SUPPORTED</span>;
       case 'B':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-950/70 dark:text-blue-300 border border-blue-200 dark:border-blue-800">B: REASONABLE INFERENCE</span>;
+        return <span className="verificationCatBadge cat-B">B: REASONABLE INFERENCE</span>;
       case 'C':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-800 dark:bg-purple-950/70 dark:text-purple-300 border border-purple-200 dark:border-purple-800">C: USER FACT</span>;
+        return <span className="verificationCatBadge cat-C">C: USER FACT</span>;
       case 'D':
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">D: GUIDANCE / CAVEAT</span>;
+        return <span className="verificationCatBadge cat-D">D: GUIDANCE / CAVEAT</span>;
       case 'E':
       default:
-        return <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-rose-100 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300 border border-rose-200 dark:border-rose-800">E: UNSUPPORTED</span>;
+        return <span className="verificationCatBadge cat-E">E: UNSUPPORTED</span>;
     }
   };
 
+  const modeClass = answerMode.includes('VERIFIED')
+    ? 'mode-verified'
+    : answerMode.includes('QUALIFIED')
+    ? 'mode-qualified'
+    : 'mode-flagged';
+
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="verificationModalOverlay" onClick={onClose}>
         <motion.div
           initial={{ opacity: 0, scale: 0.96, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 10 }}
-          transition={{ duration: 0.2 }}
-          className="relative w-full max-w-4xl max-h-[90vh] flex flex-col bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden text-slate-800 dark:text-slate-100"
+          transition={{ duration: 0.18 }}
+          className="verificationModalDialog"
+          onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+          <div className="verificationHeader">
+            <div className="verificationHeaderLeft">
+              <div className="verificationShieldIcon">
                 <ShieldCheck className="w-5 h-5" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-base font-semibold text-slate-900 dark:text-slate-50">
+              <div className="verificationTitleWrap">
+                <div className="verificationTitleRow">
+                  <h2 className="verificationTitle">
                     Legal Reasoning Verification Inspector
                   </h2>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                    answerMode.includes('VERIFIED')
-                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-300/40'
-                      : answerMode.includes('QUALIFIED')
-                      ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 border border-amber-300/40'
-                      : 'bg-rose-100 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300 border border-rose-300/40'
-                  }`}>
+                  <span className={`verificationStatusBadge ${modeClass}`}>
                     {answerMode}
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="verificationSubtitle">
                   Audited claim-evidence graph, authority grounding, and verbatim quote verification
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="verificationHeaderActions">
               <button
                 onClick={copyAuditJson}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+                className="verificationActionBtn"
                 title="Copy verification audit report JSON"
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copied ? 'Copied' : 'Export Audit'}</span>
               </button>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                className="verificationCloseBtn"
                 title="Close modal"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
           </div>
 
           {/* Metric Summary Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-slate-100/50 dark:bg-slate-950/40 border-b border-slate-200 dark:border-slate-800">
-            <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
-              <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">
-                Citation Integrity
-              </span>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-slate-900 dark:text-slate-100">
+          <div className="verificationMetricsGrid">
+            <div className="verificationMetricCard">
+              <span className="verificationMetricLabel">Citation Integrity</span>
+              <div className="verificationMetricValueRow">
+                <span className="verificationMetricValue">
                   {danglingCitations.length === 0 ? '100%' : `${danglingCitations.length} Dangling`}
                 </span>
                 {danglingCitations.length === 0 ? (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                 ) : (
-                  <AlertTriangle className="w-4 h-4 text-rose-500" />
+                  <AlertTriangle className="w-4 h-4 text-rose-400" />
                 )}
               </div>
-              <span className="text-[10px] text-slate-400">Zero dangling citations</span>
+              <span className="verificationMetricDesc">Zero dangling citations</span>
             </div>
 
-            <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
-              <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">
-                Verbatim Quotes
-              </span>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-slate-900 dark:text-slate-100">
+            <div className="verificationMetricCard">
+              <span className="verificationMetricLabel">Verbatim Quotes</span>
+              <div className="verificationMetricValueRow">
+                <span className="verificationMetricValue">
                   {quotes.length === 0 ? 'N/A' : `${quotes.filter(q => q.status === 'exact').length}/${quotes.length}`}
                 </span>
-                <Quote className="w-4 h-4 text-indigo-500" />
+                <Quote className="w-4 h-4 text-indigo-400" />
               </div>
-              <span className="text-[10px] text-slate-400">
+              <span className="verificationMetricDesc">
                 {quotes.length === 0 ? 'No direct quotes used' : 'Verified exact in passage'}
               </span>
             </div>
 
-            <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
-              <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">
-                Entailment Ratio
-              </span>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-slate-900 dark:text-slate-100">
+            <div className="verificationMetricCard">
+              <span className="verificationMetricLabel">Entailment Ratio</span>
+              <div className="verificationMetricValueRow">
+                <span className="verificationMetricValue">
                   {totalProps > 0 ? `${Math.round(((catAProps + catBProps) / totalProps) * 100)}%` : '100%'}
                 </span>
-                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               </div>
-              <span className="text-[10px] text-slate-400">Supported propositions</span>
+              <span className="verificationMetricDesc">Supported propositions</span>
             </div>
 
-            <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
-              <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">
-                Authorities Anchored
-              </span>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-slate-900 dark:text-slate-100">
-                  {sources.length} Sources
-                </span>
-                <BookOpen className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <div className="verificationMetricCard">
+              <span className="verificationMetricLabel">Authorities Anchored</span>
+              <div className="verificationMetricValueRow">
+                <span className="verificationMetricValue">{sources.length} Sources</span>
+                <BookOpen className="w-4 h-4 text-emerald-400" />
               </div>
-              <span className="text-[10px] text-slate-400">Tier 1 & 2 Primary law</span>
+              <span className="verificationMetricDesc">Tier 1 & 2 Primary law</span>
             </div>
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex items-center justify-between px-6 pt-3 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-            <div className="flex items-center gap-6">
+          <div className="verificationTabsBar">
+            <div className="verificationTabGroup">
               <button
                 onClick={() => setActiveTab('propositions')}
-                className={`pb-3 text-xs font-semibold flex items-center gap-1.5 border-b-2 transition ${
-                  activeTab === 'propositions'
-                    ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
-                    : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-                }`}
+                className={`verificationTabBtn ${activeTab === 'propositions' ? 'active' : ''}`}
               >
                 <Layers className="w-3.5 h-3.5" />
                 <span>Proposition Graph ({graph.length})</span>
@@ -315,11 +303,7 @@ export default function VerificationInspectorModal({ isOpen, onClose, message })
 
               <button
                 onClick={() => setActiveTab('sources')}
-                className={`pb-3 text-xs font-semibold flex items-center gap-1.5 border-b-2 transition ${
-                  activeTab === 'sources'
-                    ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
-                    : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-                }`}
+                className={`verificationTabBtn ${activeTab === 'sources' ? 'active' : ''}`}
               >
                 <BookOpen className="w-3.5 h-3.5" />
                 <span>Retrieved Authorities ({sources.length})</span>
@@ -328,11 +312,7 @@ export default function VerificationInspectorModal({ isOpen, onClose, message })
               {quotes.length > 0 && (
                 <button
                   onClick={() => setActiveTab('quotes')}
-                  className={`pb-3 text-xs font-semibold flex items-center gap-1.5 border-b-2 transition ${
-                    activeTab === 'quotes'
-                      ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
-                      : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-                  }`}
+                  className={`verificationTabBtn ${activeTab === 'quotes' ? 'active' : ''}`}
                 >
                   <Quote className="w-3.5 h-3.5" />
                   <span>Quotation Audit ({quotes.length})</span>
@@ -341,19 +321,15 @@ export default function VerificationInspectorModal({ isOpen, onClose, message })
             </div>
 
             {activeTab === 'propositions' && (
-              <div className="flex items-center gap-1 pb-2">
-                <span className="text-[11px] text-slate-400 mr-1 flex items-center gap-1">
+              <div className="verificationFilterGroup">
+                <span className="verificationFilterLabel">
                   <Filter className="w-3 h-3" /> Filter:
                 </span>
                 {['ALL', 'A', 'B', 'C', 'D', 'E'].map(cat => (
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase transition ${
-                      selectedCategory === cat
-                        ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900'
-                        : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 hover:bg-slate-200'
-                    }`}
+                    className={`verificationFilterPill ${selectedCategory === cat ? 'active' : ''}`}
                   >
                     {cat}
                   </button>
@@ -363,42 +339,39 @@ export default function VerificationInspectorModal({ isOpen, onClose, message })
           </div>
 
           {/* Main Content Area */}
-          <div className="flex-1 p-6 overflow-y-auto max-h-[55vh] space-y-4">
+          <div className="verificationBody">
             {activeTab === 'propositions' && (
-              <div className="space-y-3">
+              <div>
                 {filteredProps.length === 0 ? (
-                  <div className="text-center py-10 text-slate-400 text-xs">
+                  <div style={{ textAlign: 'center', padding: '36px 0', color: '#64748b', fontSize: '12px' }}>
                     No propositions found matching category {selectedCategory}.
                   </div>
                 ) : (
                   filteredProps.map((prop, index) => {
                     const isExpanded = expandedProps[prop.id];
+                    const verdictClass = prop.verdict === 'ENTAILS'
+                      ? 'verdict-entails'
+                      : prop.verdict === 'INFERENCE'
+                      ? 'verdict-inference'
+                      : 'verdict-neutral';
+
                     return (
-                      <div
-                        key={prop.id || index}
-                        className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm p-4 transition hover:border-slate-300 dark:hover:border-slate-700"
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1 space-y-2">
-                            <div className="flex flex-wrap items-center gap-2">
+                      <div key={prop.id || index} className="verificationPropCard">
+                        <div className="verificationPropHeader">
+                          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <div className="verificationPropMeta">
                               {getCategoryBadge(prop.category)}
                               {prop.citations && prop.citations.length > 0 && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/70 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                                <span className="verificationCitePill">
                                   {prop.citations.map(c => `[S${c}]`).join(' ')}
                                 </span>
                               )}
-                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                                prop.verdict === 'ENTAILS'
-                                  ? 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40'
-                                  : prop.verdict === 'INFERENCE'
-                                  ? 'text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/40'
-                                  : 'text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800'
-                              }`}>
+                              <span className={`verificationVerdictChip ${verdictClass}`}>
                                 {prop.verdict}
                               </span>
                             </div>
 
-                            <p className="text-sm font-normal text-slate-800 dark:text-slate-200 leading-relaxed">
+                            <p className="verificationPropText">
                               {prop.text}
                             </p>
                           </div>
@@ -406,46 +379,43 @@ export default function VerificationInspectorModal({ isOpen, onClose, message })
                           {prop.supporting_sources && prop.supporting_sources.length > 0 && (
                             <button
                               onClick={() => toggleExpand(prop.id)}
-                              className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition mt-1"
+                              className="verificationExpandBtn"
                               title={isExpanded ? 'Collapse evidence' : 'Expand evidence'}
                             >
-                              {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                              {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
                             </button>
                           )}
                         </div>
 
                         {/* Expandable Supporting Sources */}
                         {isExpanded && prop.supporting_sources && prop.supporting_sources.length > 0 && (
-                          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2.5 animate-in fade-in duration-150">
-                            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
+                          <div className="verificationEvidenceDrawer">
+                            <span className="verificationEvidenceHeader">
                               Supporting Authority Evidences:
                             </span>
                             {prop.supporting_sources.map((sup, sIdx) => (
-                              <div
-                                key={sIdx}
-                                className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-950/50 border border-slate-200/80 dark:border-slate-800 text-xs space-y-1"
-                              >
-                                <div className="flex items-center justify-between">
-                                  <span className="font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                                    <FileText className="w-3.5 h-3.5 text-indigo-500" />
+                              <div key={sIdx} className="verificationEvidenceBox">
+                                <div className="verificationEvidenceTitleRow">
+                                  <span className="verificationEvidenceTitle">
+                                    <FileText className="w-3.5 h-3.5 text-indigo-400" />
                                     {sup.title}
                                   </span>
-                                  <div className="flex items-center gap-1.5 text-[10px]">
-                                    <span className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono">
+                                  <div style={{ display: 'flex', gap: '6px', fontSize: '10px' }}>
+                                    <span style={{ padding: '2px 6px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', color: '#94a3b8' }}>
                                       Tier {sup.authority_tier || 1}
                                     </span>
-                                    <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold uppercase">
+                                    <span style={{ padding: '2px 6px', background: 'rgba(16,185,129,0.15)', borderRadius: '4px', color: '#34d399', fontWeight: 'bold' }}>
                                       {sup.jurisdiction || 'US'}
                                     </span>
                                   </div>
                                 </div>
                                 {sup.locator && (
-                                  <div className="text-[11px] text-slate-500 font-mono">
+                                  <div style={{ fontSize: '11px', color: '#64748b', fontFamily: 'monospace' }}>
                                     Locator: {sup.locator}
                                   </div>
                                 )}
                                 {sup.excerpt && (
-                                  <p className="text-xs text-slate-600 dark:text-slate-400 italic bg-white/70 dark:bg-slate-900/70 p-2 rounded border border-slate-100 dark:border-slate-800">
+                                  <p className="verificationExcerpt">
                                     &ldquo;{sup.excerpt}&rdquo;
                                   </p>
                                 )}
@@ -461,50 +431,47 @@ export default function VerificationInspectorModal({ isOpen, onClose, message })
             )}
 
             {activeTab === 'sources' && (
-              <div className="space-y-3">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {sources.length === 0 ? (
-                  <div className="text-center py-10 text-slate-400 text-xs">
+                  <div style={{ textAlign: 'center', padding: '36px 0', color: '#64748b', fontSize: '12px' }}>
                     No explicit source packages retrieved for this prompt.
                   </div>
                 ) : (
                   sources.map((source, idx) => (
-                    <div
-                      key={source.source_id || idx}
-                      className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4 shadow-sm space-y-2"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 rounded text-xs font-mono font-bold bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300">
+                    <div key={source.source_id || idx} className="verificationSourceCard">
+                      <div className="verificationSourceHeader">
+                        <div className="verificationSourceTitleWrap">
+                          <span className="verificationCitePill">
                             [S{idx + 1}]
                           </span>
-                          <span className="font-semibold text-sm text-slate-900 dark:text-slate-100">
+                          <span className="verificationSourceTitle">
                             {source.title}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 rounded text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                            Tier {source.authority_tier}
+                        <div style={{ display: 'flex', gap: '6px', fontSize: '10px' }}>
+                          <span style={{ padding: '2px 6px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', color: '#94a3b8' }}>
+                            Tier {source.authority_tier || 1}
                           </span>
-                          <span className="px-2 py-0.5 rounded text-xs font-bold uppercase bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                            {source.jurisdiction}
+                          <span style={{ padding: '2px 6px', background: 'rgba(16,185,129,0.15)', borderRadius: '4px', color: '#34d399', fontWeight: 'bold' }}>
+                            {source.jurisdiction || 'US'}
                           </span>
                         </div>
                       </div>
 
                       {source.citation && (
-                        <div className="text-xs text-slate-500 font-mono">
+                        <div style={{ fontSize: '11px', color: '#64748b', fontFamily: 'monospace' }}>
                           Official Citation: {source.citation}
                         </div>
                       )}
 
                       {source.locator && (
-                        <div className="text-xs text-slate-500">
-                          Section Locator: <code className="text-xs bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">{source.locator}</code>
+                        <div style={{ fontSize: '11px', color: '#94a3b8' }}>
+                          Section Locator: <code style={{ background: 'rgba(255,255,255,0.06)', padding: '2px 6px', borderRadius: '4px' }}>{source.locator}</code>
                         </div>
                       )}
 
                       {source.content && (
-                        <p className="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-950 p-2.5 rounded-lg border border-slate-200/60 dark:border-slate-800 font-serif leading-relaxed">
+                        <p className="verificationSourceContent">
                           {source.content}
                         </p>
                       )}
@@ -515,30 +482,23 @@ export default function VerificationInspectorModal({ isOpen, onClose, message })
             )}
 
             {activeTab === 'quotes' && (
-              <div className="space-y-3">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {quotes.map((q, qIdx) => (
-                  <div
-                    key={qIdx}
-                    className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 space-y-2"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                        <Quote className="w-3.5 h-3.5 text-indigo-500" /> Quotation #{qIdx + 1}
+                  <div key={qIdx} className="verificationQuoteCard">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Quote className="w-3.5 h-3.5 text-indigo-400" /> Quotation #{qIdx + 1}
                       </span>
-                      <span className={`px-2 py-0.5 rounded text-xs font-bold ${
-                        q.status === 'exact'
-                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300/40'
-                          : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300/40'
-                      }`}>
+                      <span className={`verificationStatusBadge ${q.status === 'exact' ? 'mode-verified' : 'mode-qualified'}`}>
                         {q.status === 'exact' ? 'VERIFIED EXACT' : 'PARAPHRASED / REPLACED'}
                       </span>
                     </div>
 
-                    <p className="text-sm font-serif italic text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-950/60 p-3 rounded-lg border border-slate-200/70 dark:border-slate-800">
+                    <p className="verificationQuoteText">
                       &ldquo;{q.verifiedQuote || q.quote}&rdquo;
                     </p>
 
-                    <div className="text-[11px] text-slate-400">
+                    <div style={{ fontSize: '10.5px', color: '#64748b' }}>
                       Passage Locator: {q.locator || 'Statutory / Case Precedent Record'}
                     </div>
                   </div>
@@ -548,14 +508,14 @@ export default function VerificationInspectorModal({ isOpen, onClose, message })
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between px-6 py-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 text-xs text-slate-500">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <div className="verificationFooter">
+            <div className="verificationFooterStatus">
+              <span className="verificationPulseDot"></span>
               <span>SallyIP Verification Subsystem Active • Zero-Hallucination Gate</span>
             </div>
             <button
               onClick={onClose}
-              className="px-4 py-1.5 text-xs font-medium rounded-lg text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+              className="verificationActionBtn"
             >
               Close
             </button>

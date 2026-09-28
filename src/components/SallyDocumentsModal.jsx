@@ -13,7 +13,6 @@ import {
   ArrowRight,
   ShieldCheck,
   Globe,
-  Sparkles,
   Layers,
   Scale,
   CheckCircle2,

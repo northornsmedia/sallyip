@@ -15,7 +15,7 @@ import {
   Lightbulb,
   Scale,
   ShieldCheck,
-  Sparkles,
+  Zap,
 } from 'lucide-react';
 import SallyTopNav from './sally-topnav';
 import ModernGradientFooter from './modern-gradient-footer';
@@ -381,7 +381,7 @@ export default function LifecyclePage({
                 gap: 6,
               }}
             >
-              <Sparkles size={13} />
+              <Zap size={13} />
               <span>{stage.metric}</span>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Check, FileSearch, ShieldCheck, Sparkles, X } from "lucide-react";
+import { Check, FileSearch, ShieldCheck, Layers, X } from "lucide-react";
 
 export default function ClaimChartWorkspace({ matterId, onResult }) {
   const [open, setOpen] = useState(false),
@@ -218,7 +218,7 @@ export default function ClaimChartWorkspace({ matterId, onResult }) {
                     }
                     onClick={acceptSuggestions}
                   >
-                    <Sparkles />
+                    <Check className="w-3.5 h-3.5 inline mr-1" />
                     {busy ? "Saving…" : "Accept all suggested mappings"}
                   </button>
                 </div>

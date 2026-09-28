@@ -114,12 +114,12 @@ async function queryEmbedding(query,key,model,mode='CONFIDENTIAL_IP'){
 export async function retrieveHybridEvidence(sql,userId,matterId,query,{limit=8,embeddingKey,embeddingModel,queryVector,packCodes=[],minOverlap=0,mode,enableLiveSearch}={}){
   limit=Math.min(Math.max(Number(limit)||8,1),50)
   const executionMode = resolveExecutionMode({ mode: mode || process.env.SALLYIP_EXECUTION_MODE });
-  const shouldLiveSearch = enableLiveSearch ?? (
+  const shouldLiveSearch = (enableLiveSearch ?? (
     typeof process !== 'undefined' &&
     process.env?.NODE_ENV !== 'test' &&
     !process.env?.CI &&
     Boolean(query && String(query).trim().length >= 4)
-  )
+  )) && executionMode === 'PUBLIC_RESEARCH';
 
   const[lexical,vector,pack,liveRes]=await Promise.all([
     retrieveVerifiedEvidence(sql,userId,matterId,query,{limit:Math.max(limit*2,12),minOverlap}),

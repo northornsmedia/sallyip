@@ -6,7 +6,7 @@ import { listAnswerCitations, recordAnswerCitations, verifyQuote } from '../../s
 export default async function handler(req, res) {
   const sql = neon(process.env.DATABASE_URL)
   try {
-    const user = await getSessionUser(sql, req.headers.cookie)
+    const user = await getSessionUser(sql, req)
     if (!user) return res.status(401).json({ error: { message: 'Not authenticated' } })
     if (req.method === 'GET') {
       return res.status(200).json(await listAnswerCitations(sql, user.id, {

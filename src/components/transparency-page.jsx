@@ -6,7 +6,7 @@ import {
   Layers3,
   Scale,
   Search,
-  Sparkles,
+  ShieldCheck,
   Workflow,
 } from "lucide-react";
 import TransparencyCharts from "./transparency-charts";
@@ -190,7 +190,7 @@ export default function TransparencyPage() {
               "The synthesis layer resolves conflicts, removes repetition, preserves caveats, and creates one answer.",
             ],
             [
-              Sparkles,
+              ShieldCheck,
               "Present as Sally",
               "Only the final Sally response reaches the user. Internal chain-of-thought and provider identities remain hidden.",
             ],
@@ -243,7 +243,7 @@ export default function TransparencyPage() {
         </div>
       </section>
       <section className="transparencyLimit">
-        <Sparkles />
+        <ShieldCheck />
         <div>
           <span>IMPORTANT DISTINCTION</span>
           <h2>Sally synthesizes; she does not invent consensus.</h2>

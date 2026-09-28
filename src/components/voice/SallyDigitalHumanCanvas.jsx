@@ -696,8 +696,7 @@ export function SallyDigitalHumanCanvas({
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'rgba(3, 7, 18, 0.85)',
-            backdropFilter: 'blur(12px)',
+            background: '#030712',
             zIndex: 25,
             color: '#f8fafc',
           }}

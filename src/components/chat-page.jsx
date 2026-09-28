@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { sanitizeModelResponse } from "../lib/document-tool-service.js";
+import { authFetch, clearAuthSession, getStoredAuth } from "../lib/client-auth.js";
 const IpToolsPanel=lazy(()=>import("./ip-tools-panel"));
 
 const ClaimChartWorkspace=lazy(()=>import("./claim-chart-workspace"));
@@ -29,20 +30,8 @@ const SallyVideoCallCard=lazy(()=>import("./voice/SallyVideoCallCard.jsx"));
 const SallyDocumentsModal=lazy(()=>import("./SallyDocumentsModal.jsx"));
 import {
   identifyDocument,
-  extractSlots,
-  evaluateIntakePhase,
   isDraftedDocument,
-  generateStatutoryDocument,
-  isolateWorkflowMessages,
-  VERIFIED_20_DOCUMENTS,
 } from "../lib/document-intake-coordinator.js";
-import {
-  createInterviewSession,
-  processInterviewTurn,
-  DOCUMENT_INTERVIEW_PROFILES,
-  QUESTION_STATES,
-  isTaskSwitch,
-} from "../lib/conversational-interview-engine.js";
 import "./voice-chat-widget.css";
 import {
   ArrowRight,
@@ -74,7 +63,6 @@ import {
   Scale,
   ShieldCheck,
   SlidersHorizontal,
-  Sparkles,
   Square,
   Trash2,
   Telescope,
@@ -131,7 +119,7 @@ const makeArtifact = ({ title, content, previous }) => ({
 const persistArtifact = async ({ artifact, conversationId, conversation_id, revision }) => {
   const convId = conversationId || conversation_id;
   try {
-    const response = await fetch("/api/artifacts", {
+    const response = await authFetch("/api/artifacts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -167,461 +155,6 @@ const titleFor = (text) =>
   text.trim().replace(/\s+/g, " ").slice(0, 42) +
   (text.trim().length > 42 ? "…" : "");
 
-const isCutOffResponse = (text) => {
-  if (!text || typeof text !== "string") return true;
-  const t = text.trim();
-  if (t.toLowerCase() === "user safety: safe" || t.toLowerCase() === "safety: safe") return true;
-  if (t.length < 120 && (t.endsWith(":") || t.endsWith("with:") || t.endsWith("with") || t.endsWith("..."))) return true;
-  if (t.endsWith("Here's what I can help you with:") || t.endsWith("Here is what I can do:") || t.endsWith("I can help you with:")) return true;
-  return false;
-};
-
-const getFallbackLegalResponse = (prompt, user, messages = []) => {
-  const p = (prompt || "").toLowerCase().trim();
-  const userName = user?.name && !user.name.toLowerCase().includes("judha") ? user.name.split(" ")[0] : "Aman";
-
-  const allValidMessages = (messages || []).filter((m) => m && m.content && (m.role === "user" || m.role === "assistant"));
-  const userMessages = allValidMessages.filter((m) => m.role === "user").map((m) => m.content);
-  const priorUserMessages = userMessages.slice(0, -1);
-  const priorText = priorUserMessages.join("\n").toLowerCase();
-
-  // 1. Capabilities & Features inquiry
-  const isCapabilitiesQuery =
-    /\b(capabilities|capability|features?|what can you do|who are you|overview|what are your skills|what do you do)\b/i.test(p);
-
-  if (isCapabilitiesQuery) {
-    return `### SallyIP 4.2 Pro • Legal Technology & IP Co-Pilot
-
-Hello **${userName}**! I am **SallyIP 4.2 Pro**, your specialized legal technology & intellectual property co-pilot. Here is an overview of my core legal-technical capabilities:
-
----
-
-#### 1. Structured US Patent Drafting (35 U.S.C. §§ 111 & 112)
-- **Section-by-Section Specification**: Autonomous drafting of Title, Field of Invention, Background, Summary, Detailed Description, and Abstract.
-- **Claims Architecture**: Numbered claim tree drafting (independent apparatus/system claims, method claims, and dependent claims).
-- **Provisional & Nonprovisional Posture**: Clear statutory distinction between 35 U.S.C. § 111(b) provisional disclosures and 35 U.S.C. § 111(a) nonprovisional applications.
-- **Suggested Patent Drawings**: Detailed FIG. 1–FIG. 5 drawing descriptions, isometric views, and flowcharts.
-
-#### 2. Statutory Examination & Eligibility Screening
-- **35 U.S.C. § 101 *Alice/Mayo* Screening**: Scans technical disclosures and claims for mathematical concepts, mental processes, or abstract ideas under USPTO 2019 Revised Guidance, providing concrete hardware-anchoring recommendations.
-- **35 U.S.C. § 112(a) Enablement & Written Description**: Audits detailed descriptions to verify that every claimed limitation has explicit specification support.
-- **35 U.S.C. § 112(b) Live Antecedent Basis Check**: Automatically flags missing antecedent basis (*"the sensor"* without prior introduction of *"a sensor"*).
-
-#### 3. Prior-Art Searching & Novelty Analysis (35 U.S.C. § 102)
-- **Multi-Jurisdictional Retrieval**: Cross-database search strategies across USPTO, EPO (Espacenet), and WIPO databases.
-- **Limitation-by-Limitation Claim Charting**: Maps proposed invention features against closest prior-art citations.
-- **Inventive-Step Evaluation (Graham Factors & KSR)**: Analysis of non-obviousness under 35 U.S.C. § 103 and EPO problem-solution approach.
-
-#### 4. Freedom to Operate (FTO) & Risk Mapping
-- **Product Feature Infringement Clearance**: Literal infringement and Doctrine of Equivalents analysis against competitor patent portfolios.
-- **Design-Around Strategies**: Actionable engineering recommendations to avoid unexpired competitor claims.
-
-#### 5. Trademark Clearance & Brand Protection
-- **Comprehensive Mark Clearance**: Multi-register screening across USPTO, EUIPO, and common-law marks.
-- **Likelihood of Confusion Analysis**: Multi-dimensional phonetic, visual, and conceptual similarity evaluations across Nice Classes.
-
-#### 6. Official Document Export & Formatting
-- **Instant Multi-Format Export**: Generates professional, download-ready \`.docx\`, \`.pdf\`, \`.pptx\`, \`.xlsx\`, and \`.md\` documents directly from the matter vault.
-
----
-
-**What invention, matter, or legal question would you like to explore today?**`;
-  }
-
-  // 2. Memory / Training / Retention inquiry & recap of previous context
-  const isMemoryOrTrainingQuery =
-    /\b(train|training|remember|remembering|rmember|rmembering|memory|memorize|memorizing|learn|learning|recall|retention|what did i (say|tell)|do you remember|keep context|focus on remembering|recap|retain|context)\b/i.test(p);
-
-  if (isMemoryOrTrainingQuery) {
-    const priorMentionOfMouse = priorText.includes("mouse") || p.includes("mouse") || priorText.includes("tech");
-    const activeSubject = priorMentionOfMouse
-      ? "High-Precision Peripheral / Computer Mouse Technology"
-      : "Intellectual Property Matter & Technical Innovation";
-
-    // Build chronological audit of earlier turns
-    const dialogueHistory = [];
-    let userTurnIdx = 0;
-    for (const msg of allValidMessages.slice(0, -1)) {
-      if (msg.role === "user") {
-        userTurnIdx++;
-        dialogueHistory.push(`- **Turn ${userTurnIdx} (You Said)**: "${msg.content.slice(0, 180)}${msg.content.length > 180 ? "…" : ""}"`);
-      } else if (msg.role === "assistant") {
-        const cleanReply = msg.content.replace(/[#*`_]/g, "").replace(/\n+/g, " ").trim();
-        dialogueHistory.push(`  - *Sally Responded*: "${cleanReply.slice(0, 140)}${cleanReply.length > 140 ? "…" : ""}"`);
-      }
-    }
-
-    const memoryChronologySection = dialogueHistory.length
-      ? `#### 1. Retained Conversation Context & Dialogue History\n${dialogueHistory.join("\n")}\n\n`
-      : "";
-
-    return `### SallyIP Working Memory & Context Retention
-
-Understood, **${userName}** — active context retention is fully engaged. I maintain continuous, persistent memory of everything you disclose and every exchange we have had in this conversation.
-
----
-
-${memoryChronologySection}#### 2. Active Matter Memory Snapshot
-- **Practitioner / Inventor**: ${userName}
-- **Active Matter Subject**: ${activeSubject}
-- **Retained Context Scope**: Complete Turn-by-Turn Dialogue (Zero Information Loss)
-- **Status**: Ready to answer subsequent prompts precisely based on all previous disclosures
-
-#### 3. Continuous Multi-Turn Reasoning Principles
-- **No Repeated Inquiries**: Any technical features, problems, mechanisms, or constraints you previously shared are recorded as ground truth. I will never ask you to re-state them.
-- **Contextual Synthesis**: When you ask for the next step (e.g. drafting claims, analyzing patentability, preparing specification sections), I directly synthesize your previously stated features into the output.
-
-What would you like to do next with this invention (e.g. draft initial claims, formulate detailed description, or conduct prior-art screening)?`;
-  }
-
-  if (p === "hi" || p === "hello" || p === "hey" || p === "help") {
-    return `Hello ${userName}! I am **SallyIP 4.2 Pro**, your specialized legal technology & intellectual property co-pilot.
-
-I am ready to assist you across key intellectual property workflows:
-
-1. **Patents & Invention Drafting (35 U.S.C. §§ 101 & 112 / EPC)**
-   - Section-by-section US & International patent application drafting.
-   - Antecedent basis verification, claim cascading, and Alice abstractness screening.
-
-2. **Trademarks & Brand Clearance**
-   - Direct mark clearance across USPTO, EUIPO, and Madrid Protocol registers.
-   - Likelihood-of-confusion analysis, Nice Class 1–45 scoping, and office action responses.
-
-3. **Copyrights & Digital Asset Clearance**
-   - Fair-use four-factor risk assessments and authorship chain-of-title verification.
-   - Software licensing audit, DMCA compliance, and formal registration filing preparation.
-
-4. **Freedom to Operate (FTO) & Prior-Art Radar**
-   - Multi-jurisdictional searching across 150M+ patents, marks, and publications.
-   - Limitation-by-limitation claim charting, invalidity opinions, and design-around guidance.
-
-What IP matter, brand mark, or creative work would you like to explore today?`;
-  }
-
-  // 2.3 Verified 20 Statutory Documents Pipeline (Slot-Filling Intake & Direct Statutory Drafting)
-  const matchedDoc = identifyDocument(prompt, messages);
-  if (matchedDoc) {
-    const slots = extractSlots(matchedDoc, prompt, messages);
-    const relevantTurns = isolateWorkflowMessages(matchedDoc, prompt, messages);
-    const turnCount = relevantTurns.length;
-    const intake = evaluateIntakePhase(matchedDoc, slots, prompt, turnCount);
-
-    if (intake.phase === "INTERVIEW") {
-      if (intake.formattedResponse) {
-        return intake.formattedResponse;
-      }
-      const recorded = intake.recap.length > 0
-        ? `✓ **Recorded Disclosures:**\n${intake.recap.map((r) => `  - ${r}`).join("\n")}\n\n`
-        : "";
-      return `### ${matchedDoc.name} • Technical Disclosure Intake\n\n${recorded}${intake.nextQuestion}`;
-    }
-
-    return generateStatutoryDocument(matchedDoc, slots, userName);
-  }
-
-  // 2.5 Mutual NDA / Contract / Agreement drafting
-  const isNdaOrContract =
-    /\b(nda|non[- ]disclosure|nondisclosure|confidentiality agreement|confidentiality)\b/i.test(p) ||
-    (/\b(draft|write|prepare|create|generate)\b/i.test(p) && /\b(agreement|contract|covenant)\b/i.test(p));
-
-  if (isNdaOrContract) {
-    let partyA = "A Ltd";
-    let partyB = "B Ltd";
-    const betweenMatch = prompt.match(/\bbetween\s+([A-Za-z0-9\s.,&'-]+?)\s+and\s+([A-Za-z0-9\s.,&'-]+?)(?:\s+(?:as|for|in|under|with|to)\b|\.|\?|!|$)/i);
-    if (betweenMatch) {
-      partyA = betweenMatch[1].trim();
-      partyB = betweenMatch[2].trim();
-    } else {
-      const partiesMatch = prompt.match(/\bfor\s+([A-Za-z0-9\s.,&'-]+?)\s+and\s+([A-Za-z0-9\s.,&'-]+?)(?:\s+(?:as|for|in|under|with)\b|\.|\?|!|$)/i);
-      if (partiesMatch) {
-        partyA = partiesMatch[1].trim();
-        partyB = partiesMatch[2].trim();
-      }
-    }
-    const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-
-    return `# MUTUAL NON-DISCLOSURE AND CONFIDENTIALITY AGREEMENT
-
-**THIS MUTUAL NON-DISCLOSURE AGREEMENT** (this "Agreement") is entered into and made effective as of **${today}** (the "Effective Date"), by and between:
-
-- **${partyA}**, a corporation duly organized and existing under applicable corporate law, with its principal place of business ("**${partyA}**"), and
-- **${partyB}**, a corporation duly organized and existing under applicable corporate law, with its principal place of business ("**${partyB}**").
-
-*(Each of ${partyA} and ${partyB} is referred to individually as a "**Party**" and collectively as the "**Parties**".)*
-
----
-
-### RECITALS
-
-**WHEREAS**, the Parties desire to explore, evaluate, and pursue a potential business relationship, technology evaluation, intellectual property transaction, or commercial collaboration (the "**Authorized Purpose**"); and
-
-**WHEREAS**, in connection with the Authorized Purpose, each Party may disclose to the other Party certain proprietary, non-public, technical, patentable, commercial, or financial information; and
-
-**WHEREAS**, the Parties desire to establish binding terms governing the non-disclosure, restricted use, and protection of such Confidential Information.
-
-**NOW, THEREFORE**, in consideration of the mutual promises, covenants, and undertakings set forth herein, the Parties agree as follows:
-
----
-
-### 1. DEFINITION OF CONFIDENTIAL INFORMATION
-
-1.1 **Scope**. "**Confidential Information**" means any and all non-public, confidential, or proprietary technical, business, legal, financial, or product data disclosed by one Party ("**Disclosing Party**") to the other Party ("**Receiving Party**"), whether disclosed orally, visually, in writing, electronically, or via physical inspection, that:
-- (a) is marked or identified as "Confidential", "Proprietary", or with equivalent restrictive legend at the time of disclosure; or
-- (b) by its nature or the context of disclosure, ought reasonably to be treated as confidential and proprietary.
-
-1.2 **Inclusions**. Confidential Information includes, without limitation:
-- Invention disclosures, patent claims, prior-art documentation, prosecution strategies, and IP filings;
-- Computer code, algorithms, software architectures, APIs, system designs, benchmarks, and data schemas;
-- Commercial roadmaps, customer identities, pricing structures, financial metrics, and strategic analyses.
-
----
-
-### 2. EXCLUSIONS FROM CONFIDENTIALITY
-
-Confidential Information shall not include any information that the Receiving Party can establish by competent written evidence:
-- 2.1 is or becomes generally available to the public without breach of this Agreement by Receiving Party;
-- 2.2 was already rightfully known to Receiving Party prior to disclosure by Disclosing Party without restriction;
-- 2.3 is independently developed by Receiving Party's personnel without access to or use of Disclosing Party's Confidential Information; or
-- 2.4 is rightfully received from a third party free of confidentiality restrictions.
-
----
-
-### 3. NON-DISCLOSURE AND RESTRICTED USE OBLIGATIONS
-
-3.1 **Degree of Care**. The Receiving Party shall protect Confidential Information with at least the degree of care it uses for its own confidential information of like importance, and in no event less than a reasonable standard of care.
-
-3.2 **Restricted Purpose**. The Receiving Party shall use Confidential Information solely and exclusively in furtherance of the Authorized Purpose. Receiving Party shall not reverse engineer, decompile, or disassemble any prototypes, software, or technical samples provided.
-
-3.3 **Restricted Access**. Receiving Party shall limit access to Confidential Information strictly to those of its directors, officers, employees, and professional legal/financial advisors ("**Representatives**") who have a need to know for the Authorized Purpose and who are bound by confidentiality obligations at least as restrictive as this Agreement.
-
----
-
-### 4. COMPELLED DISCLOSURE
-
-If Receiving Party is compelled by subpoena, legal process, or regulatory order to disclose any Confidential Information, Receiving Party shall provide prompt written notice to Disclosing Party (where legally permissible) to enable Disclosing Party to seek a protective order or other remedy.
-
----
-
-### 5. TERM AND TERMINATION
-
-5.1 **Term**. This Agreement shall govern all disclosures made between the Parties for a period of **two (2) years** from the Effective Date, unless terminated earlier by either Party upon thirty (30) days' written notice.
-
-5.2 **Survival**. The confidentiality obligations set forth herein shall survive the termination or expiration of this Agreement for a period of **three (3) years** from the date of disclosure; provided that any information constituting a **Trade Secret** shall remain protected for as long as it retains trade secret status under applicable law.
-
----
-
-### 6. RETURN OR DESTRUCTION OF MATERIALS
-
-Upon Disclosing Party's written request, Receiving Party shall promptly return or certify the secure destruction of all tangible and electronic embodiments of Confidential Information within thirty (30) days, subject only to bona fide regulatory compliance and archival backup requirements.
-
----
-
-### 7. NO LICENSE OR IP CONVEYANCE
-
-Nothing contained in this Agreement shall be construed as granting, either expressly or by implication, estoppel or otherwise, any license, title, ownership, or right under any patent, trademark, copyright, or trade secret of either Party.
-
----
-
-### 8. EQUITABLE RELIEF
-
-The Parties acknowledge that damages at law may be an inadequate remedy for any breach of this Agreement and that Disclosing Party shall be entitled to seek injunctive relief and specific performance in any court of competent jurisdiction without the requirement of posting a bond, in addition to all other legal remedies available.
-
----
-
-### 9. GOVERNING LAW AND DISPUTE RESOLUTION
-
-This Agreement shall be governed by, construed, and enforced in accordance with the laws of the **State of Delaware** (or applicable governing corporate jurisdiction), without regard to its conflicts of law principles. Any dispute arising under or in connection with this Agreement shall be submitted to the exclusive jurisdiction of the competent courts located therein.
-
----
-
-### 10. MISCELLANEOUS
-
-- 10.1 **Entire Agreement**. This Agreement embodies the entire understanding of the Parties with respect to the subject matter hereof and supersedes all prior agreements and understandings.
-- 10.2 **Severability**. If any provision of this Agreement is held invalid or unenforceable, all other provisions shall remain in full force and effect.
-- 10.3 **Counterparts and Signatures**. This Agreement may be executed in counterparts, each of which shall be deemed an original, including electronic and PDF signature transmissions.
-
----
-
-### SIGNATURES AND EXECUTION
-
-**IN WITNESS WHEREOF**, the Parties hereto have caused this Mutual Non-Disclosure Agreement to be executed by their duly authorized representatives.
-
-| **FOR AND ON BEHALF OF:**<br>**${partyA}** | **FOR AND ON BEHALF OF:**<br>**${partyB}** |
-| :--- | :--- |
-| **By:** ____________________________________ | **By:** ____________________________________ |
-| **Name:** Authorized Signatory | **Name:** Authorized Signatory |
-| **Title:** Corporate Officer / Director | **Title:** Corporate Officer / Director |
-| **Date:** ${today} | **Date:** ${today} |`;
-  }
-
-  const isPatentDraftingRequest =
-    (/\b(draft|write|prepare|file|create|generate)\b/i.test(p) &&
-      /\b(patent|pateent|claim|claims|specification|provisional|application)\b/i.test(p)) ||
-    /\b(patent application|draft patent|patent draft|draft the claims|draft claims|generate claims)\b/i.test(p) ||
-    (priorText.includes("patent") && /\b(sensor|optical|haptic|tracking|dpi|laser|piezoelectric|switch|housing|claim|claims|proceed|continue|draft|now draft|next)\b/i.test(p));
-
-  if (isPatentDraftingRequest) {
-    // Check if the prompt or conversation already provides concrete technical disclosure (components, mechanisms, how it works)
-    const combinedAllText = `${priorText} ${p}`;
-    const hasTechnicalDetails =
-      (combinedAllText.length > 50 &&
-        (/\b(sensor|optical|mechanism|actuator|chassis|housing|switch|circuit|algorithm|processor|battery|haptic|dpi|tracking|ergonomic|wireless|bluetooth|latency|piezoelectric|water|button|gesture)\b/i.test(combinedAllText) ||
-          /\b(it works by|the problem is|the invention solves|it uses|it has|the mouse has|the device has)\b/i.test(combinedAllText)));
-
-    if (hasTechnicalDetails) {
-      // Extract specific user disclosures from conversation history to ground the draft
-      const userDisclosedElements = [];
-      if (/\b(water|wet|damp|liquid)\b/i.test(combinedAllText)) userDisclosedElements.push("Aqueous/liquid-surface optical tracking capability");
-      if (/\b(haptic|vibrat|tactile)\b/i.test(combinedAllText)) userDisclosedElements.push("Localized haptic feedback actuation module");
-      if (/\b(button|switch|thumb)\b/i.test(combinedAllText)) userDisclosedElements.push("Multi-switch programmable thumb interface");
-      if (/\b(optical|laser|sensor|dpi)\b/i.test(combinedAllText)) userDisclosedElements.push("High-precision optical displacement sensing array");
-      if (/\b(ergonomic|strain|wrist)\b/i.test(combinedAllText)) userDisclosedElements.push("Ergonomic contouring for reduced operator musculoskeletal fatigue");
-
-      const retainedFeaturesList = userDisclosedElements.length
-        ? `\n\n**Retained Specifications from Your Earlier Disclosures:**\n${userDisclosedElements.map(e => `- ✓ ${e}`).join('\n')}\n`
-        : "";
-
-      // Progressive drafting: summarize -> identify concepts -> draft claims & spec -> audit
-      return `### US Patent Application Draft & Technical Synthesis${retainedFeaturesList}
-
-I have reviewed your invention disclosure and prepared the preliminary US patent application draft grounded in your disclosed parameters.
-
-#### 1. Invention Summary
-The disclosed invention relates to an advanced input device engineered to overcome key mechanical, latency, and ergonomic constraints of conventional peripherals through integrated sensing and dynamic feedback mechanisms.
-
-#### 2. Potential Inventive Concepts (Novelty & Non-Obviousness Signals)
-- **Primary Novel Combination**: Integrated multi-modal sensing coupled with localized feedback actuation.
-- **Problem Solved**: Eliminates physical strain, improves displacement precision on non-standard surfaces, and enhances operational feedback.
-- **Non-Obviousness Differentiator**: Solves functional trade-offs present in existing optical and mechanical input architectures.
-
----
-
-### Structured Patent Application Specification
-
-#### Title of the Invention
-**HIGH-PRECISION ERGONOMIC PERIPHERAL INPUT DEVICE AND CONTROL METHOD**
-
-#### Field of the Invention
-This disclosure relates generally to human-machine interface devices, and more particularly to high-precision peripheral input devices incorporating multi-modal sensing and low-latency feedback.
-
-#### Background of the Invention
-Conventional computer input devices, such as standard optical and laser mice, typically utilize rigid switch assemblies and fixed-frequency optical tracking sensors. These conventional architectures suffer from ergonomic fatigue during extended sessions and degraded displacement accuracy across challenging operational surfaces. There remains an unmet need for a responsive, ergonomically adaptive input system.
-
-#### Summary of the Invention
-In an exemplary embodiment, an input device comprises an ergonomic chassis, a multi-stage sensing array configured to detect fine displacement vectors, a controller operatively coupled to the sensing array, and a localized feedback module configured to provide tactile confirmation to the user.
-
-#### Detailed Description of Preferred Embodiments
-- **Chassis & Sensor Architecture**: The device includes a lightweight contoured housing enclosing an optical displacement sensor array and a localized feedback actuator.
-- **Signal Processing & Control Loop**: On-board firmware processes displacement coordinates at high polling rates, triggering tactile confirmations without chassis displacement.
-- **Alternative Configurations**: Embodiments include dual wireless/low-latency wired operation and customizable ergonomic geometries.
-
-#### Claims Set
-**1. (Independent Apparatus)** An input device, comprising:
-  a housing configured to be engaged by a user's hand;
-  a displacement sensor disposed within the housing and configured to output positional coordinates;
-  a feedback actuator disposed adjacent an engagement surface of the housing; and
-  a controller communicatively coupled to the displacement sensor and the feedback actuator, the controller configured to trigger the feedback actuator upon detection of a predetermined operational condition.
-
-**2. (Independent Method)** A method for operating an input device, comprising:
-  detecting physical displacement of a housing across an operating surface via a displacement sensor;
-  generating positional coordinate signals corresponding to the displacement; and
-  actuating a feedback mechanism in the housing based upon coordinate displacement data.
-
-**3. (Dependent Claim)** The input device of claim 1, wherein the feedback actuator comprises a piezoelectric haptic actuator.
-**4. (Dependent Claim)** The input device of claim 1, wherein the displacement sensor comprises a multi-spectrum optical sensor array.
-**5. (Dependent Claim)** The input device of claim 1, further comprising a low-friction base assembly coupled to a bottom surface of the housing.
-
-#### Abstract
-An ergonomic peripheral input device and control method include a contoured housing, a high-precision displacement sensor, a localized feedback actuator, and a controller. The controller processes displacement signals and selectively drives the actuator to provide tactile confirmation, enhancing control precision and reducing operator fatigue.
-
-#### Suggested Patent Drawings
-- **FIG. 1**: Isometric perspective view showing external ergonomics and primary tactile zones.
-- **FIG. 2**: Functional block diagram of the sensor array, microcontroller, and actuator assembly.
-- **FIG. 3**: Operational control flow diagram illustrating coordinate tracking and actuator triggering.
-
----
-
-#### Statutory & Enablement Review (§ 101 & § 112)
-- **§ 101 Eligibility**: Grounded in specific physical hardware and mechanical improvements (low Alice/Mayo risk).
-- **§ 112 Support**: Antecedent basis verified across Claims 1–5.
-- **Next Step**: You can refine any specific section above, add dependent claims, or ask me to export this into a formal application document.`;
-    }
-
-    // Extraction of invention topic for personalized plain-English intake
-    let topicText = "your new technology";
-    let noun = "device";
-
-    const topicMatch = prompt.match(
-      /\b(?:for\s+us\s+in|for\s+us|for|in|on|about|regarding)\b\s+(?:a\s+|an\s+|the\s+)?([a-zA-Z0-9\s\-_/]+?)(?:\.|\?|!|$)/i
-    );
-    if (topicMatch && topicMatch[1]) {
-      const extracted = topicMatch[1].trim();
-      if (!/^(us|me|this|our|the|a|an|it)$/i.test(extracted) && extracted.length >= 3) {
-        topicText = extracted.toLowerCase().includes("tech")
-          ? extracted
-          : `${extracted} technology`;
-        noun = extracted.toLowerCase().includes("mouse")
-          ? "computer mouse"
-          : extracted.toLowerCase().includes("keyboard")
-          ? "keyboard"
-          : extracted.toLowerCase().includes("sensor")
-          ? "sensor"
-          : extracted.toLowerCase().includes("drone")
-          ? "drone"
-          : "device";
-      }
-    }
-
-    const targetDesc = topicText.startsWith("your") ? topicText : `your ${topicText}`;
-
-    return `**Absolutely — I can help you build the US patent application.**
-
-Start by describing ${targetDesc} in your own words. Even a rough explanation is fine.
-
-To begin, please tell me:
-1. **What is new about the ${noun}?** (What makes it different from a normal or conventional ${noun}?)
-2. **What problem does it solve?** (e.g., wrist strain, latency, tracking on tricky surfaces, ergonomics, battery life?)
-3. **How does it work?** (What are the key mechanisms, optical sensors, switches, or software algorithms?)
-4. **What are the main components or features?** (e.g., custom sensor array, haptic feedback, mechanical structure, firmware?)
-5. **What type of device is it?** (Physical mouse, gaming mouse, ergonomic mouse, gesture-based device, haptic peripheral, or software-assisted?)
-6. **Do you have any drawings, sketches, specifications, or prototype details?** (You can describe them, paste specs, or upload an image)
-
-Once you provide that information, I will immediately begin drafting:
-- **Title, Technical Field, Background, Summary, Detailed Description, Claims, Abstract, and suggested patent drawings.**
-
-You can explain the invention informally — you do not need to use legal or patent terminology. What is the core idea?`;
-  }
-
-  if (p.includes("patent") || p.includes("claim")) {
-    return `### SallyIP Patent Analysis
-
-I have completed analysis for your patent inquiry: **"${prompt}"**.
-
-**Key Patent Considerations:**
-- **Statutory Framework**: 35 U.S.C. (USPTO) / EPC (EPO) novelty and non-obviousness requirements.
-- **Prior-Art Boundary**: Identifying the closest known references before defining claim scope.
-- **Recommended Next Steps**:
-  1. Describe the key technical features or upload your invention disclosure document.
-  2. Run a prior-art search across patent databases to identify potential citations.
-  3. Draft an initial claim skeleton focused on the core inventive mechanism.
-
-Would you like me to start drafting claims, or perform a targeted prior-art search on this topic?`;
-  }
-
-  return `### SallyIP Legal Analysis
-
-I have completed analysis for your inquiry: **"${prompt}"**.
-
-**Key Legal Considerations:**
-- **Jurisdiction Posture**: Applicable statutory framework (USPTO / EPO / PCT).
-- **Statutory Authority**: Analyzed under relevant procedural examination guidelines and case law precedents.
-- **Next Procedural Steps**:
-  1. Ingest supporting invention disclosure or prior art into the matter vault.
-  2. Map claim elements against targeted patent references.
-  3. Prepare structured documentation for practitioner sign-off.
-
-Would you like me to draft specific claim sets or perform a targeted prior-art search on this topic?`;
-};
 
 function Mark({ className = "" }) {
   return (
@@ -631,7 +164,7 @@ function Mark({ className = "" }) {
   );
 }
 
-export default function ChatPage({ onHome, onAuthRequired }) {
+export default function ChatPage({ onHome, onAuthRequired, user: initialUser }) {
   const threadRef = useRef(null);
   const threadEndRef = useRef(null);
   const uploadInputRef = useRef(null);
@@ -653,19 +186,25 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   const [streamingAnswer, setStreamingAnswer] = useState("");
   const [isWriting, setIsWriting] = useState(false);
   const [user, setUser] = useState(() => {
-    try {
-      const stored = localStorage.getItem("sallyip-user");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed?.name && !parsed.name.toLowerCase().includes("judha")) {
-          return parsed;
-        }
-      }
-    } catch {}
-    const defaultUser = { name: "Carlos", email: "carlos@sallyip.com", role: "Intellectual Property Counsel" };
-    try { localStorage.setItem("sallyip-user", JSON.stringify(defaultUser)); } catch {}
-    return defaultUser;
+    if (initialUser && initialUser.email) return initialUser;
+    const stored = getStoredAuth();
+    if (stored?.user?.email) return stored.user;
+    return null;
   });
+
+  useEffect(() => {
+    if (initialUser && initialUser.email) {
+      setUser(initialUser);
+    } else {
+      const stored = getStoredAuth();
+      if (stored?.user?.email) {
+        setUser(stored.user);
+      } else {
+        setUser(null);
+        if (onAuthRequired) onAuthRequired();
+      }
+    }
+  }, [initialUser, onAuthRequired]);
   const [selectedEngine, setSelectedEngine] = useState("auto");
   const [renamingId, setRenamingId] = useState(null);
   const [renameValue, setRenameValue] = useState("");
@@ -1250,7 +789,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
     };
   }, []);
   useEffect(() => {
-    fetch("/api/matters")
+    authFetch("/api/matters")
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then((data) => {
         setMatters(data.matters || []);
@@ -1261,7 +800,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   const createMatter = async () => {
     const name = prompt("Matter name");
     if (!name?.trim()) return;
-    const response = await fetch("/api/matters", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "create", name: name.trim() }) });
+    const response = await authFetch("/api/matters", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "create", name: name.trim() }) });
     const data = await response.json();
     if (!response.ok) return alert(data?.error?.message || "Matter could not be created");
     setMatters((items) => [data.matter, ...items]);
@@ -1275,7 +814,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
     setIngesting(true);setUploadedSource(null);
     try {
       const dataUrl = await new Promise((resolve, reject) => { const reader = new FileReader();reader.onload = () => resolve(reader.result);reader.onerror = reject;reader.readAsDataURL(file); });
-      const response = await fetch("/api/ingest-document", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ matter_id: activeMatterId, filename: file.name, data: String(dataUrl).split(",")[1], rights_confirmed: true, authority_tier: 5, source_type: "uploaded_document" }) });
+      const response = await authFetch("/api/ingest-document", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ matter_id: activeMatterId, filename: file.name, data: String(dataUrl).split(",")[1], rights_confirmed: true, authority_tier: 5, source_type: "uploaded_document" }) });
       const result = await response.json();if (!response.ok) throw new Error(result?.error?.message || "Document ingestion failed");
       setUploadedSource(result.source);
     } catch (error) { alert(error.message); }
@@ -1297,7 +836,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   }, [loading]);
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/conversations")
+    authFetch("/api/conversations")
       .then((response) => {
         if (!response.ok) return null;
         return response.json();
@@ -1325,18 +864,21 @@ export default function ChatPage({ onHome, onAuthRequired }) {
     };
   }, []);
   const logout = async () => {
-    if (!window.confirm("Log out of SallyIP? Unsent input will be lost.")) return;
-    await fetch("/api/auth", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "logout" }),
-    }).catch(() => {});
+    if (!window.confirm("Log out of SallyIP? Your 7-day session will be ended.")) return;
+    try {
+      await authFetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "logout" }),
+      });
+    } catch {}
+    clearAuthSession();
     localStorage.removeItem(STORAGE_KEY);
     if (onAuthRequired) onAuthRequired();
   };
   const persistChat = async (chat) => {
     try {
-      const response = await fetch("/api/conversations", {
+      const response = await authFetch("/api/conversations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1389,7 +931,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
     const fallback = remaining[0] || makeChat();
     setChats(remaining.length ? remaining : [fallback]);
     if (activeId === id) setActiveId(fallback.id);
-    await fetch(`/api/conversations?id=${encodeURIComponent(id)}`, {
+    await authFetch(`/api/conversations?id=${encodeURIComponent(id)}`, {
       method: "DELETE",
     }).catch(() => {});
     if (!remaining.length) await persistChat(fallback).catch(() => {});
@@ -1500,268 +1042,8 @@ export default function ChatPage({ onHome, onAuthRequired }) {
     try {
       await persistChat(baseChat);
 
-      // 1. STATEFUL DOCUMENT INTERVIEW STATE MACHINE BINDING
-      // If an interview session is already active (WAITING_FOR_USER), or if the user is initiating a document interview:
-      const existingSession = baseChat.documentSession;
-      const switchedTask = Boolean(existingSession && isTaskSwitch(clean));
-      if (switchedTask) baseChat.documentSession = null;
-      const effectiveSession = switchedTask ? null : existingSession;
-
-      const isCancellation = /^(cancel|abort|stop|quit|exit)(\s+(the\s+)?(interview|drafting|session|process))?$/i.test(clean.trim()) ||
-                             /\b(cancel|abort|stop|quit|exit)\s+(?:the\s+)?(?:interview|drafting|session|process)\b/i.test(clean);
-      const hasAlternativeInstruction = /\b(nda|patent|trademark|contract|license|agreement|draft|make|create|write|develop|switch|let'?s|instead|what|how|why|tell)\b/i.test(clean);
-
-      if (isCancellation && !hasAlternativeInstruction && existingSession) {
-        clearInterval(progressTimer);
-        await transitionToComplete();
-        const cancelMsg = "Document drafting interview has been cancelled. How else can I assist with your matter?";
-        await streamResponseLineByLine(cancelMsg);
-        const finalChat = {
-          ...baseChat,
-          documentSession: null,
-          messages: [
-            ...next,
-            { role: "assistant", content: cancelMsg },
-          ],
-        };
-        setIsWriting(false);
-        setStreamingAnswer("");
-        setThinkingProgress(0);
-        setLoading(false);
-        updateActive(() => finalChat);
-        await persistChat(finalChat);
-        return;
-      }
-
-      const targetInterviewDoc = identifyDocument(clean, baseChat.messages);
-      const hasStartVerbs = /\b(draft|prepare|create|start|begin|file|write|generate)\b/i.test(clean);
-      const sessionMatterMatches = !effectiveSession || effectiveSession.matterId === undefined || effectiveSession.matterId === (activeMatterId || null);
-      const isDocumentInterviewTurn = Boolean(
-        (effectiveSession && effectiveSession.state === QUESTION_STATES.WAITING_FOR_USER && effectiveSession.session && sessionMatterMatches) ||
-        (targetInterviewDoc && (DOCUMENT_INTERVIEW_PROFILES[targetInterviewDoc.id] || targetInterviewDoc.coreSlots) && (!effectiveSession || hasStartVerbs))
-      );
-
-      if (isDocumentInterviewTurn) {
-        const docId = effectiveSession?.documentId || targetInterviewDoc?.id || "national-phase-patent-application";
-        const docConfig = VERIFIED_20_DOCUMENTS.find((d) => d.id === docId) || targetInterviewDoc;
-        let responseContent = "";
-        let newSessionState = null;
-        let readyToDraft = false;
-        let artifact = null;
-        let pendingDraftDoc = null;
-        let pendingDocTitle = null;
-        let pendingInventors = null;
-
-        if (DOCUMENT_INTERVIEW_PROFILES[docId]) {
-          const sessionObj = (effectiveSession?.session && effectiveSession.state === QUESTION_STATES.WAITING_FOR_USER) ? effectiveSession.session : createInterviewSession(docId, {
-            matter: matters.find((m) => m.id === activeMatterId)
-          });
-          const turnResult = processInterviewTurn({
-            session: sessionObj,
-            userMessage: clean,
-            documentId: docId,
-            matterContext: { matter: matters.find((m) => m.id === activeMatterId) }
-          });
-          responseContent = turnResult.responseMarkdown;
-          readyToDraft = turnResult.readyToDraft;
-          newSessionState = {
-            documentId: docId,
-            matterId: activeMatterId || null,
-            state: readyToDraft ? QUESTION_STATES.READY_TO_DRAFT : QUESTION_STATES.WAITING_FOR_USER,
-            session: turnResult.session
-          };
-
-          if (readyToDraft) {
-            const rawDoc = generateStatutoryDocument(docConfig, turnResult.session.facts, user?.name);
-            pendingDraftDoc = rawDoc;
-            pendingDocTitle = docConfig?.name || "Statutory Document";
-            pendingInventors = turnResult?.session?.facts?.inventors || null;
-          }
-        } else if (docConfig) {
-          const docSlots = extractSlots(docConfig, clean, baseChat.messages);
-          const relevantTurns = isolateWorkflowMessages(docConfig, clean, baseChat.messages);
-          const intake = evaluateIntakePhase(docConfig, docSlots, clean, relevantTurns.length);
-          if (intake.phase === "INTERVIEW") {
-            responseContent = intake.formattedResponse || `${intake.recap?.length ? `✓ Recorded Disclosures:\n${intake.recap.join('\n')}\n\n` : ''}${intake.nextQuestion}`;
-            newSessionState = {
-              documentId: docId,
-              matterId: activeMatterId || null,
-              state: QUESTION_STATES.WAITING_FOR_USER,
-              slots: docSlots
-            };
-          } else {
-            readyToDraft = true;
-            const rawDoc = generateStatutoryDocument(docConfig, docSlots, user?.name);
-            pendingDraftDoc = rawDoc;
-            pendingDocTitle = docConfig?.name || "Statutory Document";
-            pendingInventors = docSlots?.inventors || null;
-            newSessionState = {
-              documentId: docId,
-              matterId: activeMatterId || null,
-              state: QUESTION_STATES.READY_TO_DRAFT,
-              slots: docSlots
-            };
-          }
-        }
-
-        if (readyToDraft && pendingDraftDoc) {
-          clearInterval(progressTimer);
-          // 1. Realistic thinking animation
-          setThinkingProgress(94);
-          setThinkingPhase(`Verifying disclosures • Formatting 7 statutory sections…`);
-          await new Promise((resolve) => setTimeout(resolve, 850));
-          setThinkingProgress(100);
-          setThinkingPhase(`Prerequisites verified • Opening workspace panel…`);
-          await new Promise((resolve) => setTimeout(resolve, 1100));
-          setThinkingProgress(0);
-
-          // 2. Open right doc panel in live writing mode
-          setIsWriting(true);
-          const docTitle = pendingDocTitle;
-          setStreamingAnswer(`Drafting **${docTitle}** into the workspace panel on the right...`);
-          setDocPanel({
-            title: docTitle,
-            content: "",
-            version: 1,
-            live: true,
-            artifact: null,
-            conversationId: baseChat.id,
-          });
-          await new Promise((resolve) => setTimeout(resolve, 350));
-
-          // 3. Stream document line-by-line into right panel with auto-scroll
-          const lines = pendingDraftDoc.split("\n");
-          let accumulatedDoc = "";
-          for (let i = 0; i < lines.length; i++) {
-            accumulatedDoc += (i > 0 ? "\n" : "") + lines[i];
-            setDocPanel((p) => ({
-              ...p,
-              content: accumulatedDoc,
-              live: true,
-            }));
-            const line = lines[i];
-            const isHeading = line.startsWith("#");
-            const isBlank = !line.trim();
-            const isTable = line.startsWith("|");
-            // Calibrated, smooth exhibition drafting cadence so spectators can clearly follow line-by-line
-            const delay = isHeading
-              ? 220
-              : isBlank
-              ? 45
-              : isTable
-              ? 70
-              : Math.max(65, Math.min(145, line.length * 1.5));
-            await new Promise((resolve) => setTimeout(resolve, delay));
-          }
-          await new Promise((resolve) => setTimeout(resolve, 300));
-
-          // 4. Finalize artifact & unlock export buttons
-          artifact = makeArtifact({
-            title: docTitle,
-            content: pendingDraftDoc,
-          });
-          artifact = await persistArtifact({
-            artifact,
-            conversation_id: baseChat.id,
-          });
-          setDocPanel({
-            title: artifact.title,
-            content: pendingDraftDoc,
-            version: artifact.version,
-            live: false,
-            artifact,
-            conversationId: baseChat.id,
-          });
-
-          // 5. Stream final confirmation in left chat
-          const isInvalidity = docConfig?.id === "patent-invalidity-opinion";
-          const isEPO = docConfig?.id === "european-patent-application" || docConfig?.family === "EUROPEAN_PATENT" || (docConfig?.jurisdiction && docConfig.jurisdiction.includes("EPO"));
-
-          let entityLine = `• **Inventors of Record**: ${pendingInventors || "Dr. Marcus Vance, Elena Rostova"}\n`;
-          if (isInvalidity) {
-            entityLine = `• **Target Patent**: US Patent 10,858,119 B2\n• **Challenger / Petitioner**: AeroMatrix Dynamics Corp.\n• **Invalidation Risk**: High Invalidation Probability (92% Anticipation / 88% Obviousness)\n`;
-          }
-
-          const statutoryBasisMsg = isInvalidity
-            ? "35 U.S.C. §§ 102/103/112 / Inter Partes Review (35 U.S.C. §§ 311–319)"
-            : isEPO
-            ? "European Patent Convention (EPC) Article 75 / Rules 41–43 EPC"
-            : "USPTO 35 U.S.C. § 111(b) / 37 C.F.R. § 1.53(c)";
-
-          const citationsMsg = isInvalidity
-            ? "USPTO Patent Center • PTAB Trial Docket • Prior Art (EP 3 456 789 A1, US 9,452,830 B1, US 2018/0297711 A1) • Phillips & KSR Standards"
-            : isEPO
-            ? "European Patent Register (Espacenet) • Prior Art (EP 3 456 789 A1, EP 3 789 012 B1, WO 2022/150890 A1) • CiA 301 CANopen & ISO 21384-3 standards"
-            : "USPTO PEDS • Prior Art (US 10,858,119 B2, US 11,247,794 B2, US 2023/0182914 A1) • CiA 301 CANopen & ASTM F3322-18 standards";
-
-          const secCount = docConfig?.sections?.length || (isInvalidity ? 11 : isEPO ? 9 : 8);
-          const completionMsg = isInvalidity
-            ? `I have prepared the formal litigation-grade **${docTitle}** in the workspace on the right.\n\n${entityLine}• **Statutory Basis**: ${statutoryBasisMsg}\n• **Data Sources & Citations**: ${citationsMsg}\n\nAll ${secCount} statutory sections including full claim charts, anticipation analysis, KSR obviousness combinations, and PTAB forum selection strategy have been generated. You can review the complete opinion, make edits, or export to Word (.docx) or PDF.`
-            : `I have drafted the official statutory **${docTitle}** in the workspace on the right.\n\n${entityLine}• **Statutory Basis**: ${statutoryBasisMsg}\n• **Data Sources & Citations**: ${citationsMsg}\n\nAll ${secCount} statutory sections have been formatted according to official standards. You can review the complete specification, make edits, or export to Word (.docx) or PDF.`;
-          await streamResponseLineByLine(completionMsg);
-
-          const finalChat = {
-            ...baseChat,
-            documentSession: newSessionState,
-            messages: [
-              ...next,
-              {
-                role: "assistant",
-                content: completionMsg,
-                artifact,
-              }
-            ]
-          };
-          setIsWriting(false);
-          setStreamingAnswer("");
-          setThinkingProgress(0);
-          setLoading(false);
-          updateActive(() => finalChat);
-          await persistChat(finalChat);
-          if (autoSpeak || autoSpeakVoice) {
-            const lastMsg = finalChat.messages[finalChat.messages.length - 1];
-            if (lastMsg?.role === "assistant" && lastMsg.content) {
-              setTimeout(() => togglePlayVoice(lastMsg.content, finalChat.messages.length - 1), 200);
-            }
-          }
-          return;
-        }
-
-        if (responseContent) {
-          clearInterval(progressTimer);
-          await transitionToComplete();
-          await streamResponseLineByLine(responseContent);
-
-          const finalChat = {
-            ...baseChat,
-            documentSession: newSessionState,
-            messages: [
-              ...next,
-              {
-                role: "assistant",
-                content: responseContent,
-                artifact,
-              }
-            ]
-          };
-          setIsWriting(false);
-          setStreamingAnswer("");
-          setThinkingProgress(0);
-          setLoading(false);
-          updateActive(() => finalChat);
-          await persistChat(finalChat);
-          if (autoSpeak || autoSpeakVoice) {
-            const lastMsg = finalChat.messages[finalChat.messages.length - 1];
-            if (lastMsg?.role === "assistant" && lastMsg.content) {
-              setTimeout(() => togglePlayVoice(lastMsg.content, finalChat.messages.length - 1), 200);
-            }
-          }
-          return;
-        }
-      }
-
       if (activeMatterId) {
-        const workflowResponse = await fetch("/api/workflows", {
+        const workflowResponse = await authFetch("/api/workflows", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -1843,7 +1125,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       }
       let documentDecision = null;
       try {
-        const decisionResponse = await fetch('/api/document-tools', {
+        const decisionResponse = await authFetch('/api/document-tools', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ message: clean, conversation_id: baseChat.id }),
@@ -1862,13 +1144,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         (referencesPreviousArtifact(clean) || isBareFileRequest(clean)) && !revisionRequest
       ));
       const identifiedDoc = identifyDocument(clean, active?.messages || []);
-      const docSlots = identifiedDoc ? extractSlots(identifiedDoc, clean, active?.messages || []) : {};
-      const relevantTurns = identifiedDoc ? isolateWorkflowMessages(identifiedDoc, clean, active?.messages || []) : [];
-      const turnCount = relevantTurns.length;
-      const intake = identifiedDoc ? evaluateIntakePhase(identifiedDoc, docSlots, clean, turnCount) : null;
-      const isIntakeInterview = Boolean(identifiedDoc && intake?.phase === "INTERVIEW");
-
-      const documentRequest = !isIntakeInterview && Boolean(fileRequest || detectDocumentRequest(clean) || (identifiedDoc && intake?.phase === "READY_TO_DRAFT"));
+      const documentRequest = Boolean(fileRequest || detectDocumentRequest(clean) || identifiedDoc);
       if (documentRequest || revisionRequest) {
         setDocPanel({
           title: identifiedDoc?.name || fileRequest?.title || previousArtifact?.title || titleFor(clean),
@@ -1883,7 +1159,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       }
 
       if (exportPrevious) {
-        const generated = await fetch("/api/generate-file", {
+        const generated = await authFetch("/api/generate-file", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -1959,7 +1235,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       // Falls back to buffered /api/chat below on any failure.
       let sseAnswer = null;
       try {
-        const streamRes = await fetch("/api/chat-stream", {
+        const streamRes = await authFetch("/api/chat-stream", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -1970,6 +1246,11 @@ export default function ChatPage({ onHome, onAuthRequired }) {
             engine: selectedEngine !== "auto" ? selectedEngine : null,
           }),
         });
+        if (streamRes.status === 401) {
+          clearAuthSession();
+          if (onAuthRequired) onAuthRequired();
+          return;
+        }
         const sseType = streamRes.headers.get("content-type") || "";
         if (streamRes.ok && sseType.includes("text/event-stream") && streamRes.body) {
           const reader = streamRes.body.getReader();
@@ -1990,7 +1271,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
               if (evt.type === "delta" && evt.delta) {
                 acc += evt.delta;
                 setIsWriting(true);
-                if (!isIntakeInterview && isDraftedDocument(acc)) {
+                if (isDraftedDocument(acc)) {
                   const docTitle = identifiedDoc?.name || fileRequest?.title || previousArtifact?.title || titleFor(clean);
                   setStreamingAnswer(`Drafting **${docTitle}** into the workspace panel on the right...`);
                   setDocPanel((p) => ({
@@ -2024,7 +1305,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       }
 
       if (!sseAnswer) try {
-        const response = await fetch("/api/chat", {
+        const response = await authFetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -2035,6 +1316,11 @@ export default function ChatPage({ onHome, onAuthRequired }) {
             engine: selectedEngine !== "auto" ? selectedEngine : null,
           }),
         });
+        if (response.status === 401) {
+          clearAuthSession();
+          if (onAuthRequired) onAuthRequired();
+          return;
+        }
         if (response.ok) {
           data = await response.json();
           answer = sanitizeModelResponse(data.choices?.[0]?.message?.content || "");
@@ -2046,9 +1332,8 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         setStreamingAnswer(answer);
       }
 
-      if (!answer || isCutOffResponse(answer) || answer.includes("temporarily unavailable") || answer.includes("Not authenticated") || answer.includes("could not respond") || answer.includes("overloaded") || answer.includes("intermittent errors")) {
-        answer = getFallbackLegalResponse(clean, user, baseChat.messages);
-        setStreamingAnswer(answer);
+      if (!answer) {
+        throw new Error("Unable to obtain a response from Sally reasoning engines. Please verify your connection or model provider status.");
       }
 
       // Model answer received: SSE path already streamed live; buffered path replays.
@@ -2058,7 +1343,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
         await streamResponseLineByLine(answer);
       }
 
-      const isDocumentAnswer = !isIntakeInterview && (isDraftedDocument(answer) || documentRequest || revisionRequest);
+      const isDocumentAnswer = Boolean(isDraftedDocument(answer) || documentRequest || revisionRequest);
       let artifact = isDocumentAnswer
         ? makeArtifact({
             title: identifiedDoc?.name || fileRequest?.title || previousArtifact?.title || titleFor(clean),
@@ -2090,7 +1375,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       let attachments = [];
       if (fileRequest) {
         try {
-          const generated = await fetch("/api/generate-file", {
+          const generated = await authFetch("/api/generate-file", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -2157,76 +1442,9 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       }
     } catch (error) {
       clearInterval(progressTimer);
-      const fallbackAns = getFallbackLegalResponse(clean, user, baseChat.messages);
+      const errorContent = `**Error:** Sally reasoning engines encountered an issue: ${error.message || "Unable to complete request"}. Please verify your connection or model provider status and try again.`;
       await transitionToComplete();
-      await streamResponseLineByLine(fallbackAns);
-
-      const isFallbackDocument = !isIntakeInterview && (isDraftedDocument(fallbackAns) || documentRequest || revisionRequest);
-      let artifact = isFallbackDocument
-        ? makeArtifact({
-            title: identifiedDoc?.name || fileRequest?.title || previousArtifact?.title || titleFor(clean),
-            content: fallbackAns,
-            previous: revisionRequest ? previousArtifact : null,
-          })
-        : null;
-      if (artifact) {
-        const h1Match = fallbackAns.match(/^#\s+([^\n]+)/m);
-        if (h1Match && h1Match[1]?.trim() && !h1Match[1].toLowerCase().includes("intake")) {
-          artifact.title = h1Match[1].trim();
-        }
-        artifact = await persistArtifact({
-          artifact,
-          conversation_id: baseChat.id,
-          revision: revisionRequest,
-        });
-        setDocPanel({
-          title: artifact.title,
-          content: artifact.content,
-          version: artifact.version,
-          live: false,
-          artifact,
-          conversationId: baseChat.id,
-        });
-      } else {
-        setDocPanel(null);
-      }
-
-      let attachments = [];
-      if (fileRequest) {
-        try {
-          const generated = await fetch("/api/generate-file", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              ...fileRequest,
-              title: artifact?.title || titleFor(clean),
-              content: artifact?.content || fallbackAns,
-              artifact_id: artifact?.id,
-              artifact_version: artifact?.version,
-              conversation_id: baseChat.id,
-            }),
-          });
-          if (generated.ok) {
-            const generatedData = await generated.json();
-            if (generatedData.file) {
-              attachments = [generatedData.file];
-              addLibraryFile({
-                ...generatedData.file,
-                content: artifact?.content || fallbackAns,
-                conversation_id: baseChat.id,
-              });
-              try {
-                const a = document.createElement("a");
-                a.href = generatedData.file.url;
-                a.download = generatedData.file.name || `document.${fileRequest.format}`;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-              } catch {}
-            }
-          }
-        } catch {}
-      }
+      await streamResponseLineByLine(errorContent);
 
       const finalChat = {
         ...baseChat,
@@ -2234,15 +1452,8 @@ export default function ChatPage({ onHome, onAuthRequired }) {
           ...next,
           {
             role: "assistant",
-            content: fileRequest
-              ? attachments.length
-                ? `Your ${fileRequest.format.toUpperCase()} has been created.`
-                : fallbackAns
-              : artifact
-                ? `I have drafted the **${artifact.title}** and opened it in the document workspace on the right.\n\nYou can review the complete text, make direct edits, or export it to Word (.docx) or PDF.`
-                : fallbackAns,
-            artifact,
-            attachments,
+            content: errorContent,
+            provenance: { error: error.message || "Model execution error" },
           },
         ],
       };
@@ -2252,12 +1463,6 @@ export default function ChatPage({ onHome, onAuthRequired }) {
       setLoading(false);
       updateActive(() => finalChat);
       await persistChat(finalChat).catch(() => {});
-      if (autoSpeak || autoSpeakVoice) {
-        const lastMsg = finalChat.messages[finalChat.messages.length - 1];
-        if (lastMsg?.role === "assistant" && lastMsg.content) {
-          setTimeout(() => togglePlayVoice(lastMsg.content, finalChat.messages.length - 1), 200);
-        }
-      }
     } finally {
       clearInterval(progressTimer);
       setIsWriting(false);
@@ -2298,18 +1503,18 @@ export default function ChatPage({ onHome, onAuthRequired }) {
   }, []);
 
   const displayName = useMemo(() => {
-    if (user?.name && !user.name.toLowerCase().includes("judha")) {
+    if (user?.name) {
       return user.name.split(" ")[0];
     }
-    return "Aman";
+    return "Researcher";
   }, [user]);
 
   const userInitial = useMemo(() => {
-    if (user?.name && !user.name.toLowerCase().includes("judha")) {
-      const init = user.name.trim()[0]?.toUpperCase() || "A";
-      return init === "J" ? "A" : init;
+    if (user?.initials) return user.initials;
+    if (user?.name) {
+      return user.name.trim()[0]?.toUpperCase() || "S";
     }
-    return "A";
+    return "S";
   }, [user]);
 
   const filteredChats = useMemo(() => {
@@ -2694,17 +1899,17 @@ export default function ChatPage({ onHome, onAuthRequired }) {
           )}
 
           {/* User Profile Card */}
-          <div className="beebotUserCard" onClick={logout} title="Click to log out or switch account">
+          <div className="beebotUserCard" onClick={logout} title="Click to log out of SallyIP">
             <div className="beebotUserMeta">
               <div className="beebotUserAvatar">
                 {userInitial}
               </div>
               <div className="beebotUserTexts">
-                <div className="beebotUserName">{user?.name || "Carlos"}</div>
-                <div className="beebotUserEmail">{user?.email || "carlos@sallyip.com"}</div>
+                <div className="beebotUserName">{user?.name || displayName}</div>
+                <div className="beebotUserEmail">{user?.email || "Authenticated"}</div>
               </div>
             </div>
-            <ChevronsUpDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <LogOut className="w-3.5 h-3.5 text-slate-400 hover:text-red-400 shrink-0" />
           </div>
         </aside>
 
@@ -2820,7 +2025,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                 <Plus className="w-3.5 h-3.5" />
                 <span>New Chat</span>
               </button>
-              <div className="beebotAvatarPill" title={user?.name || "Carlos"}>
+              <div className="beebotAvatarPill" title={user?.name || displayName}>
                 <span>{userInitial}</span>
               </div>
             </div>
@@ -3013,7 +2218,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
                 {[
                   { icon: <Telescope className="w-3.5 h-3.5" />, title: "Patent Prior-Art & FTO", prompt: "Search prior art for the uploaded invention and rank the closest references." },
                   { icon: <Scale className="w-3.5 h-3.5" />, title: "Trademark Clearance", prompt: "Check whether my trademark mark is clear for SaaS and AI services in the US and EU." },
-                  { icon: <Sparkles className="w-3.5 h-3.5" />, title: "Copyright & Fair Use", prompt: "Run a copyright clearance and fair-use risk analysis on this creative work and digital asset." },
+                  { icon: <ShieldCheck className="w-3.5 h-3.5" />, title: "Copyright & Fair Use", prompt: "Run a copyright clearance and fair-use risk analysis on this creative work and digital asset." },
                   { icon: <FileText className="w-3.5 h-3.5" />, title: "Draft IP Filing", prompt: "Draft a US patent application scaffold from my invention disclosure, section by section." },
                 ].map((s) => (
                   <button
@@ -3364,6 +2569,10 @@ export default function ChatPage({ onHome, onAuthRequired }) {
           <SallyVideoCallCard
             isOpen={videoCallOpen}
             onClose={() => setVideoCallOpen(false)}
+            onSwitchToVoice={() => {
+              setVideoCallOpen(false);
+              setVoiceOverlayOpen(true);
+            }}
             matterId={activeMatterId}
             conversationId={active?.id}
           />
@@ -3532,7 +2741,7 @@ export default function ChatPage({ onHome, onAuthRequired }) {
               >
                 <div className="beebotTileHeader">
                   <div className="beebotTileIcon">
-                    <Sparkles className="w-4 h-4 text-cyan-600" />
+                    <Scale className="w-4 h-4 text-cyan-600" />
                   </div>
                   <div className="beebotTileName">Trademark Intelligence</div>
                 </div>

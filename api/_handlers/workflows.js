@@ -6,7 +6,7 @@ import {logSecurityEvent} from '../../src/lib/security.js'
 export default async function handler(req,res){
   if(req.method!=='POST')return res.status(405).json({error:{message:'Method not allowed'}})
   try{
-    const sql=neon(process.env.DATABASE_URL),user=await getSessionUser(sql,req.headers.cookie);
+    const sql=neon(process.env.DATABASE_URL),user=await getSessionUser(sql, req);
     if(!user)return res.status(401).json({error:{message:'Not authenticated'}});
     const body=req.body||{},result=await runAutomatedLegalWorkflow(sql,user.id,{matterId:body.matter_id,conversationId:body.conversation_id,instruction:body.instruction,matterJurisdictions:body.matter_jurisdictions||[]});
     await logSecurityEvent(sql,{userId:user.id,event_type:'workflow_execute',req,matter_id:body.matter_id,action:'execute',resource:'workflow',result:result?'ok':'no_match',severity:'info',metadata:{workflow_type:result?.workflow_type||'none'}}).catch(()=>{});

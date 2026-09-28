@@ -11,7 +11,7 @@ import { neon } from '@neondatabase/serverless'
 import { orchestrateSally, orchestrateSallyStreaming } from './src/lib/sally-orchestrator.js'
 import { checkAdminCredentials, createAdminSession, verifyAdminSession, destroyAdminSession, clearAdminCookie, brainOverview, brainTrace } from './src/lib/brain-admin.js'
 import { readSallyTelemetry, recordSallyTelemetry } from './src/lib/sally-telemetry.js'
-import { clearSessionCookie, createSession, destroySession, getSessionUser, hashPassword, sessionCookie, verifyPassword } from './src/lib/auth.js'
+import { clearSessionCookie, createSession, destroySession, getSessionUser, hashPassword, sessionCookie, verifyPassword, DAYS } from './src/lib/auth.js'
 import { getPassage } from './src/lib/passage-service.js'
 import { getClientIp, logSecurityEvent, loginBlocked, recordLoginAttempt, requireEditor } from './src/lib/security.js'
 import { routeSpecialists } from './src/lib/specialist-router.js'
@@ -90,18 +90,70 @@ function sallyChatApi(apiKey, databaseUrl, model, embeddingKey, embeddingModel, 
         res.setHeader('Content-Type','application/json')
         const sql=neon(databaseUrl||'')
         try{
-          if(req.method==='GET'){const user=await getSessionUser(sql,req.headers.cookie);if(!user){res.statusCode=401;return res.end(JSON.stringify({error:{message:'Not authenticated'}}))}return res.end(JSON.stringify({user:{id:user.id,email:user.email,name:user.full_name,initials:user.initials,role:user.role}}))}
+          if(req.method==='GET'){
+            const user=await getSessionUser(sql,req);
+            if(!user){res.statusCode=401;return res.end(JSON.stringify({error:{message:'Not authenticated'}}))}
+            return res.end(JSON.stringify({ok:true,user:{id:user.id,email:user.email,name:user.full_name,initials:user.initials,role:user.role}}))
+          }
           if(req.method!=='POST'){res.statusCode=405;return res.end(JSON.stringify({error:{message:'Method not allowed'}}))}
           let raw='';for await(const chunk of req)raw+=chunk;const {action,email='',password='',name=''}=JSON.parse(raw||'{}')
-          if(action==='logout'){const me=await getSessionUser(sql,req.headers.cookie);await destroySession(sql,req.headers.cookie);await logSecurityEvent(sql,{userId:me?.id||null,event_type:'logout',req});res.setHeader('Set-Cookie',clearSessionCookie(false));return res.end(JSON.stringify({ok:true}))}
-          const normalized=email.trim().toLowerCase();if(!/^\S+@\S+\.\S+$/.test(normalized)){res.statusCode=400;return res.end(JSON.stringify({error:{message:'Enter a valid email address'}}))}if(password.length<8){res.statusCode=400;return res.end(JSON.stringify({error:{message:'Password must contain at least 8 characters'}}))}
-          const attemptKey=`${normalized}|${getClientIp(req)||'unknown'}`;if(await loginBlocked(sql,attemptKey)){await logSecurityEvent(sql,{event_type:'login_rate_limited',req,metadata:{email:normalized}});res.statusCode=429;return res.end(JSON.stringify({error:{message:'Too many attempts. Try again in a few minutes.'}}))}
+          if(action==='logout'){
+            const me=await getSessionUser(sql,req);
+            await destroySession(sql,req);
+            await logSecurityEvent(sql,{userId:me?.id||null,event_type:'logout',req}).catch(()=>{});
+            res.setHeader('Set-Cookie',clearSessionCookie(false));
+            return res.end(JSON.stringify({ok:true}))
+          }
+          const normalized=email.trim().toLowerCase();
+          if(!/^\S+@\S+\.\S+$/.test(normalized)){res.statusCode=400;return res.end(JSON.stringify({error:{message:'Enter a valid email address'}}))}
+          if(password.length<8){res.statusCode=400;return res.end(JSON.stringify({error:{message:'Password must contain at least 8 characters'}}))}
+          const attemptKey=`${normalized}|${getClientIp(req)||'unknown'}`;
+          if(await loginBlocked(sql,attemptKey)){
+            await logSecurityEvent(sql,{event_type:'login_rate_limited',req,metadata:{email:normalized}}).catch(()=>{});
+            res.statusCode=429;
+            return res.end(JSON.stringify({error:{message:'Too many attempts. Try again in a few minutes.'}}))
+          }
           let user
-          if(action==='signup'){const fullName=name.trim();if(fullName.length<2){res.statusCode=400;return res.end(JSON.stringify({error:{message:'Enter your name'}}))}const initials=fullName.split(/\s+/).slice(0,2).map(part=>part[0]).join('').toUpperCase();const passwordHash=await hashPassword(password);try{[user]=await sql`INSERT INTO users(email,full_name,initials,password_hash) VALUES(${normalized},${fullName},${initials},${passwordHash}) RETURNING id,email,full_name,initials,role`}catch(error){if(error.code==='23505'){res.statusCode=409;return res.end(JSON.stringify({error:{message:'An account with this email already exists'}}))}throw error}await sql`INSERT INTO subscriptions(user_id,plan_id,status) VALUES(${user.id},'basic','active')`;await logSecurityEvent(sql,{userId:user.id,event_type:'signup',req})}
-          else if(action==='login'){[user]=await sql`SELECT id,email,full_name,initials,role,password_hash FROM users WHERE email=${normalized} LIMIT 1`;if(!user||!await verifyPassword(password,user.password_hash)){await recordLoginAttempt(sql,attemptKey);await logSecurityEvent(sql,{userId:user?.id||null,event_type:'login_failed',req,metadata:{email:normalized}});res.statusCode=401;return res.end(JSON.stringify({error:{message:'Incorrect email or password'}}))}await logSecurityEvent(sql,{userId:user.id,event_type:'login_success',req})}
+          if(action==='signup'){
+            const fullName=name.trim();
+            if(fullName.length<2){res.statusCode=400;return res.end(JSON.stringify({error:{message:'Enter your name'}}))}
+            const initials=fullName.split(/\s+/).slice(0,2).map(part=>part[0]).join('').toUpperCase();
+            const passwordHash=await hashPassword(password);
+            try{
+              [user]=await sql`INSERT INTO users(email,full_name,initials,password_hash) VALUES(${normalized},${fullName},${initials},${passwordHash}) RETURNING id,email,full_name,initials,role`
+            }catch(error){
+              if(error.code==='23505'){res.statusCode=409;return res.end(JSON.stringify({error:{message:'An account with this email already exists'}}))}
+              throw error
+            }
+            try{await sql`INSERT INTO subscriptions(user_id,plan_id,status) VALUES(${user.id},'basic','active')`}catch{}
+            await logSecurityEvent(sql,{userId:user.id,event_type:'signup',req}).catch(()=>{})
+          }
+          else if(action==='login'){
+            [user]=await sql`SELECT id,email,full_name,initials,role,password_hash FROM users WHERE email=${normalized} LIMIT 1`;
+            if(!user||!await verifyPassword(password,user.password_hash)){
+              await recordLoginAttempt(sql,attemptKey).catch(()=>{});
+              await logSecurityEvent(sql,{userId:user?.id||null,event_type:'login_failed',req,metadata:{email:normalized}}).catch(()=>{});
+              res.statusCode=401;
+              return res.end(JSON.stringify({error:{message:'Incorrect email or password'}}))
+            }
+            await logSecurityEvent(sql,{userId:user.id,event_type:'login_success',req}).catch(()=>{})
+          }
           else{res.statusCode=400;return res.end(JSON.stringify({error:{message:'Unknown authentication action'}}))}
-          const token=await createSession(sql,user.id);res.setHeader('Set-Cookie',sessionCookie(token,false));return res.end(JSON.stringify({user:{id:user.id,email:user.email,name:user.full_name,initials:user.initials,role:user.role}}))
-        }catch(error){res.statusCode=500;return res.end(JSON.stringify({error:{message:'Authentication is temporarily unavailable'}}))}
+          const token=await createSession(sql,user.id,user);
+          res.setHeader('Set-Cookie',sessionCookie(token,false));
+          const expiresAt=new Date(Date.now()+DAYS*86400000).toISOString();
+          return res.end(JSON.stringify({
+            ok:true,
+            user:{id:user.id,email:user.email,name:user.full_name,initials:user.initials,role:user.role},
+            token,
+            expires_in:DAYS*86400,
+            expires_at:expiresAt
+          }))
+        }catch(error){
+          console.error('[vite-auth-error]', error);
+          res.statusCode=500;
+          return res.end(JSON.stringify({error:{message:'Authentication is temporarily unavailable'}}))
+        }
       })
       server.middlewares.use('/api/sources', async (req, res) => {
         res.setHeader('Content-Type','application/json')
@@ -353,7 +405,7 @@ function sallyChatApi(apiKey, databaseUrl, model, embeddingKey, embeddingModel, 
       server.middlewares.use('/api/chat', async (req, res) => {
         if (req.method !== 'POST') { res.statusCode = 405; return res.end('Method not allowed') }
         try {
-          const sql=neon(databaseUrl||'');let user=await getSessionUser(sql,req.headers.cookie);if(!user){try{const[u]=await sql`SELECT id,email,full_name,initials,role FROM users WHERE email='aman@sallyip.com' LIMIT 1`;user=u||(await sql`SELECT id,email,full_name,initials,role FROM users ORDER BY created_at ASC LIMIT 1`)[0]}catch{}}if(!user){res.statusCode=401;res.setHeader('Content-Type','application/json');return res.end(JSON.stringify({error:{message:'Not authenticated'}}))}
+          const sql=neon(databaseUrl||'');let user=await getSessionUser(sql,req);if(!user){res.statusCode=401;res.setHeader('Content-Type','application/json');return res.end(JSON.stringify({error:{message:'Not authenticated',code:'UNAUTHORIZED'}}))}
           let raw = ''
           for await (const chunk of req) raw += chunk
           const body=JSON.parse(raw||'{}'),messages=body.messages||[],latest=[...messages].reverse().find(message=>message.role==='user')?.content||''
@@ -375,7 +427,7 @@ function sallyChatApi(apiKey, databaseUrl, model, embeddingKey, embeddingModel, 
       server.middlewares.use('/api/chat-stream', async (req, res) => {
         if (req.method !== 'POST') { res.setHeader('Content-Type','application/json'); res.statusCode = 405; return res.end(JSON.stringify({error:{message:'Method not allowed'}})) }
         try {
-          const sql=neon(databaseUrl||'');let user=await getSessionUser(sql,req.headers.cookie);if(!user){try{const[u]=await sql`SELECT id,email,full_name,initials,role FROM users WHERE email='aman@sallyip.com' LIMIT 1`;user=u||(await sql`SELECT id,email,full_name,initials,role FROM users ORDER BY created_at ASC LIMIT 1`)[0]}catch{}}if(!user){res.statusCode=401;res.setHeader('Content-Type','application/json');return res.end(JSON.stringify({error:{message:'Not authenticated'}}))}
+          const sql=neon(databaseUrl||'');let user=await getSessionUser(sql,req);if(!user){res.statusCode=401;res.setHeader('Content-Type','application/json');return res.end(JSON.stringify({error:{message:'Not authenticated',code:'UNAUTHORIZED'}}))}
           let raw = ''
           for await (const chunk of req) raw += chunk
           const body=JSON.parse(raw||'{}'),messages=body.messages||[],latest=[...messages].reverse().find(message=>message.role==='user')?.content||''

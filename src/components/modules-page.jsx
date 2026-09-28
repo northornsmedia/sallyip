@@ -16,9 +16,7 @@ import {
   Layers,
   Scale,
   Search,
-  Shield,
   ShieldCheck,
-  Sparkles,
 } from 'lucide-react';
 import SallyTopNav from './sally-topnav';
 import ModernGradientFooter from './modern-gradient-footer';
@@ -148,7 +146,7 @@ const MODULES = [
     name: 'Copyright Clearance & Digital Assets',
     category: 'Copyrights',
     badge: 'MEDIA & CODE',
-    icon: Sparkles,
+    icon: FileCheck2,
     description:
       'Multi-prong copyright clearance, software license audits, authorship provenance, and statutory fair-use risk assessments across creative works and digital assets.',
     highlights: [

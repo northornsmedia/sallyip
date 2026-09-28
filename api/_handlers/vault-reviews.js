@@ -6,7 +6,7 @@ import { createReviewTable, getReviewTable, listReviewTables, runReviewTable } f
 export default async function handler(req, res) {
   const sql = neon(process.env.DATABASE_URL)
   try {
-    const user = await getSessionUser(sql, req.headers.cookie)
+    const user = await getSessionUser(sql, req)
     if (!user) return res.status(401).json({ error: { message: 'Not authenticated' } })
     if (req.method === 'GET') {
       if (req.query?.id) return res.status(200).json(await getReviewTable(sql, user.id, req.query.id))

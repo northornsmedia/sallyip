@@ -8,7 +8,7 @@ const DATASETS = { grounding: exportGroundingPairs, risk: exportRiskPairs }
 export default async function handler(req, res) {
   const sql = neon(process.env.DATABASE_URL)
   try {
-    const user = await getSessionUser(sql, req.headers.cookie)
+    const user = await getSessionUser(sql, req)
     if (!user) return res.status(401).json({ error: { message: 'Not authenticated' } })
     try { requireEditor(user) } catch (error) { return res.status(403).json({ error: { message: error.message } }) }
     if (req.method !== 'GET') return res.status(405).json({ error: { message: 'Method not allowed' } })

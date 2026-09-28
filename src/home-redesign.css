@@ -207,7 +207,7 @@ html.lenis, html.lenis body {
   background: #ffffff;
   color: #000000;
   border: 1px solid #ffffff;
-  border-radius: 9999px;
+  border-radius: 4px;
   padding: 7px 16px;
   font-size: 13px;
   font-weight: 500;
@@ -227,7 +227,7 @@ html.lenis, html.lenis body {
   background: transparent;
   color: #d1d1d6;
   border: 1px solid var(--sh-border-medium);
-  border-radius: 9999px;
+  border-radius: 4px;
   padding: 7px 16px;
   font-size: 13px;
   font-weight: 400;
@@ -326,7 +326,7 @@ html.lenis, html.lenis body {
   background: #0d0e13;
   border: 1px solid var(--sh-border-medium);
   padding: 4px 14px 4px 6px;
-  border-radius: 9999px;
+  border-radius: 4px;
   font-size: 12px;
   color: #a1a1aa;
   margin-bottom: 32px;
@@ -338,7 +338,7 @@ html.lenis, html.lenis body {
   font-size: 11px;
   font-weight: 600;
   padding: 2px 8px;
-  border-radius: 9999px;
+  border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -540,15 +540,13 @@ html.lenis, html.lenis body {
   position: absolute;
   top: 18px;
   right: 18px;
-  background: rgba(10, 11, 16, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: #0d0f14;
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: #ffffff;
   font-size: 11px;
   font-weight: 600;
   padding: 6px 14px;
-  border-radius: 9999px;
+  border-radius: 4px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1033,7 +1031,7 @@ html.lenis, html.lenis body {
   gap: 6px;
   background: #121319;
   border: 1px solid var(--sh-border-medium);
-  border-radius: 9999px;
+  border-radius: 4px;
   padding: 4px 12px;
   font-size: 11px;
   color: #a1a1aa;
@@ -1201,13 +1199,13 @@ html.lenis, html.lenis body {
 .sh-bar-track {
   height: 5px;
   background: #181920;
-  border-radius: 9999px;
+  border-radius: 2px;
   overflow: hidden;
 }
 
 .sh-bar-fill {
   height: 100%;
-  border-radius: 9999px;
+  border-radius: 2px;
 }
 
 .sh-bar-fill.blue { background: #3b82f6; }

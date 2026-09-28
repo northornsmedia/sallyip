@@ -11,7 +11,7 @@ export default async function handler(req,res){
     return res.status(503).json({error:{message:'Service unavailable: database not configured',code:'NOT_CONFIGURED'}});
   }
   const sql=neon(process.env.DATABASE_URL);
-  const user=await getSessionUser(sql,req.headers?.cookie||'').catch(()=>null);
+  const user=await getSessionUser(sql, req).catch(()=>null);
   if(!user||!user.id)return res.status(401).json({error:{message:'Unauthorized',code:'UNAUTHORIZED'}});
   const executionMode = resolveExecutionMode({ mode: mode || process.env.SALLYIP_EXECUTION_MODE });
   try {

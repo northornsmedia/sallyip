@@ -28,7 +28,7 @@ import {
   Search,
   Send,
   ShieldCheck,
-  Sparkles,
+  Cpu,
   Sun,
   Trophy,
   X,
@@ -62,6 +62,7 @@ const SecurityPage = lazy(() => import("@/components/security-page"));
 const BenchmarksPage = lazy(() => import("@/components/benchmarks-page"));
 const VoiceChatWidget = lazy(() => import("@/components/voice-chat-widget"));
 const ExhibitionGate = lazy(() => import("@/components/ExhibitionGate"));
+import { getStoredAuth, clearAuthSession, verifySessionWithServer, authFetch } from "./lib/client-auth";
 import "./marketing/enterprise.css";
 import EnterpriseApp from "./marketing/router";
 import { isMarketingPath } from "./marketing/site";
@@ -1077,7 +1078,7 @@ function Dashboard() {
           <PanelTitle title="Active processing" action="View all" />
           <div className="activeJob" onClick={() => go("job")}>
             <div className="jobIcon">
-              <Sparkles />
+              <Activity />
             </div>
             <div className="grow">
               <div className="row">
@@ -1272,7 +1273,7 @@ function Train() {
                     onClick={() => setMethod(x)}
                   >
                     <span>
-                      {i === 0 && <Sparkles />}
+                      {i === 0 && <Zap />}
                       {x}
                     </span>
                     <small>
@@ -1395,7 +1396,7 @@ function Job() {
       <div className="jobHero">
         <div className="orb">
           <span />
-          <Sparkles />
+          <Zap />
         </div>
         <div className="grow">
           <div className="row">
@@ -1694,7 +1695,7 @@ function Transparency() {
       />
       <div className="transHero">
         <div className="orb">
-          <Sparkles />
+          <ShieldCheck />
         </div>
         <div>
           <Pill>SUPPORTED MODEL</Pill>
@@ -1781,16 +1782,23 @@ function Table({ heads, rows, click }) {
 function App() {
   const [page, setPage] = useState(route());
   const [mPath, setMPath] = useState(() => window.location.pathname.replace(/\/$/, "") || "/");
-  const [exhibitionAuth, setExhibitionAuth] = useState(() => {
-    try {
-      return (
-        sessionStorage.getItem("sally_exhibition_auth") === "granted" ||
-        localStorage.getItem("sally_exhibition_auth") === "granted"
-      );
-    } catch {
-      return false;
-    }
+  const [currentUser, setCurrentUser] = useState(() => {
+    const auth = getStoredAuth();
+    return auth?.user || null;
   });
+
+  useEffect(() => {
+    verifySessionWithServer().then(({ ok, user }) => {
+      if (ok && user) {
+        setCurrentUser(user);
+      } else {
+        const auth = getStoredAuth();
+        if (!auth?.user) {
+          setCurrentUser(null);
+        }
+      }
+    });
+  }, []);
 
   const navigateTo = (target) => {
     const routeMap = {
@@ -1882,20 +1890,35 @@ function App() {
 
   // Priority 1: Auth / Chat / AccessAdmin
   if (hashPage === "chat" || page === "chat") {
-    if (!exhibitionAuth) {
+    // Only users who signed up or logged in with real DB can access SallyIP chat
+    if (!currentUser) {
       return (
         <Suspense fallback={<div className="ent-root"><div className="ent-wrap" style={{ padding: "120px 28px" }}>Loading SallyIP…</div></div>}>
-          <ExhibitionGate
-            onAuthenticated={() => setExhibitionAuth(true)}
-            onCancel={() => navigateTo("home")}
+          <AuthPage
+            initialMode="signup"
+            notice="Member access required: please sign up or log in to access the SallyIP Chat Workspace."
+            onHome={() => navigateTo("home")}
+            onSuccess={(u) => {
+              setCurrentUser(u);
+              navigateTo("chat");
+            }}
           />
+          <Suspense fallback={null}><VoiceChatWidget /></Suspense>
         </Suspense>
       );
     }
 
     return (
       <Suspense fallback={<div className="ent-root"><div className="ent-wrap" style={{ padding: "120px 28px" }}>Loading SallyIP…</div></div>}>
-        <ChatPage onHome={() => navigateTo("home")} onAuthRequired={() => navigateTo("auth")} />
+        <ChatPage
+          user={currentUser}
+          onHome={() => navigateTo("home")}
+          onAuthRequired={() => {
+            clearAuthSession();
+            setCurrentUser(null);
+            navigateTo("auth");
+          }}
+        />
         <Suspense fallback={null}><VoiceChatWidget /></Suspense>
       </Suspense>
     );
@@ -1906,9 +1929,7 @@ function App() {
         <AuthPage
           onHome={() => navigateTo("home")}
           onSuccess={(u) => {
-            if (u) {
-              try { localStorage.setItem("sallyip-user", JSON.stringify(u)); } catch {}
-            }
+            setCurrentUser(u);
             navigateTo("chat");
           }}
         />
@@ -2098,7 +2119,24 @@ function App() {
 }
 function ProtectedAppShell({page}){
   const [ready,setReady]=useState(false)
-  useEffect(()=>{let cancelled=false;fetch('/api/auth').then(response=>{if(!response.ok)throw new Error('auth');if(!cancelled)setReady(true)}).catch(()=>{if(!cancelled)go('auth')});return()=>{cancelled=true}},[])
+  useEffect(()=>{
+    let cancelled=false;
+    authFetch('/api/auth')
+      .then(response=>{
+        if(!response.ok){
+          clearAuthSession();
+          throw new Error('auth');
+        }
+        if(!cancelled)setReady(true);
+      })
+      .catch(()=>{
+        if(!cancelled){
+          clearAuthSession();
+          go('auth');
+        }
+      });
+    return()=>{cancelled=true};
+  },[])
   return ready?<AppShell page={page}/>:<div className="authPage"><div className="authEyebrow">VERIFYING SESSION…</div></div>
 }
 createRoot(document.getElementById("root")).render(<App />);

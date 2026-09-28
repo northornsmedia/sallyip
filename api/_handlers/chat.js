@@ -19,7 +19,7 @@ export default async function handler(req,res){
     }
     try {
       sql = neon(databaseUrl);
-      user = await getSessionUser(sql, req.headers?.cookie || '').catch(() => null);
+      user = await getSessionUser(sql, req).catch(() => null);
     } catch (dbErr) {
       console.warn('DB session resolution warning:', dbErr.message);
     }

@@ -1,702 +1,242 @@
 /**
  * SallyVideoCallCard.jsx
  *
- * Full-Window Immersive 3D Digital Human Video Call for Sally IP.
- * 100% Client-Side Pure JavaScript & Three.js WebGL (Pure Vanilla CSS).
- * ZERO GPU clusters, ZERO server rendering cost.
+ * Professional Under Construction Card for Video Call feature.
+ * Strictly NO glassmorphism, NO backdrop-filter, NO star icons, NO pill shapes.
  */
 
-import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Video,
   VideoOff,
-  Mic,
-  MicOff,
-  PhoneOff,
-  Minimize2,
-  Maximize2,
-  Volume2,
-  Sparkles,
+  PhoneCall,
   ShieldCheck,
-  ChevronDown,
-  FileText,
-  Copy,
-  Check,
-  Radio,
   X,
-  Maximize,
+  Clock,
+  Cpu
 } from 'lucide-react';
-import { VOICE_STATES } from '../../voice/types.js';
-import { VoiceSessionController } from '../../voice/VoiceSessionController.js';
-import { SallyAvatarMark } from './SallyAnimatedAvatar.jsx';
-import { VOICE_OPTIONS } from '../../voice/voices.js';
-const SallyDigitalHumanCanvas = lazy(() => import('./SallyDigitalHumanCanvas.jsx').then((m) => ({ default: m.SallyDigitalHumanCanvas })));
-const SallyRealHumanVideo = lazy(() => import('./SallyRealHumanVideo.jsx').then((m) => ({ default: m.SallyRealHumanVideo })));
-import '../voice-chat-widget.css';
 
 export function SallyVideoCallCard({
   isOpen = false,
   onClose,
+  onSwitchToVoice,
   matterId = null,
   conversationId = null,
 }) {
-  const [sessionState, setSessionState] = useState(VOICE_STATES.IDLE);
-  const [duration, setDuration] = useState(0);
-  const [partialTranscript, setPartialTranscript] = useState('');
-  const [lastUserText, setLastUserText] = useState('');
-  const [sallySpokenWords, setSallySpokenWords] = useState([]);
-  const [conversationHistory, setConversationHistory] = useState([]);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showTranscriptDrawer, setShowTranscriptDrawer] = useState(false);
-  const [showUserCamera, setShowUserCamera] = useState(false);
-  const [cameraStream, setCameraStream] = useState(null);
-  const [copiedTranscript, setCopiedTranscript] = useState(false);
-  const [analyserNode, setAnalyserNode] = useState(null);
-  const [sessionError, setSessionError] = useState('');
-  const [cameraError, setCameraError] = useState('');
-  // '3d' = realtime Three.js WebGL avatar (default), 'human' = recorded video option
-  const [avatarMode, setAvatarMode] = useState('3d');
-  const [humanVideoFailed, setHumanVideoFailed] = useState(false);
-  const showHuman = avatarMode === 'human' && !humanVideoFailed;
-  const [selectedVoice, setSelectedVoice] = useState(() => {
-    return (
-      (typeof window !== 'undefined'
-        ? localStorage.getItem('sally_selected_voice')
-        : null) || 'en-US-AriaNeural'
-    );
-  });
-
-  const controllerRef = useRef(null);
-  const timerRef = useRef(null);
-  const videoContainerRef = useRef(null);
-  const userVideoRef = useRef(null);
-
-  useEffect(() => {
-    if (!isOpen || typeof document === 'undefined') return undefined;
-    document.body.classList.add('sally-video-call-active');
-    return () => document.body.classList.remove('sally-video-call-active');
-  }, [isOpen]);
-
-  // Initialize and manage voice session controller
-  useEffect(() => {
-    if (!isOpen) {
-      if (controllerRef.current) {
-        controllerRef.current.stop();
-        controllerRef.current = null;
-      }
-      if (cameraStream) {
-        cameraStream.getTracks().forEach((t) => t.stop());
-        setCameraStream(null);
-      }
-      setSessionState(VOICE_STATES.IDLE);
-      setDuration(0);
-      setPartialTranscript('');
-      setSallySpokenWords([]);
-      setConversationHistory([]);
-      setAnalyserNode(null);
-      setSessionError('');
-      setCameraError('');
-      if (timerRef.current) clearInterval(timerRef.current);
-      return;
-    }
-
-    const controller = new VoiceSessionController({
-      matterId,
-      conversationId,
-      voice: selectedVoice,
-    });
-
-    controller.onStateChange(({ newState }) => {
-      setSessionState(newState);
-      if (newState === VOICE_STATES.LISTENING) {
-        setSallySpokenWords([]);
-        setPartialTranscript('');
-      }
-      if (newState === VOICE_STATES.IDLE || newState === VOICE_STATES.DISCONNECTED) {
-        if (timerRef.current) clearInterval(timerRef.current);
-      }
-    });
-
-    controller.transcriptController.onTranscriptUpdate = ({ partial, final }) => {
-      setPartialTranscript(partial || '');
-      if (final) {
-        setLastUserText(final);
-        setConversationHistory((prev) => [
-          ...prev,
-          { speaker: 'user', text: final, timestamp: new Date() },
-        ]);
-      }
-    };
-
-    controller.onWordWindowUpdate = (words) => {
-      setSallySpokenWords([...words]);
-    };
-
-    // Capture complete assistant replies into transcript history
-    const originalPlayAudio = controller.playAudioResponse?.bind(controller);
-    if (originalPlayAudio) {
-      controller.playAudioResponse = async (audioBuffer, text, alignment) => {
-        if (text) {
-          setConversationHistory((prev) => [
-            ...prev,
-            { speaker: 'sally', text, timestamp: new Date() },
-          ]);
-        }
-        return originalPlayAudio(audioBuffer, text, alignment);
-      };
-    }
-
-    controllerRef.current = controller;
-
-    // Start audio & capture
-    controller.unlockAudio();
-    setSessionError('');
-    controller.start().catch((err) => {
-      console.warn('[SallyVideoCallCard] Session start warning:', err);
-      setSessionError(err?.message || 'Sally could not access your microphone.');
-    });
-
-    // Obtain AnalyserNode for audio reactivity
-    controller.getAnalyserNode().then((node) => {
-      if (node) setAnalyserNode(node);
-    });
-
-    // Duration timer
-    timerRef.current = setInterval(() => {
-      setDuration((prev) => prev + 1);
-    }, 1000);
-
-    return () => {
-      if (controllerRef.current) {
-        controllerRef.current.stop();
-        controllerRef.current = null;
-      }
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [isOpen, matterId, conversationId]);
-
-  // Handle user webcam preview stream
-  useEffect(() => {
-    if (showUserCamera && !cameraStream) {
-      navigator.mediaDevices
-        ?.getUserMedia({ video: { width: 320, height: 240, facingMode: 'user' }, audio: false })
-        .then((stream) => {
-          setCameraError('');
-          setCameraStream(stream);
-          if (userVideoRef.current) {
-            userVideoRef.current.srcObject = stream;
-          }
-        })
-        .catch((err) => {
-          console.warn('[SallyVideoCall] Camera access denied or not available:', err);
-          setCameraError('Camera access was blocked. You can continue with voice only.');
-          setShowUserCamera(false);
-        });
-    } else if (!showUserCamera && cameraStream) {
-      cameraStream.getTracks().forEach((t) => t.stop());
-      setCameraStream(null);
-    }
-  }, [showUserCamera]);
-
-  // Connect user camera video element when stream changes
-  useEffect(() => {
-    if (userVideoRef.current && cameraStream) {
-      userVideoRef.current.srcObject = cameraStream;
-    }
-  }, [cameraStream]);
-
   if (!isOpen) return null;
 
-  const handleVoiceChange = (newVoice) => {
-    setSelectedVoice(newVoice);
-    try {
-      localStorage.setItem('sally_selected_voice', newVoice);
-    } catch {}
-    controllerRef.current?.setVoice(newVoice);
-  };
-
-  const handleToggleMute = () => {
-    const nextMuted = !isMuted;
-    setIsMuted(nextMuted);
-    controllerRef.current?.micController?.setMuted(nextMuted);
-    if (nextMuted) {
-      if (controllerRef.current?.speechRecognition) {
-        try {
-          controllerRef.current.speechRecognition.stop();
-        } catch {}
-      }
-    } else {
-      controllerRef.current?.ensureSpeechRecognitionRunning();
-    }
-  };
-
-  const handleRetryMicrophone = () => {
-    const controller = controllerRef.current;
-    if (!controller) return;
-    setSessionError('');
-    controller.start().then(() => {
-      setIsMuted(false);
-      controller.micController?.setMuted(false);
-    }).catch((err) => {
-      setSessionError(err?.message || 'Microphone access is still unavailable.');
-    });
-  };
-
-  const handleToggleFullscreen = () => {
-    const el = videoContainerRef.current;
-    if (!el) return;
-
-    if (!document.fullscreenElement) {
-      el.requestFullscreen?.()
-        .then(() => setIsFullscreen(true))
-        .catch(() => setIsFullscreen(true));
-    } else {
-      document.exitFullscreen?.()
-        .then(() => setIsFullscreen(false))
-        .catch(() => setIsFullscreen(false));
-    }
-  };
-
-  const handleEndCall = () => {
-    if (cameraStream) {
-      cameraStream.getTracks().forEach((t) => t.stop());
-      setCameraStream(null);
-    }
-    controllerRef.current?.stop();
+  const handleSwitchVoice = () => {
     onClose?.();
+    if (typeof onSwitchToVoice === 'function') {
+      onSwitchToVoice();
+    }
   };
 
-  const handleCopyTranscript = () => {
-    const text = conversationHistory
-      .map((item) => `[${item.speaker === 'sally' ? 'Sally IP' : 'You'}]: ${item.text}`)
-      .join('\n\n');
-    navigator.clipboard?.writeText(text);
-    setCopiedTranscript(true);
-    setTimeout(() => setCopiedTranscript(false), 2000);
-  };
-
-  const formatDuration = (secs) => {
-    const m = Math.floor(secs / 60)
-      .toString()
-      .padStart(2, '0');
-    const s = (secs % 60).toString().padStart(2, '0');
-    return `${m}:${s}`;
-  };
-
-  const activeVoiceObj =
-    VOICE_OPTIONS.find((v) => v.id === selectedVoice) || VOICE_OPTIONS[0];
-
-  // -------------------------------------------------------------
-  // 1. Minimized Picture-in-Picture Pill View (when user multitasks)
-  // -------------------------------------------------------------
-  if (isMinimized) {
-    return (
-      <div className="sally-pip-call-pill">
-        <div className="sally-pip-avatar-ring">
-          <SallyAvatarMark className="sally-pip-avatar-mark" />
-          <span
-            className={`sally-pip-dot ${
-              sessionState === VOICE_STATES.SPEAKING ? 'speaking' : 'listening'
-            }`}
-          />
-        </div>
-        <div className="sally-pip-info">
-          <span className="sally-pip-title">Sally Video Call</span>
-          <span className="sally-pip-sub">
-            {sessionState === VOICE_STATES.SPEAKING
-              ? 'Speaking...'
-              : sessionState === VOICE_STATES.THINKING
-              ? 'Reasoning...'
-              : 'Listening...'}
-          </span>
-        </div>
-        <button
-          type="button"
-          className="sally-pip-btn"
-          onClick={() => setIsMinimized(false)}
-          title="Expand to Full Window Video Call"
-        >
-          <Maximize2 size={14} />
-        </button>
-        <button
-          type="button"
-          className="sally-pip-btn end"
-          onClick={handleEndCall}
-          title="End Call"
-        >
-          <PhoneOff size={14} />
-        </button>
-      </div>
-    );
-  }
-
-  // -------------------------------------------------------------
-  // 2. Full-Window Cinema Video Call Modal
-  // -------------------------------------------------------------
   return (
-    <div
-      ref={videoContainerRef}
-      className="sally-video-modal-fullscreen"
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        width: '100vw',
-        height: '100vh',
-        zIndex: 999999,
-        background: 'radial-gradient(ellipse at 50% 35%, #0f172a 0%, #030712 100%)',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        color: '#f8fafc',
-      }}
-    >
-      {/* TOP HEADER */}
-      <header className="sally-fs-header">
-        {/* Left: Brand, Live status & Duration */}
-        <div className="sally-fs-header-left">
-          <div className="sally-fs-live-badge">
-            <span className="sally-fs-live-dot" />
-            <span>LIVE VIDEO CALL</span>
-          </div>
-
-          <div className="sally-fs-title-col">
-            <div className="sally-fs-title-row">
-              <span className="sally-fs-title-text">Sally IP</span>
-              <span className="sally-fs-title-pill">Live 3D Human</span>
-            </div>
-            <div className="sally-fs-meta-row">
-              <ShieldCheck size={12} color="#34d399" />
-              <span>Secure browser session</span>
-              <span>•</span>
-              <span className="sally-fs-timer">{formatDuration(duration)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Center: Neural Voice Selector Dropdown */}
-        <div className="sally-fs-voice-picker">
-          <Volume2 size={14} color="#818cf8" />
-          <span className="sally-fs-voice-label">Neural Voice:</span>
-          <select
-            value={selectedVoice}
-            onChange={(e) => handleVoiceChange(e.target.value)}
-            className="sally-fs-voice-select"
-          >
-            {VOICE_OPTIONS.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.name} - {v.desc}
-              </option>
-            ))}
-          </select>
-          <ChevronDown size={13} color="#94a3b8" />
-        </div>
-
-        {/* Right: Window Controls */}
-        <div className="sally-fs-header-right">
-          {/* Avatar mode toggle: real human vs 3D */}
-          <div role="group" aria-label="Avatar style" style={{ display: 'inline-flex', border: '1px solid rgba(255,255,255,.12)', borderRadius: 99, overflow: 'hidden' }}>
-            <button
-              type="button"
-              onClick={() => setAvatarMode('human')}
-              aria-pressed={showHuman}
-              title="Real human video (most lifelike)"
-              style={{ padding: '6px 12px', fontSize: 12, fontWeight: 700, background: showHuman ? '#6366f1' : 'transparent', color: showHuman ? '#fff' : '#c7d2fe', border: 0, cursor: 'pointer', minHeight: 32 }}
-            >
-              Human
-            </button>
-            <button
-              type="button"
-              onClick={() => setAvatarMode('3d')}
-              aria-pressed={!showHuman}
-              title="Realtime 3D avatar"
-              style={{ padding: '6px 12px', fontSize: 12, fontWeight: 700, background: !showHuman ? '#6366f1' : 'transparent', color: !showHuman ? '#fff' : '#c7d2fe', border: 0, cursor: 'pointer', minHeight: 32 }}
-            >
-              3D
-            </button>
-          </div>
-          {/* Transcript Drawer Toggle */}
+    <AnimatePresence>
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px',
+          background: 'rgba(0, 0, 0, 0.78)',
+          /* Zero blur / glassmorphism */
+        }}
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 8 }}
+          transition={{ duration: 0.14 }}
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            position: 'relative',
+            width: '100%',
+            maxWidth: '520px',
+            background: '#0f131a',
+            border: '1px solid #232b3b',
+            borderRadius: '6px',
+            boxShadow: '0 16px 40px rgba(0, 0, 0, 0.65)',
+            padding: '28px 24px 24px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
+            color: '#f8fafc',
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Close button */}
           <button
-            type="button"
-            onClick={() => setShowTranscriptDrawer(!showTranscriptDrawer)}
-            className={`sally-fs-btn-icon ${showTranscriptDrawer ? 'active' : ''}`}
-            title={showTranscriptDrawer ? 'Hide Legal Transcript' : 'Show Legal Transcript'}
-          >
-            <FileText size={18} />
-          </button>
-
-          {/* Minimize to PiP */}
-          <button
-            type="button"
-            onClick={() => setIsMinimized(true)}
-            className="sally-fs-btn-icon"
-            title="Minimize to Picture-in-Picture"
-          >
-            <Minimize2 size={18} />
-          </button>
-
-          {/* Fullscreen Toggle */}
-          <button
-            type="button"
-            onClick={handleToggleFullscreen}
-            className="sally-fs-btn-icon"
-            title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-          >
-            {isFullscreen ? <Minimize2 size={18} /> : <Maximize size={18} />}
-          </button>
-
-          {/* End Call Button */}
-          <button
-            type="button"
-            onClick={handleEndCall}
-            className="sally-fs-btn-end"
-            title="End Video Call"
-          >
-            <PhoneOff size={15} />
-            <span>End Call</span>
-          </button>
-        </div>
-      </header>
-
-      {/* MAIN STAGE & SIDEBAR */}
-      <div className="sally-fs-stage">
-        {/* LIFELIKE AVATAR VIEWPORT — real human video primary, 3D fallback */}
-        <div className="sally-fs-viewport">
-          <Suspense fallback={<div className="sally-avatar-loading" role="status" aria-live="polite">Loading avatar…</div>}>
-            {showHuman ? (
-              <SallyRealHumanVideo
-                state={sessionState}
-                analyserNode={analyserNode}
-                activeVoiceName={activeVoiceObj.name}
-                onVideoError={() => setHumanVideoFailed(true)}
-              />
-            ) : (
-              <SallyDigitalHumanCanvas
-                state={sessionState}
-                analyserNode={analyserNode}
-                activeVoiceName={activeVoiceObj.name}
-              />
-            )}
-          </Suspense>
-
-          {/* Broadcast lower-third nameplate */}
-          <div
-            aria-hidden="true"
+            onClick={onClose}
             style={{
               position: 'absolute',
-              left: 20,
-              bottom: 64,
-              zIndex: 6,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '8px 16px 8px 10px',
-              borderRadius: 12,
-              background: 'linear-gradient(90deg, rgba(10,12,24,.88), rgba(10,12,24,.55))',
-              border: '1px solid rgba(255,255,255,.1)',
-              backdropFilter: 'blur(10px)',
-              pointerEvents: 'none',
+              top: '14px',
+              right: '14px',
+              width: '28px',
+              height: '28px',
+              borderRadius: '4px',
+              border: '1px solid #2d3748',
+              background: '#1a2230',
+              color: '#8b99ad',
+              display: 'grid',
+              placeItems: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.12s ease',
+            }}
+            title="Close"
+          >
+            <X style={{ width: '15px', height: '15px' }} />
+          </button>
+
+          {/* Clean Solid Icon Container */}
+          <div
+            style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '4px',
+              background: '#141923',
+              border: '1px solid #232b3b',
+              color: '#94a3b8',
+              display: 'grid',
+              placeItems: 'center',
+              marginBottom: '16px',
             }}
           >
-            <span style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#6366f1,#4338ca)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13 }}>S</span>
-            <span>
-              <span style={{ display: 'block', color: '#fff', fontWeight: 700, fontSize: 13, lineHeight: 1.2 }}>Sally IP</span>
-              <span style={{ display: 'block', color: '#a5b4fc', fontSize: 11, lineHeight: 1.3 }}>AI Counsel • Live 3D</span>
-            </span>
+            <VideoOff style={{ width: '22px', height: '22px' }} />
           </div>
 
-          {sessionError && (
-            <div className="sally-call-notice sally-call-notice-error" role="alert">
-              <MicOff size={18} />
-              <div>
-                <strong>Microphone access needed</strong>
-                <span>{sessionError}</span>
-              </div>
-              <button type="button" onClick={handleRetryMicrophone}>Try again</button>
-            </div>
-          )}
-
-          {cameraError && !sessionError && (
-            <div className="sally-call-notice" role="status">
-              <VideoOff size={17} />
-              <span>{cameraError}</span>
-              <button type="button" onClick={() => setCameraError('')}>Dismiss</button>
-            </div>
-          )}
-
-          {/* User Preview PiP (Bottom-Right) */}
-          <div className="sally-user-pip">
-            {showUserCamera ? (
-              <video
-                ref={userVideoRef}
-                autoPlay
-                playsInline
-                muted
-                className="sally-user-pip-video"
-              />
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#4338ca', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: '0.82rem', border: '1px solid rgba(255,255,255,0.2)' }}>
-                  You
-                </div>
-                <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>Camera Off</span>
-              </div>
-            )}
-            <div className="sally-user-pip-tag">You: [PiP]</div>
+          {/* Status Badge — Rectangular Tag, NO PILL */}
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '3px 8px',
+              borderRadius: '3px',
+              background: '#332208',
+              border: '1px solid #d97706',
+              color: '#fbbf24',
+              fontSize: '10.5px',
+              fontWeight: '700',
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              marginBottom: '14px',
+            }}
+          >
+            <Clock style={{ width: '12px', height: '12px' }} />
+            <span>Under Construction • We'll Be Back</span>
           </div>
 
-          {/* REAL-TIME CLOSED CAPTIONS & TELEPROMPTER HUD */}
-          <div className="sally-fs-captions-hud">
-            {sessionState === VOICE_STATES.ERROR ? null : sessionState === VOICE_STATES.THINKING ? (
-              <div className="sally-hud-box thinking">
-                <Sparkles size={16} color="#818cf8" className="animate-spin" />
-                <span>Sally is analyzing patent statutes & case law...</span>
-              </div>
-            ) : sessionState === VOICE_STATES.SPEAKING && sallySpokenWords.length > 0 ? (
-              <div className="sally-hud-box speaking">
-                <div className="sally-hud-speaker-tag sally">
-                  <Radio size={12} color="#818cf8" />
-                  <span>Sally is speaking...</span>
-                </div>
-                <div className="sally-hud-content">
-                  {sallySpokenWords.map((word, idx) => {
-                    const isLatest = idx === sallySpokenWords.length - 1;
-                    return (
-                      <span
-                        key={idx}
-                        className={`sally-hud-word ${isLatest ? 'active' : ''}`}
-                      >
-                        {word}{' '}
-                      </span>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : partialTranscript ? (
-              <div className="sally-hud-box user">
-                <div className="sally-hud-speaker-tag user">
-                  <span>You are saying:</span>
-                </div>
-                <div className="sally-hud-content">
-                  "{partialTranscript}"
-                </div>
-              </div>
-            ) : (
-              <div className="sally-hud-box idle">
-                <span>{isMuted ? 'Microphone is muted' : 'Sally is listening... Speak naturally'}</span>
-              </div>
-            )}
+          {/* Title */}
+          <h2
+            style={{
+              fontSize: '20px',
+              fontWeight: '700',
+              letterSpacing: '-0.01em',
+              margin: '0 0 8px',
+              color: '#ffffff',
+            }}
+          >
+            Real-Time Video Call
+          </h2>
+
+          {/* Description */}
+          <p
+            style={{
+              fontSize: '13px',
+              lineHeight: '1.6',
+              color: '#94a3b8',
+              maxWidth: '420px',
+              margin: '0 0 20px',
+            }}
+          >
+            Our photorealistic digital human video engine is currently undergoing neural pipeline and latency optimization. We'll be back shortly with ultra-low latency interactive video.
+          </p>
+
+          {/* Feature Highlights */}
+          <div
+            style={{
+              width: '100%',
+              background: '#141923',
+              border: '1px solid #232b3b',
+              borderRadius: '4px',
+              padding: '14px 16px',
+              marginBottom: '22px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+              textAlign: 'left',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#cbd5e1' }}>
+              <ShieldCheck style={{ width: '15px', height: '15px', color: '#10b981', flexShrink: 0 }} />
+              <span>Full-Duplex Conversational Voice Call is <strong>100% Active</strong></span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#cbd5e1' }}>
+              <Cpu style={{ width: '15px', height: '15px', color: '#818cf8', flexShrink: 0 }} />
+              <span>Primary reasoning layer powered by live NVIDIA NIM</span>
+            </div>
           </div>
-        </div>
 
-        {/* COLLAPSIBLE LEGAL TRANSCRIPT & BRIEF DRAWER */}
-        {showTranscriptDrawer && (
-          <aside className="sally-fs-drawer">
-            {/* Drawer Header */}
-            <div className="sally-fs-drawer-header">
-              <div className="sally-fs-drawer-title">
-                <FileText size={16} color="#818cf8" />
-                <span>Live Legal Transcript</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <button
-                  type="button"
-                  onClick={handleCopyTranscript}
-                  className="sally-fs-btn-icon"
-                  style={{ width: '28px', height: '28px' }}
-                  title="Copy Transcript"
-                >
-                  {copiedTranscript ? <Check size={14} color="#34d399" /> : <Copy size={14} />}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowTranscriptDrawer(false)}
-                  className="sally-fs-btn-icon"
-                  style={{ width: '28px', height: '28px' }}
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            </div>
+          {/* Action Buttons */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              width: '100%',
+            }}
+          >
+            <button
+              onClick={handleSwitchVoice}
+              style={{
+                flex: 1,
+                padding: '10px 16px',
+                borderRadius: '4px',
+                border: '1px solid #059669',
+                background: '#10b981',
+                color: '#04120a',
+                fontSize: '12.5px',
+                fontWeight: '700',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '7px',
+                cursor: 'pointer',
+                transition: 'background 0.15s ease',
+              }}
+            >
+              <PhoneCall style={{ width: '14px', height: '14px' }} />
+              <span>Switch to Voice Call</span>
+            </button>
 
-            {/* Transcript Messages Stream */}
-            <div className="sally-fs-drawer-body">
-              {conversationHistory.length === 0 ? (
-                <div style={{ textAlign: 'center', color: '#64748b', padding: '48px 0' }}>
-                  <FileText size={28} style={{ margin: '0 auto 8px auto', opacity: 0.4 }} />
-                  <p>Conversation transcript will stream live here as you speak with Sally.</p>
-                </div>
-              ) : (
-                conversationHistory.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className={`sally-transcript-item ${item.speaker === 'sally' ? 'sally' : 'user'}`}
-                  >
-                    <div className="sally-transcript-meta">
-                      <span style={{ color: item.speaker === 'sally' ? '#818cf8' : '#34d399' }}>
-                        {item.speaker === 'sally' ? 'Sally IP' : 'You'}
-                      </span>
-                      <span style={{ color: '#64748b' }}>
-                        {item.timestamp?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                      </span>
-                    </div>
-                    <div>{item.text}</div>
-                  </div>
-                ))
-              )}
-            </div>
-
-            {/* Drawer Footer */}
-            <div className="sally-fs-drawer-footer">
-              <span>{conversationHistory.length} turns logged</span>
-              <span style={{ color: '#818cf8', fontWeight: 600 }}>Synced with Matter</span>
-            </div>
-          </aside>
-        )}
+            <button
+              onClick={onClose}
+              style={{
+                padding: '10px 16px',
+                borderRadius: '4px',
+                border: '1px solid #2d3748',
+                background: '#1a2230',
+                color: '#cbd5e1',
+                fontSize: '12.5px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'background 0.15s ease',
+              }}
+            >
+              Return to Chat
+            </button>
+          </div>
+        </motion.div>
       </div>
-
-      {/* FLOATING BOTTOM CONTROLS DOCK */}
-      <footer className="sally-fs-footer">
-        <div className="sally-fs-dock">
-          {/* Mute Microphone Button */}
-          <button
-            type="button"
-            onClick={handleToggleMute}
-            className={`sally-dock-btn ${isMuted ? 'muted' : ''}`}
-            title={isMuted ? 'Unmute microphone' : 'Mute microphone'}
-          >
-            {isMuted ? <MicOff size={16} /> : <Mic size={16} color="#34d399" />}
-            <span>{isMuted ? 'Muted' : 'Mic On'}</span>
-          </button>
-
-          {/* User Webcam Toggle Button */}
-          <button
-            type="button"
-            onClick={() => setShowUserCamera(!showUserCamera)}
-            className={`sally-dock-btn ${showUserCamera ? 'active' : ''}`}
-            title={showUserCamera ? 'Turn off camera' : 'Turn on camera'}
-          >
-            {showUserCamera ? <Video size={16} /> : <VideoOff size={16} />}
-            <span>{showUserCamera ? 'Camera On' : 'Camera Off'}</span>
-          </button>
-
-          {/* Big Red End Call Button */}
-          <button
-            type="button"
-            onClick={handleEndCall}
-            className="sally-dock-btn end"
-            title="Leave & End Video Call"
-          >
-            <PhoneOff size={16} />
-            <span>End Call</span>
-          </button>
-        </div>
-      </footer>
-    </div>
+    </AnimatePresence>
   );
 }
 

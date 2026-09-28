@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   FileText, Plus, ShieldCheck, AlertTriangle, CheckCircle2,
-  Download, Sparkles, RefreshCw, X, Eye, Lock, Edit3, ChevronRight,
+  Download, FileCheck2, RefreshCw, X, Eye, Lock, Edit3, ChevronRight,
   HelpCircle, Check, BookOpen, Layers
 } from 'lucide-react'
 
@@ -528,7 +528,7 @@ export default function PatentDraftingWorkspace({ matterId, onResult, isOpen, on
                         disabled={generatingSection === 'claims'}
                         className="px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-medium border border-emerald-500/30 flex items-center gap-1.5"
                       >
-                        {generatingSection === 'claims' ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                        {generatingSection === 'claims' ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <FileCheck2 className="w-3.5 h-3.5" />}
                         Generate Claims Set
                       </button>
                     </div>
@@ -608,7 +608,7 @@ export default function PatentDraftingWorkspace({ matterId, onResult, isOpen, on
                                 {generatingSection === sec.section_key ? (
                                   <RefreshCw className="w-3 h-3 animate-spin" />
                                 ) : (
-                                  <Sparkles className="w-3 h-3" />
+                                  <FileCheck2 className="w-3 h-3" />
                                 )}
                                 {sec.content ? 'Regenerate' : 'Generate'}
                               </button>

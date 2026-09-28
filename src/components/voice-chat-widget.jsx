@@ -10,7 +10,6 @@ import {
   Send,
   X,
   Volume2,
-  Sparkles,
   ArrowLeft,
   Check,
 } from "lucide-react";

@@ -8,7 +8,6 @@ import {
   Shield,
   FileText,
   Search,
-  Sparkles,
   Layers,
   Database,
   Mail,

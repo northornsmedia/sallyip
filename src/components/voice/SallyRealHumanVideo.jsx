@@ -14,7 +14,7 @@
  */
 
 import React, { useRef, useEffect, useState } from 'react';
-import { Sparkles, Radio } from 'lucide-react';
+import { Radio } from 'lucide-react';
 import { VOICE_STATES } from '../../voice/types.js';
 
 export function SallyRealHumanVideo({
@@ -234,10 +234,8 @@ export function SallyRealHumanVideo({
           alignItems: 'center',
           gap: '8px',
           padding: '6px 14px',
-          borderRadius: '9999px',
-          background: 'rgba(15, 23, 42, 0.85)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
+          borderRadius: '4px',
+          background: '#0f172a',
           border: '1px solid rgba(255, 255, 255, 0.12)',
           fontSize: '12px',
           color: '#e2e8f0',
@@ -290,10 +288,8 @@ export function SallyRealHumanVideo({
           alignItems: 'center',
           gap: '6px',
           padding: '6px 14px',
-          borderRadius: '9999px',
-          background: 'rgba(30, 27, 75, 0.75)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
+          borderRadius: '4px',
+          background: '#1e1b4b',
           border: '1px solid rgba(99, 102, 241, 0.4)',
           fontSize: '11px',
           color: '#c7d2fe',

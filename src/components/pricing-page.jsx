@@ -14,7 +14,7 @@ import {
   Search,
   Shield,
   ShieldCheck,
-  Sparkles,
+  Cpu,
   Zap
 } from 'lucide-react';
 import SallyTopNav from './sally-topnav';
@@ -678,7 +678,7 @@ export default function PricingPage({ onHome, onChat, onAuth, onBenchmarks, onNa
             {/* Interactive Credit Calculator */}
             <div className="app-calc-wrap">
               <div style={{ fontSize: '15px', fontWeight: 600, color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Sparkles size={16} color="#60a5fa" />
+                <Cpu size={16} color="#60a5fa" />
                 <span>Credit Needs Estimator</span>
               </div>
 

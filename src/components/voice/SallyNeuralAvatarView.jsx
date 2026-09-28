@@ -13,7 +13,7 @@
  */
 
 import React, { useRef, useEffect, useState } from 'react';
-import { Sparkles, Cpu, Activity, Eye, EyeOff, LayoutGrid } from 'lucide-react';
+import { Cpu, Activity, Eye, EyeOff, LayoutGrid } from 'lucide-react';
 import { SallyAvatarController } from '../../voice/avatar/SallyAvatarController.js';
 import { VOICE_STATES } from '../../voice/types.js';
 
@@ -241,8 +241,7 @@ export function SallyNeuralAvatarView({
             top: 16,
             left: 16,
             padding: '14px 18px',
-            background: 'rgba(15, 23, 42, 0.94)',
-            backdropFilter: 'blur(16px)',
+            background: '#0f172a',
             border: '1px solid rgba(99, 102, 241, 0.4)',
             borderRadius: 8,
             color: '#e2e8f0',

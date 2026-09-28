@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Hand } from 'lucide-react';
+import { Activity, Hand } from 'lucide-react';
 import { VOICE_STATES } from '../../voice/types.js';
 
 export function LiveTranscript({ partialTranscript = '', sallyWordsWindow = [], lastUserText = '', state = VOICE_STATES.IDLE, onManualStop }) {
@@ -29,7 +29,7 @@ export function LiveTranscript({ partialTranscript = '', sallyWordsWindow = [], 
         <div className="beebotAnsweringBanner">
           <div className="voice-thinking-copy"><div className="beebotAnsweringOrb" aria-hidden="true" /><span>Sally is thinking</span></div>
           {lastUserText && <div className="voice-thinking-prompt">“{lastUserText}”</div>}
-          <div className="voice-thinking-meta"><Sparkles size={12} /><span>Preparing a grounded voice reply</span></div>
+          <div className="voice-thinking-meta"><Activity size={12} /><span>Preparing a grounded voice reply</span></div>
         </div>
       )}
 

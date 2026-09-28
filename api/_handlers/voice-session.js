@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     let user = null;
     try {
       const sql = neon(process.env.DATABASE_URL);
-      user = await getSessionUser(sql, req.headers?.cookie || '');
+      user = await getSessionUser(sql, req);
     } catch {
       return res.status(503).json({ error: { message: 'Service unavailable', code: 'NOT_CONFIGURED' } });
     }

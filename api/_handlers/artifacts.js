@@ -9,7 +9,7 @@ const shape=(artifact,version)=>({id:artifact.id,type:'legal_document',title:art
 export default async function handler(req,res){
   const sql=neon(process.env.DATABASE_URL)
   try{
-    const user=await getSessionUser(sql,req.headers.cookie)
+    const user=await getSessionUser(sql, req)
     if(!user)return res.status(401).json({error:{message:'Not authenticated'}})
     if(req.method==='GET'){
       const id=req.query?.id,conversationId=req.query?.conversation_id,requested=Number(req.query?.version||0)

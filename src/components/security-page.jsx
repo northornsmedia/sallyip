@@ -13,7 +13,6 @@ import {
   Shield,
   ShieldAlert,
   ShieldCheck,
-  Sparkles,
 } from 'lucide-react';
 import SallyTopNav from './sally-topnav';
 import ModernGradientFooter from './modern-gradient-footer';

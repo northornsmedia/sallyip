@@ -5,7 +5,7 @@ import {logSecurityEvent} from '../../src/lib/security.js'
 export default async function handler(req,res){
   const sql=neon(process.env.DATABASE_URL)
   try{
-    const user=await getSessionUser(sql,req.headers.cookie);
+    const user=await getSessionUser(sql, req);
     if(!user)return res.status(401).json({error:{message:'Not authenticated'}});
     const id=req.query?.id;
     if(!id){

@@ -6,7 +6,7 @@ import {logSecurityEvent} from '../../src/lib/security.js'
 export default async function handler(req,res){
   const sql=neon(process.env.DATABASE_URL)
   try{
-    const user=await getSessionUser(sql,req.headers.cookie);if(!user)return res.status(401).json({error:{message:'Not authenticated'}})
+    const user=await getSessionUser(sql, req);if(!user)return res.status(401).json({error:{message:'Not authenticated'}})
     if(req.method==='GET'){
       if(!req.query?.passage_id)return res.status(400).json({error:{message:'passage_id is required'}})
       await logSecurityEvent(sql,{userId:user.id,event_type:'source_passage_read',req,action:'read',resource:'source_passage',resource_id:req.query.passage_id,result:'ok',severity:'info'}).catch(()=>{});

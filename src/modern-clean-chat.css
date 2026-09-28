@@ -759,10 +759,10 @@
 .beebotComposerCard {
   width: min(740px, 94%);
   background: #ffffff;
-  border-radius: 20px;
+  border-radius: 6px;
   border: 1px solid rgba(226, 232, 240, 0.9);
   box-shadow: 
-    0 20px 45px -12px rgba(15, 23, 42, 0.07),
+    0 12px 30px rgba(15, 23, 42, 0.07),
     0 0 1px 1px rgba(226, 232, 240, 0.5);
   padding: 18px 20px 14px;
   display: flex;
@@ -823,9 +823,9 @@
   align-items: center;
   gap: 6px;
   padding: 5px 12px;
-  min-height: 44px;
-  min-width: 44px;
-  border-radius: 8px;
+  min-height: 38px;
+  min-width: 38px;
+  border-radius: 4px;
   font-size: 11.5px;
   font-weight: 500;
   color: #475569;
@@ -860,8 +860,8 @@
   height: 44px;
   min-width: 44px;
   min-height: 44px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 55%, #3b82f6 100%);
+  border-radius: 4px;
+  background: #4f46e5;
   color: #ffffff;
   border: none;
   display: flex;
@@ -962,14 +962,14 @@
 
 .beebotUserBubble {
   max-width: 72%;
-  background: linear-gradient(135deg, #5a52f0 0%, #4f46e5 55%, #4338ca 100%);
+  background: #312e81;
   color: #ffffff;
   padding: 12px 18px;
-  border-radius: 18px 18px 6px 18px;
+  border-radius: 6px;
   font-size: 14px;
   line-height: 1.55;
-  box-shadow: 0 6px 20px -6px rgba(79, 70, 229, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+  border: 1px solid #4338ca;
   word-break: break-word;
   white-space: pre-wrap;
   letter-spacing: -0.01em;
@@ -1015,11 +1015,11 @@
 .beebotMessage.assistant .beebotMessageBody {
   flex: 1;
   min-width: 0;
-  background: linear-gradient(180deg, #ffffff, #fbfcff);
+  background: #ffffff;
   border: 1px solid rgba(226, 232, 240, 0.9);
-  border-radius: 6px 18px 18px 18px;
+  border-radius: 6px;
   padding: 16px 20px;
-  box-shadow: 0 8px 28px -8px rgba(15, 23, 42, 0.12), inset 0 1px 0 #fff;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
   box-sizing: border-box;
   animation: beebotMessageIn 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -1084,8 +1084,8 @@
 .beebotProgressBadge {
   display: flex;
   align-items: center;
-  padding: 3px 10px;
-  border-radius: 999px;
+  padding: 2px 8px;
+  border-radius: 4px;
   background: #eef2ff;
   border: 1px solid rgba(99, 102, 241, 0.25);
   font-size: 11px;
@@ -1107,15 +1107,15 @@
   height: 6px;
   background: #f1f5f9;
   border: 1px solid rgba(226, 232, 240, 0.9);
-  border-radius: 999px;
+  border-radius: 3px;
   overflow: hidden;
   position: relative;
 }
 
 .beebotProgressBarFill {
   height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #6366f1 0%, #4f46e5 50%, #3b82f6 100%);
+  border-radius: 3px;
+  background: #4f46e5;
   transition: width 0.12s ease-out;
   box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
 }
@@ -1236,9 +1236,7 @@
 .beebotModalBackdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.4);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.78);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1251,9 +1249,9 @@
   max-width: 720px;
   max-height: 85vh;
   background: #ffffff;
-  border-radius: 20px;
+  border-radius: 6px;
   border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(226, 232, 240, 0.8);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1369,9 +1367,7 @@
   position: fixed;
   inset: 0;
   z-index: 10000;
-  background: rgba(10, 14, 20, 0.85);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.85);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1385,8 +1381,8 @@
   height: 88vh;
   background: #0d1117;
   border: 1px solid rgba(16, 185, 129, 0.35);
-  border-radius: 20px;
-  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(16, 185, 129, 0.2);
+  border-radius: 6px;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1820,7 +1816,7 @@
   font-size: 10px;
   font-weight: 700;
   padding: 1px 6px;
-  border-radius: 999px;
+  border-radius: 4px;
   background: #e0e7ff;
   color: #4338ca;
 }
@@ -1830,7 +1826,7 @@
   display: flex;
   background: #f1f5f9;
   padding: 2px;
-  border-radius: 8px;
+  border-radius: 6px;
   margin-bottom: 10px;
   gap: 2px;
 }
@@ -1842,7 +1838,7 @@
   justify-content: center;
   gap: 6px;
   padding: 5px 8px;
-  border-radius: 6px;
+  border-radius: 4px;
   font-size: 11px;
   font-weight: 600;
   color: #64748b;
@@ -1865,7 +1861,7 @@
 .beebotSidebarTabBadge {
   font-size: 9px;
   padding: 1px 5px;
-  border-radius: 999px;
+  border-radius: 4px;
   background: #e0e7ff;
   color: #4338ca;
 }
@@ -2189,9 +2185,7 @@
   /* Top bar inside chat canvas */
   .beebotMainTop {
     padding: 8px 12px;
-    background: rgba(255, 255, 255, 0.88);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: #ffffff;
     border-bottom: 1px solid rgba(226, 232, 240, 0.75);
   }
 
@@ -2201,7 +2195,7 @@
     justify-content: center;
     width: 34px;
     height: 34px;
-    border-radius: 9px;
+    border-radius: 4px;
     background: #ffffff;
     border: 1px solid rgba(226, 232, 240, 0.95);
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
@@ -2236,6 +2230,7 @@
     width: 28px;
     height: 28px;
     font-size: 11px;
+    border-radius: 4px;
   }
 
   /* Off-canvas Slide-in Sidebar Drawer */
@@ -2243,9 +2238,7 @@
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(15, 23, 42, 0.5);
-    backdrop-filter: blur(3px);
-    -webkit-backdrop-filter: blur(3px);
+    background: rgba(0, 0, 0, 0.75);
     z-index: 100;
     animation: beebotFadeIn 0.2s ease;
   }
@@ -2770,7 +2763,7 @@
 .beebotThread::-webkit-scrollbar-thumb,
 .beebotHistoryScroll::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, #c7d2fe, #94a3b8);
-  border-radius: 99px;
+  border-radius: 4px;
   border: 2px solid #f8fafc;
 }
 .beebotThread::-webkit-scrollbar-thumb:hover {

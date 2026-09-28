@@ -4,7 +4,7 @@ import {getSessionUser} from '../../src/lib/auth.js'
 export default async function handler(req,res){
   const sql=neon(process.env.DATABASE_URL)
   try{
-    const user=await getSessionUser(sql,req.headers.cookie);if(!user)return res.status(401).json({error:{message:'Not authenticated'}})
+    const user=await getSessionUser(sql, req);if(!user)return res.status(401).json({error:{message:'Not authenticated'}})
     const body=req.body||{}
     if(req.method==='GET'){
       const matterId=req.query?.matter_id;const [matter]=await sql`SELECT id FROM matters WHERE id=${matterId} AND user_id=${user.id}`;if(!matter)return res.status(404).json({error:{message:'Matter not found'}})

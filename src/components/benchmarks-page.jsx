@@ -19,7 +19,6 @@ import {
   Shield,
   ShieldAlert,
   ShieldCheck,
-  Sparkles,
   Terminal,
   Workflow,
   XCircle,

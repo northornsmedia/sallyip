@@ -12,7 +12,6 @@ import {
   Layers,
   Server,
   ShieldCheck,
-  Sparkles,
   Zap,
 } from 'lucide-react';
 import SallyTopNav from './sally-topnav';

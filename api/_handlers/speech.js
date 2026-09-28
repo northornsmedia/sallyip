@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   }
   try {
     const sql = neon(process.env.DATABASE_URL);
-    const user = await getSessionUser(sql, req.headers?.cookie || '').catch(() => null);
+    const user = await getSessionUser(sql, req).catch(() => null);
     if (!user || !user.id) {
       return res.status(401).json({ error: { message: 'Unauthorized', code: 'UNAUTHORIZED' } });
     }

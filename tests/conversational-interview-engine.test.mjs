@@ -22,7 +22,6 @@ import {
   identifyDocument,
   extractSlots,
   evaluateIntakePhase,
-  generateStatutoryDocument,
   isolateWorkflowMessages
 } from '../src/lib/document-intake-coordinator.js'
 
