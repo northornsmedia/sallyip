@@ -35,7 +35,11 @@
   border-radius: 6px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
   overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  letter-spacing: -0.012em;
   animation: vModalScaleIn 0.14s ease-out;
 }
 
@@ -384,7 +388,7 @@
 
 /* Citation Tag — Crisp Monospace (No Pills) */
 .verificationCitePill {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, monospace;
   font-size: 10px;
   font-weight: 700;
   padding: 2px 6px;

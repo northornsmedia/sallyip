@@ -22,11 +22,11 @@
   --ent-bad:#e0655f;
   --ent-radius:12px;
   --ent-max:1200px;
-  --ent-font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-  --ent-mono:'DM Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ent-font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","SF Pro","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --ent-mono:"SF Mono",SFMono-Regular,ui-monospace,Menlo,Monaco,Consolas,monospace;
 }
 *{box-sizing:border-box}
-.ent-root{background:var(--ent-bg);color:var(--ent-ink);font-family:var(--ent-font);-webkit-font-smoothing:antialiased;letter-spacing:-.011em;min-height:100vh}
+.ent-root{background:var(--ent-bg);color:var(--ent-ink);font-family:var(--ent-font);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;letter-spacing:-.012em;min-height:100vh}
 .ent-root a{color:inherit}
 .ent-wrap{max-width:var(--ent-max);margin:0 auto;padding:0 28px}
 .ent-light{background:var(--ent-paper);color:#14151a}

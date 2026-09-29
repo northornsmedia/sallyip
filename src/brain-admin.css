@@ -1,6 +1,6 @@
 /* ===== Sally Brain Observatory (/accessadmin) ===== */
-.brainWrap{min-height:100vh;background:radial-gradient(1200px 800px at 20% -10%,#1a1033 0%,#0b0d14 55%),#0b0d14;color:#e6e9f2;font-family:'Instagram Sans',system-ui,sans-serif;padding:24px clamp(16px,4vw,48px);box-sizing:border-box}
-.brainBoot,.brainWrap{letter-spacing:.02em}
+.brainWrap{min-height:100vh;background:radial-gradient(1200px 800px at 20% -10%,#1a1033 0%,#0b0d14 55%),#0b0d14;color:#e6e9f2;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","SF Pro","Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;letter-spacing:-0.012em;padding:24px clamp(16px,4vw,48px);box-sizing:border-box}
+.brainBoot{letter-spacing:-0.012em}
 .brainBoot{display:flex;align-items:center;justify-content:center;min-height:60vh;color:#a78bfa;animation:pulseText 1.2s ease-in-out infinite}
 @keyframes pulseText{0%,100%{opacity:.5}50%{opacity:1}}
 
