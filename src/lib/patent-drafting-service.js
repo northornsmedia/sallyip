@@ -363,3 +363,31 @@ export function assembleFullSpecification(draft, sections) {
 
   return doc.trim()
 }
+
+// Re-export 10-Point Patent Drafting Validator
+export {
+  runFullPatentDraftValidator,
+  validateAntecedentBasis,
+  validateClaimSpecificationSupport,
+  validateLegalTerminology,
+  validateUnsupportedAbsoluteStatements,
+  validateFunctionalClaiming,
+  validateClaimClassConsistency,
+  validateClaimDependencyHierarchy,
+  validateAbstractCompliance,
+  validateSpecificationBreadth,
+  evaluateTechnicalDisclosureCompleteness,
+  BAD_DRAFT_ATTORNEY_CORRECTIONS
+} from './patent-drafting-validator.js'
+
+// Run validator on an assembled patent draft
+export function validateAssembledDraft(draft, sections, disclosureFacts = {}) {
+  const sectionsMap = new Map(sections.map(s => [s.section_key, s]))
+  return runFullPatentDraftValidator({
+    claims: sectionsMap.get('claims')?.content || '',
+    specification: sectionsMap.get('detailed_description')?.content || '',
+    abstract: sectionsMap.get('abstract')?.content || '',
+    disclosureFacts
+  })
+}
+
