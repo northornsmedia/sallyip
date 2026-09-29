@@ -211,11 +211,11 @@
 }
 
 .beebotLogoIcon {
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  background: rgba(0, 102, 255, 0.08);
-  border: 1px solid rgba(0, 102, 255, 0.2);
+  width: 28px;
+  height: 28px;
+  border-radius: 0;
+  background: transparent;
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -226,16 +226,16 @@
 }
 
 .beebotBrand:hover .beebotLogoIcon {
-  background: rgba(0, 102, 255, 0.16);
-  border-color: rgba(0, 102, 255, 0.45);
-  box-shadow: 0 0 14px rgba(0, 102, 255, 0.3);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .beebotBrandLogoImg {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   object-fit: contain;
-  filter: drop-shadow(0 2px 6px rgba(0, 102, 255, 0.35));
+  filter: none;
 }
 
 .beebotLogoText {
@@ -560,12 +560,18 @@
 .beebotModelIcon {
   width: 20px;
   height: 20px;
-  border-radius: 6px;
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  color: #ffffff;
+  border-radius: 0;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+}
+
+.beebotModelIcon img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
 }
 
 /* Model Selector Dropdown Menu */
@@ -699,8 +705,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 24px;
-  background: radial-gradient(circle at center, rgba(0, 102, 255, 0.14) 0%, rgba(0, 102, 255, 0.02) 70%, transparent 100%);
+  border-radius: 0;
+  background: transparent;
   animation: beebotFloat 4s ease-in-out infinite alternate;
 }
 
@@ -709,7 +715,7 @@
   width: 76px;
   height: 76px;
   object-fit: contain;
-  filter: drop-shadow(0 12px 24px rgba(0, 102, 255, 0.45));
+  filter: none;
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -1221,9 +1227,16 @@
 }
 
 .beebotAvatar.assistant {
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  color: #ffffff;
-  box-shadow: 0 3px 10px rgba(99, 102, 241, 0.25);
+  background: transparent;
+  color: inherit;
+  box-shadow: none;
+  border: none;
+}
+
+.beebotAvatar.assistant img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }
 
 .beebotAvatar.user {

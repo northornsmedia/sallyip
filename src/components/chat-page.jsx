@@ -1943,7 +1943,7 @@ export default function ChatPage({ onHome, onAuthRequired, user: initialUser }) 
                   onClick={() => setModelMenuOpen((v) => !v)}
                 >
                   <div className="beebotModelIcon">
-                    <img src="/sallyip-brand-mark.png" alt="SallyIP" className="w-3.5 h-3.5 object-contain" />
+                    <img src="/sallyip-brand-mark.png" alt="SallyIP" className="w-4 h-4 object-contain" />
                   </div>
                   <span>{selectedEngine === "nvidia/nemotron-3.5-lightning:free" ? "Nemotron 3.5" : selectedEngine === "google/gemma-4-26b-a4b-it:free" ? "Gemma 4 26B" : selectedEngine === "liquid/lfm-2.5-2.6b:free" ? "Liquid LFM Fast" : "SallyIP 4.2 Pro"}</span>
                   <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
@@ -2253,7 +2253,7 @@ export default function ChatPage({ onHome, onAuthRequired, user: initialUser }) 
                   >
                     {message.role === "assistant" && (
                       <div className="beebotAvatar assistant">
-                        <img src="/sallyip-brand-mark.png" alt="SallyIP" className="w-4 h-4 object-contain" />
+                        <img src="/sallyip-brand-mark.png" alt="SallyIP" className="w-5 h-5 object-contain" />
                       </div>
                     )}
 
@@ -2356,7 +2356,7 @@ export default function ChatPage({ onHome, onAuthRequired, user: initialUser }) 
                 {loading && messages[messages.length - 1]?.role !== "assistant" && (
                   <div className="beebotMessage assistant">
                     <div className="beebotAvatar assistant">
-                      <img src="/sallyip-brand-mark.png" alt="SallyIP" className="w-4 h-4 object-contain" />
+                      <img src="/sallyip-brand-mark.png" alt="SallyIP" className="w-5 h-5 object-contain" />
                     </div>
                     <div className="beebotMessageBody">
                       <div className="beebotAssistantHeader">

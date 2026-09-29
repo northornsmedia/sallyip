@@ -116,30 +116,30 @@ html.lenis, html.lenis body {
   justify-content: center;
   width: 28px;
   height: 28px;
-  border-radius: 8px;
-  background: rgba(0, 102, 255, 0.08);
-  border: 1px solid rgba(0, 102, 255, 0.2);
+  border-radius: 0;
+  background: transparent;
+  border: none;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .sh-brand:hover .sh-brand-icon {
-  background: rgba(0, 102, 255, 0.16);
-  border-color: rgba(0, 102, 255, 0.45);
-  box-shadow: 0 0 14px rgba(0, 102, 255, 0.3);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .sh-brand-logo-img {
-  height: 20px;
-  width: 20px;
+  height: 22px;
+  width: 22px;
   object-fit: contain;
   display: block;
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  filter: drop-shadow(0 2px 4px rgba(0, 102, 255, 0.35));
+  filter: none;
 }
 
 .sh-brand:hover .sh-brand-logo-img {
   transform: scale(1.08);
-  filter: drop-shadow(0 2px 8px rgba(0, 102, 255, 0.6));
+  filter: none;
 }
 
 .sh-brand-name {

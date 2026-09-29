@@ -53,7 +53,7 @@ export default function ExhibitionGate({ onAuthenticated, onCancel }) {
       }}>
         <div style={{ marginBottom: "24px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
-            <img src="/sallyip-brand-mark.png" alt="SallyIP" style={{ width: "32px", height: "32px", borderRadius: "8px" }} />
+            <img src="/sallyip-brand-mark.png" alt="SallyIP" style={{ width: "32px", height: "32px", objectFit: "contain" }} />
             <span style={{ fontSize: "18px", fontWeight: "700", color: "#0f172a", letterSpacing: "-0.02em" }}>Sally IP</span>
           </div>
           <h1 style={{ fontSize: "20px", fontWeight: "600", color: "#0f172a", margin: "0 0 6px 0", letterSpacing: "-0.02em" }}>

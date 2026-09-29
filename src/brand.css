@@ -2,12 +2,12 @@
 .logoMark {
   width: 28px;
   height: 28px;
-  background: rgba(0, 102, 255, 0.08);
-  border: 1px solid rgba(0, 102, 255, 0.2);
-  border-radius: 8px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
   display: inline-grid;
   place-items: center;
-  padding: 3px;
+  padding: 0;
   flex: none;
   overflow: hidden;
   transition: all 0.2s ease;
@@ -15,8 +15,8 @@
 
 .brandMark:hover,
 .logoMark:hover {
-  background: rgba(0, 102, 255, 0.16);
-  border-color: rgba(0, 102, 255, 0.4);
+  background: transparent;
+  border-color: transparent;
 }
 
 .brandMark img {
@@ -24,20 +24,20 @@
   height: 100%;
   object-fit: contain;
   display: block;
-  filter: drop-shadow(0 2px 4px rgba(0, 102, 255, 0.3));
+  filter: none;
 }
 
 .brandMark.largeMark {
   width: 54px;
   height: 54px;
-  border-radius: 14px;
-  padding: 6px;
-  background: rgba(0, 102, 255, 0.08);
-  border: 1px solid rgba(0, 102, 255, 0.25);
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
 }
 
 .logoMark {
-  background: rgba(0, 102, 255, 0.08) url('/sallyip-logo.png') center / 20px 20px no-repeat;
+  background: transparent url('/sallyip-logo.png') center / contain no-repeat;
 }
 
 .logoMark i {
