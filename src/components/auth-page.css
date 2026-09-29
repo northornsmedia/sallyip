@@ -1,0 +1,483 @@
+/* ==========================================================================
+   SallyIP Apple-Grade Authentication Experience
+   Strictly Zero Glassmorphism • Zero Blur • Pure Apple San Francisco System
+   ========================================================================== */
+
+.authPage {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #060709;
+  background-image: radial-gradient(
+    circle at 50% 0%,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(6, 7, 9, 0) 70%
+  );
+  color: #f5f5f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  position: relative;
+  font-family: var(--font-apple, -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  box-sizing: border-box;
+}
+
+/* Home / Back Navigation */
+.authHome {
+  position: absolute;
+  left: 28px;
+  top: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #0d0f14;
+  color: #86868b;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  z-index: 10;
+}
+
+.authHome:hover {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.18);
+  background: #13161e;
+  transform: translateX(-1px);
+}
+
+.authHome svg {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.16s ease;
+}
+
+.authHome:hover svg {
+  transform: translateX(-2px);
+}
+
+/* Main Auth Modal Card */
+.authPage main {
+  width: 100%;
+  max-width: 420px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: #0d0f14;
+  border-radius: 18px;
+  padding: 38px 34px;
+  box-shadow: 
+    0 24px 60px -12px rgba(0, 0, 0, 0.8),
+    0 1px 1px rgba(255, 255, 255, 0.05);
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* Brand Logo Mark */
+.authHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.authLogoSquare {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: #141720;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.authLogoImg {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Apple Understated Security Eyebrow */
+.authEyebrow,
+.authSecurityBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: #98989d;
+  margin-bottom: 12px;
+}
+
+.authSecurityBadge svg {
+  width: 12px;
+  height: 12px;
+  color: #0071e3;
+}
+
+/* Title & Subtitle */
+.authTitle {
+  font-family: var(--font-apple, -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+  margin: 0 0 6px 0;
+}
+
+.authSubtitle {
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  color: #86868b;
+  margin: 0;
+  max-width: 340px;
+}
+
+/* Apple Segmented Control Tabs */
+.authTabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #141720;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 3px;
+  margin-bottom: 22px;
+  gap: 2px;
+}
+
+.authTab {
+  border: 0;
+  background: transparent;
+  color: #86868b;
+  border-radius: 7px;
+  padding: 8px 0;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: center;
+}
+
+.authTab:hover {
+  color: #f5f5f7;
+}
+
+.authTab.active {
+  background: #242834;
+  color: #ffffff;
+  font-weight: 590;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+/* Form Layout */
+.authForm {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.authField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.authFieldLabel {
+  display: block;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: #a1a1a6;
+}
+
+/* Input Container */
+.authInputWrap {
+  height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  padding: 0 13px;
+  gap: 10px;
+  background: #11141b;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+  box-sizing: border-box;
+}
+
+.authInputWrap:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: #131720;
+}
+
+.authInputWrap:focus-within {
+  border-color: #0071e3;
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.22);
+  background: #131720;
+}
+
+.authFieldIcon {
+  width: 15px;
+  height: 15px;
+  color: #6e6e73;
+  flex-shrink: 0;
+  transition: color 0.16s ease;
+}
+
+.authInputWrap:focus-within .authFieldIcon {
+  color: #0071e3;
+}
+
+.authInput {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #f5f5f7;
+  font-family: inherit;
+  font-size: 14px;
+  letter-spacing: -0.012em;
+  padding: 0;
+}
+
+.authInput::placeholder {
+  color: #48484a;
+}
+
+/* Toggle Password Visibility Button */
+.authTogglePassword {
+  border: 0;
+  background: transparent;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6e6e73;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+}
+
+.authTogglePassword:hover {
+  color: #f5f5f7;
+}
+
+.authTogglePassword svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* Options / Remember Me Checkbox */
+.authOptions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2px;
+}
+
+.authRememberLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: #86868b;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  user-select: none;
+}
+
+.authRememberLabel:hover {
+  color: #d1d1d6;
+}
+
+.authCheckbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 4px;
+  background: #141720;
+  cursor: pointer;
+  display: grid;
+  place-content: center;
+  margin: 0;
+  transition: all 0.15s ease;
+}
+
+.authCheckbox:checked {
+  background: #0071e3;
+  border-color: #0071e3;
+}
+
+.authCheckbox:checked::before {
+  content: "";
+  width: 8px;
+  height: 5px;
+  border-left: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+
+.authCheckbox:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.35);
+}
+
+/* Error Banner */
+.authError {
+  border: 1px solid rgba(255, 69, 58, 0.28);
+  background: rgba(255, 69, 58, 0.08);
+  color: #ff6961;
+  padding: 11px 13px;
+  border-radius: 9px;
+  font-size: 12px;
+  line-height: 1.45;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.authErrorSwitchBtn {
+  align-self: flex-start;
+  background: transparent;
+  border: 1px solid rgba(255, 69, 58, 0.3);
+  color: #ff8580;
+  border-radius: 6px;
+  padding: 5px 9px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.authErrorSwitchBtn:hover {
+  background: rgba(255, 69, 58, 0.15);
+  color: #ffffff;
+}
+
+/* Primary Action Button (Pure Apple High-Contrast White) */
+.authSubmit {
+  height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #000000;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 590;
+  letter-spacing: -0.015em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+  cursor: pointer;
+  transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(255, 255, 255, 0.1);
+}
+
+.authSubmit:hover:not(:disabled) {
+  background: #f0f0f3;
+  box-shadow: 0 6px 18px rgba(255, 255, 255, 0.18);
+  transform: translateY(-0.5px);
+}
+
+.authSubmit:active:not(:disabled) {
+  background: #e2e2e7;
+  transform: translateY(0);
+}
+
+.authSubmit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.authSubmit svg {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.16s ease;
+}
+
+.authSubmit:hover:not(:disabled) svg {
+  transform: translateX(2px);
+}
+
+.authSpinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-top-color: #000000;
+  border-radius: 50%;
+  animation: authSpin 0.7s linear infinite;
+  display: inline-block;
+}
+
+@keyframes authSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Switch Mode Prompt */
+.authFooterSwitch {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 13px;
+  color: #86868b;
+  letter-spacing: -0.01em;
+}
+
+.authTextLink {
+  background: transparent;
+  border: 0;
+  color: #2997ff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 3px;
+  transition: color 0.15s ease;
+}
+
+.authTextLink:hover {
+  color: #52a9ff;
+  text-decoration: underline;
+}
+
+/* Bottom Legal Disclaimer */
+.authLegal {
+  display: block;
+  color: #59595e;
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1.5;
+  letter-spacing: -0.005em;
+  text-align: center;
+  margin: 22px 0 0 0;
+}

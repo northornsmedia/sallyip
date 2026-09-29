@@ -1,15 +1,8 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Eye, EyeOff, LockKeyhole, Mail, User, ShieldCheck, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Eye, EyeOff, LockKeyhole, Mail, User, ShieldCheck } from 'lucide-react'
 import { saveAuthSession, saveRememberedEmail, getRememberedEmail, clearRememberedEmail } from '../lib/client-auth.js'
-
-function Mark() {
-  return (
-    <span className="authMark">
-      <img src="/sallyip-logo.png" alt="SallyIP" />
-    </span>
-  )
-}
+import './auth-page.css'
 
 export default function AuthPage({ onHome, onSuccess, initialMode = 'login' }) {
   const [mode, setMode] = useState(initialMode)
@@ -97,47 +90,67 @@ export default function AuthPage({ onHome, onSuccess, initialMode = 'login' }) {
 
   return (
     <div className="authPage">
-      <button className="authHome" onClick={onHome} type="button">
-        <ArrowLeft /> Home
+      <button className="authHome" onClick={onHome} type="button" aria-label="Return to SallyIP Home">
+        <ArrowLeft />
+        <span>Home</span>
       </button>
 
-      <motion.main initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
-        <Mark />
-        <span className="authEyebrow">
-          <ShieldCheck /> SALLYIP 4.2 PRO • SECURE WORKSPACE
-        </span>
+      <motion.main
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+      >
+        <header className="authHeader">
+          <div className="authLogoSquare">
+            <img src="/sallyip-logo.png" alt="SallyIP" className="authLogoImg" />
+          </div>
 
-        <h1>{mode === 'login' ? 'Welcome back.' : 'Create your research workspace.'}</h1>
-        <p>
-          {mode === 'login'
-            ? 'Sign in to access your confidential SallyIP workspace and live chat.'
-            : 'Sign up to access patent drafting, trademark clearance, and the full SallyIP intelligence chat.'}
-        </p>
+          <div className="authSecurityBadge">
+            <LockKeyhole />
+            <span>Confidential IP Workspace</span>
+          </div>
 
-        <div className="authTabs">
+          <h1 className="authTitle">
+            {mode === 'login' ? 'Sign in to SallyIP' : 'Create your account'}
+          </h1>
+
+          <p className="authSubtitle">
+            {mode === 'login'
+              ? 'Access your confidential patent drafting, search, and research workspace.'
+              : 'Sign up to access verified patent drafting, trademark clearance, and prior art.'}
+          </p>
+        </header>
+
+        <div className="authTabs" role="tablist" aria-label="Authentication modes">
           <button
             type="button"
-            className={mode === 'login' ? 'active' : ''}
+            role="tab"
+            aria-selected={mode === 'login'}
+            className={`authTab ${mode === 'login' ? 'active' : ''}`}
             onClick={switchToLogin}
           >
-            Log in
+            Sign in
           </button>
           <button
             type="button"
-            className={mode === 'signup' ? 'active' : ''}
+            role="tab"
+            aria-selected={mode === 'signup'}
+            className={`authTab ${mode === 'signup' ? 'active' : ''}`}
             onClick={switchToSignup}
           >
-            Sign up
+            Create account
           </button>
         </div>
 
-        <form onSubmit={submit}>
+        <form className="authForm" onSubmit={submit}>
           {mode === 'signup' && (
-            <label>
-              <span>FULL NAME</span>
-              <div>
-                <User />
+            <label className="authField">
+              <span className="authFieldLabel">Full name</span>
+              <div className="authInputWrap">
+                <User className="authFieldIcon" />
                 <input
+                  type="text"
+                  className="authInput"
                   autoComplete="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -148,27 +161,29 @@ export default function AuthPage({ onHome, onSuccess, initialMode = 'login' }) {
             </label>
           )}
 
-          <label>
-            <span>WORK EMAIL</span>
-            <div>
-              <Mail />
+          <label className="authField">
+            <span className="authFieldLabel">Work email</span>
+            <div className="authInputWrap">
+              <Mail className="authFieldIcon" />
               <input
                 type="email"
+                className="authInput"
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@company.com"
+                placeholder="name@firm.com"
                 required
               />
             </div>
           </label>
 
-          <label>
-            <span>PASSWORD</span>
-            <div>
-              <LockKeyhole />
+          <label className="authField">
+            <span className="authFieldLabel">Password</span>
+            <div className="authInputWrap">
+              <LockKeyhole className="authFieldIcon" />
               <input
                 type={show ? 'text' : 'password'}
+                className="authInput"
                 autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -178,6 +193,7 @@ export default function AuthPage({ onHome, onSuccess, initialMode = 'login' }) {
               />
               <button
                 type="button"
+                className="authTogglePassword"
                 onClick={() => setShow((value) => !value)}
                 aria-label={show ? 'Hide password' : 'Show password'}
               >
@@ -186,114 +202,68 @@ export default function AuthPage({ onHome, onSuccess, initialMode = 'login' }) {
             </div>
           </label>
 
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              fontSize: '11px',
-              color: '#818a94',
-              margin: '2px 0 6px 0',
-            }}
-          >
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                cursor: 'pointer',
-                userSelect: 'none',
-              }}
-            >
+          <div className="authOptions">
+            <label className="authRememberLabel">
               <input
                 type="checkbox"
+                className="authCheckbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                style={{
-                  accentColor: '#b8ff5c',
-                  width: '14px',
-                  height: '14px',
-                  cursor: 'pointer',
-                }}
               />
-              <span>Remember me for 7 days (JWT Cache)</span>
+              <span>Remember this device</span>
             </label>
           </div>
 
           {error && (
-            <div className="authError" style={{ display: 'grid', gap: '6px' }}>
+            <div className="authError">
               <div>{error}</div>
               {emailConflict && (
                 <button
                   type="button"
                   onClick={switchToLogin}
-                  style={{
-                    background: 'transparent',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    color: '#fff',
-                    borderRadius: '6px',
-                    padding: '6px 10px',
-                    fontSize: '10px',
-                    cursor: 'pointer',
-                    justifySelf: 'start',
-                  }}
+                  className="authErrorSwitchBtn"
                 >
-                  Click here to Log in instead →
+                  Sign in to existing account →
                 </button>
               )}
             </div>
           )}
 
           <button className="authSubmit" disabled={busy} type="submit">
-            {busy ? 'Verifying with Sally database…' : mode === 'login' ? 'Log in & Open Sally Workspace' : 'Create Account & Access Sally'}
-            {!busy && <ArrowRight />}
+            {busy ? (
+              <>
+                <span className="authSpinner" />
+                <span>Authenticating…</span>
+              </>
+            ) : (
+              <>
+                <span>{mode === 'login' ? 'Sign in' : 'Create account'}</span>
+                <ArrowRight />
+              </>
+            )}
           </button>
         </form>
 
-        <div style={{ marginTop: '16px', textAlign: 'center', fontSize: '11px', color: '#65707a' }}>
+        <div className="authFooterSwitch">
           {mode === 'login' ? (
             <span>
-              Don't have an account yet?{' '}
-              <button
-                type="button"
-                onClick={switchToSignup}
-                style={{
-                  background: 'transparent',
-                  border: 0,
-                  color: '#b8ff5c',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  padding: 0,
-                  textDecoration: 'underline',
-                }}
-              >
-                Sign up here
+              Don't have an account?
+              <button type="button" onClick={switchToSignup} className="authTextLink">
+                Create one
               </button>
             </span>
           ) : (
             <span>
-              Already registered?{' '}
-              <button
-                type="button"
-                onClick={switchToLogin}
-                style={{
-                  background: 'transparent',
-                  border: 0,
-                  color: '#b8ff5c',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  padding: 0,
-                  textDecoration: 'underline',
-                }}
-              >
-                Log in to existing account
+              Already have an account?
+              <button type="button" onClick={switchToLogin} className="authTextLink">
+                Sign in
               </button>
             </span>
           )}
         </div>
 
-        <small>
-          By continuing, you agree to use Sally as research assistance and verify important legal conclusions. Session is encrypted &amp; cached for 7 days.
+        <small className="authLegal">
+          Protected by 256-bit encryption. By continuing, you agree to SallyIP's Terms of Service and Privacy Policy.
         </small>
       </motion.main>
     </div>
