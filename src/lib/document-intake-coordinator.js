@@ -641,6 +641,11 @@ export function identifyDocument(text, messages = []) {
     return null;
   }
 
+  // Capability or general inquiry questions (e.g. "can you draft document for me ?", "could you draft an agreement?")
+  if (/^(?:can\s+you|could\s+you|are\s+you\s+able\s+to|do\s+you|how\s+(?:do|can)\s+you)\b/i.test(currentText) && /\?$/.test(currentText)) {
+    return null;
+  }
+
   // Explicit non-statutory document requests (e.g. mutual NDA, contracts) must not be hijacked into previous document workflows
   if (/\b(mutual\s+nda|non[- ]disclosure|confidentiality\s+agreement)\b/i.test(currentText)) {
     return null;
@@ -1477,13 +1482,36 @@ ${docConfig.sections.map((s, idx) => `   ## ${idx + 1}. ${s.toUpperCase()}`).joi
 }
 
 /**
+ * Detects whether an answer is an intake questionnaire or clarification prompt
+ * asking for technical or statutory details before drafting.
+ */
+export function isIntakeQuestionnaire(text) {
+  if (!text || typeof text !== 'string') return false;
+  const t = text.trim();
+  const hasIntakeQuestions = (
+    /\b(?:could you (?:please )?(?:share|provide|tell|clarify)|please (?:share|provide|clarify|answer|describe)|to (?:create|draft|prepare|help draft)(?: a strong| this| your)? application,? I need|what makes your invention new|what (?:concrete |technical )?problem does (?:it|your invention) solve|how does it work|do you have drawings|informal explanations without legal|once you provide these details|before I can draft|what is the target office|please provide the pct|who are the parties)\b/i.test(t) ||
+    /\b(intake questionnaire|clarifying questions?|interview mode|questions before drafting|to create a strong application)\b/i.test(t) ||
+    /\bproblem does your invention solve\b/i.test(t)
+  );
+  const hasFormalClaims = /(?:^|\n)##\s*(?:[0-9]+\.\s*)?CLAIMS?\b/i.test(t) || /(?:^|\n)(?:1\.\s+(?:An?|A)\s+[a-z\s]+comprising:)/i.test(t);
+  const hasStatutorySections = /(?:^|\n)##\s*(?:[0-9]+\.\s*)?(?:TECHNICAL FIELD|BACKGROUND OF THE INVENTION|BRIEF SUMMARY|DETAILED DESCRIPTION)\b/i.test(t);
+
+  if (hasIntakeQuestions && (!hasFormalClaims || !hasStatutorySections)) {
+    return true;
+  }
+  return false;
+}
+
+/**
  * Detects whether an answer contains an actual drafted statutory document.
  */
 export function isDraftedDocument(text) {
   if (!text || typeof text !== 'string') return false;
   const t = text.trim();
-  if (/^#\s+([^\n]+)/m.test(t)) return true;
+  if (isIntakeQuestionnaire(t)) return false;
   if (/(?:^|\n)##\s*(?:[0-9]+\.\s*)?(?:CLAIMS?|TECHNICAL FIELD|BACKGROUND|SUMMARY|DETAILED DESCRIPTION|ABSTRACT|SPECIFICATION|CLAIM CHART|PRIOR[- ]ART|ARTICLE|SECTION|PURPOSE|RECITALS|DEFINITIONS|PATENTABILITY|NOVELTY|NATIONAL PHASE|NATIONAL STAGE)/i.test(t)) return true;
+  if (/^#\s+[^\n]+(?:PATENT|APPLICATION|AGREEMENT|CONTRACT|SPECIFICATION|CLAIMS|CHART|DISCLOSURE|MEMORANDUM|POLICY)/i.test(t)) return true;
+  if (/^#\s+([^\n]+)/m.test(t) && !/\b(intake|questionnaire|questions?|clarification|overview|feedback)\b/i.test(t.slice(0, 100))) return true;
   return false;
 }
 

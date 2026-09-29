@@ -31,6 +31,7 @@ const SallyDocumentsModal=lazy(()=>import("./SallyDocumentsModal.jsx"));
 import {
   identifyDocument,
   isDraftedDocument,
+  isIntakeQuestionnaire,
 } from "../lib/document-intake-coordinator.js";
 import "./voice-chat-widget.css";
 import {
@@ -100,8 +101,13 @@ const detectFileRequest = (text) => {
 const isBareFileRequest = (text) =>
   text.trim().split(/\s+/).length <= 6 &&
   /\b(pdf|docx?|word|pptx?|xlsx?|excel|csv|markdown|md|html|json|txt|downloadable)\b/i.test(text);
-const detectDocumentRequest = (text) =>
-  /\b(draft|write|prepare|create|generate)\b[\s\S]*\b(agreement|contract|memorandum|memo|opinion|letter|report|notice|policy|brief|claim chart|checklist|document|nda|patent application|specification|claims|assignment|licence|license|declaration|petition)\b/i.test(text);
+const detectDocumentRequest = (text) => {
+  const t = String(text || "").trim();
+  if (/^(?:can\s+you|could\s+you|are\s+you\s+able\s+to|do\s+you|how\s+(?:do|can)\s+you)\b/i.test(t) && /\?$/.test(t)) {
+    return false;
+  }
+  return /\b(draft|write|prepare|create|generate)\b[\s\S]*\b(agreement|contract|memorandum|memo|opinion|letter|report|notice|policy|brief|claim chart|checklist|document|nda|patent application|specification|claims|assignment|licence|license|declaration|petition)\b/i.test(t);
+};
 const detectRevisionRequest = (text) =>
   /\b(revise|change|replace|rename|amend|edit|update|remove|add|rewrite)\b/i.test(text);
 const referencesPreviousArtifact = (text) =>
@@ -151,9 +157,13 @@ const makeChat = () => ({
   documentSession: null,
   createdAt: Date.now(),
 });
-const titleFor = (text) =>
-  text.trim().replace(/\s+/g, " ").slice(0, 42) +
-  (text.trim().length > 42 ? "…" : "");
+const titleFor = (text) => {
+  const t = String(text || "").trim();
+  if (/\?$/.test(t) || /^(?:can\s+you|could\s+you|are\s+you|how\s+(?:do|can)|what|why)\b/i.test(t)) {
+    return "Legal Document";
+  }
+  return t.replace(/\s+/g, " ").slice(0, 42) + (t.length > 42 ? "…" : "");
+};
 
 
 function Mark({ className = "" }) {
@@ -963,7 +973,7 @@ export default function ChatPage({ onHome, onAuthRequired, user: initialUser }) 
     for (let i = 0; i < lines.length; i++) {
       currentOutput += (i > 0 ? "\n" : "") + lines[i];
       setStreamingAnswer(currentOutput);
-      if (isDraftedDocument(currentOutput)) {
+      if (isDraftedDocument(currentOutput) && !isIntakeQuestionnaire(currentOutput)) {
         const docTitle = titleFor(currentOutput);
         setDocPanel((p) => ({
           title: p?.title || docTitle,
@@ -976,7 +986,6 @@ export default function ChatPage({ onHome, onAuthRequired, user: initialUser }) 
         setStreamingAnswer(`Drafting **${docTitle}** into the workspace panel on the right...`);
       } else {
         setStreamingAnswer(currentOutput);
-        setDocPanel((p) => (p?.live ? { ...p, content: currentOutput } : p));
       }
       if (threadRef.current) {
         threadRef.current.scrollTop = threadRef.current.scrollHeight;
@@ -1145,13 +1154,13 @@ export default function ChatPage({ onHome, onAuthRequired, user: initialUser }) 
       ));
       const identifiedDoc = identifyDocument(clean, active?.messages || []);
       const documentRequest = Boolean(fileRequest || detectDocumentRequest(clean) || identifiedDoc);
-      if (documentRequest || revisionRequest) {
+      if (revisionRequest && previousArtifact?.content) {
         setDocPanel({
-          title: identifiedDoc?.name || fileRequest?.title || previousArtifact?.title || titleFor(clean),
-          content: revisionRequest && previousArtifact?.content ? previousArtifact.content : "",
-          version: revisionRequest && previousArtifact ? (previousArtifact.version || 0) + 1 : 1,
+          title: previousArtifact.title || "Legal Document",
+          content: previousArtifact.content,
+          version: (previousArtifact.version || 0) + 1,
           live: true,
-          artifact: revisionRequest ? previousArtifact : null,
+          artifact: previousArtifact,
           conversationId: baseChat.id,
         });
       } else {
@@ -1271,7 +1280,7 @@ export default function ChatPage({ onHome, onAuthRequired, user: initialUser }) 
               if (evt.type === "delta" && evt.delta) {
                 acc += evt.delta;
                 setIsWriting(true);
-                if (isDraftedDocument(acc)) {
+                if (isDraftedDocument(acc) && !isIntakeQuestionnaire(acc)) {
                   const docTitle = identifiedDoc?.name || fileRequest?.title || previousArtifact?.title || titleFor(clean);
                   setStreamingAnswer(`Drafting **${docTitle}** into the workspace panel on the right...`);
                   setDocPanel((p) => ({
@@ -1284,7 +1293,6 @@ export default function ChatPage({ onHome, onAuthRequired, user: initialUser }) 
                   }));
                 } else {
                   setStreamingAnswer(acc);
-                  setDocPanel((p) => (p?.live ? { ...p, content: acc } : p));
                 }
                 if (threadRef.current) threadRef.current.scrollTop = threadRef.current.scrollHeight;
               } else if (evt.type === "meta") {
@@ -1343,7 +1351,7 @@ export default function ChatPage({ onHome, onAuthRequired, user: initialUser }) 
         await streamResponseLineByLine(answer);
       }
 
-      const isDocumentAnswer = Boolean(isDraftedDocument(answer) || documentRequest || revisionRequest);
+      const isDocumentAnswer = Boolean(isDraftedDocument(answer) && !isIntakeQuestionnaire(answer));
       let artifact = isDocumentAnswer
         ? makeArtifact({
             title: identifiedDoc?.name || fileRequest?.title || previousArtifact?.title || titleFor(clean),
@@ -2262,9 +2270,13 @@ export default function ChatPage({ onHome, onAuthRequired, user: initialUser }) 
                         <div className="beebotAssistantText">
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>
                             {sanitizeModelResponse(
-                              message.artifact?.content && isDraftedDocument(message.content)
-                                ? `I have drafted the **${message.artifact.title || "Statutory Document"}** and opened it in the document workspace on the right.\n\nYou can review the complete text, make direct edits, or export it to Word (.docx) or PDF.`
-                                : message.content
+                              message.artifact?.content && isDraftedDocument(message.artifact.content) && !isIntakeQuestionnaire(message.artifact.content)
+                                ? (message.content?.startsWith("I have drafted the")
+                                    ? message.content
+                                    : `I have drafted the **${message.artifact.title || "Statutory Document"}** and opened it in the document workspace on the right.\n\nYou can review the complete text, make direct edits, or export it to Word (.docx) or PDF.`)
+                                : (message.content?.startsWith("I have drafted the") && message.artifact?.content
+                                    ? message.artifact.content
+                                    : message.content)
                             )}
                           </ReactMarkdown>
                         </div>

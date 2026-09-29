@@ -7,6 +7,7 @@ import {
   evaluateIntakePhase,
   buildDocumentIntakePrompt,
   isDraftedDocument,
+  isIntakeQuestionnaire,
   buildIntakeDraftingPrompt
 } from '../src/lib/document-intake-coordinator.js'
 
@@ -82,8 +83,22 @@ test('full disclosure or explicit finalize trigger switches to READY_TO_DRAFT', 
 
 test('detects drafted document vs chat conversational question', () => {
   assert.equal(isDraftedDocument('What problem does your invention solve?'), false)
+  assert.equal(isIntakeQuestionnaire('What problem does your invention solve?'), true)
+  const intakeAnswer = `I'd be happy to help draft a utility patent application for your invention. To create a strong application, I need to understand the technical details first. Could you please share:
+1. What makes your invention new or different from conventional alternatives?
+2. What concrete technical problem does it solve?
+3. How does it work — key mechanisms, sensors, algorithms, or processes?
+4. What are the main components or features?`
+  assert.equal(isIntakeQuestionnaire(intakeAnswer), true)
+  assert.equal(isDraftedDocument(intakeAnswer), false)
   assert.equal(isDraftedDocument('# UTILITY PATENT APPLICATION\n\n## 1. TECHNICAL FIELD\nThe present disclosure...'), true)
   assert.equal(isDraftedDocument('## CLAIMS\n1. A device comprising...'), true)
+})
+
+test('identifies capability inquiries as null to prevent false document requests', () => {
+  assert.equal(identifyDocument('can you draft document for me ?'), null)
+  assert.equal(identifyDocument('could you draft an NDA?'), null)
+  assert.equal(identifyDocument('are you able to draft a patent?'), null)
 })
 
 test('buildIntakeDraftingPrompt produces valid statutory prompt for all 20 verified documents', () => {
