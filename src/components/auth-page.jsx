@@ -11,7 +11,7 @@ function Mark() {
   )
 }
 
-export default function AuthPage({ onHome, onSuccess, initialMode = 'login', notice = '' }) {
+export default function AuthPage({ onHome, onSuccess, initialMode = 'login' }) {
   const [mode, setMode] = useState(initialMode)
   const [name, setName] = useState('')
   const [email, setEmail] = useState(() => getRememberedEmail())
@@ -113,27 +113,6 @@ export default function AuthPage({ onHome, onSuccess, initialMode = 'login', not
             ? 'Sign in to access your confidential SallyIP workspace and live chat.'
             : 'Sign up to access patent drafting, trademark clearance, and the full SallyIP intelligence chat.'}
         </p>
-
-        {notice && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              border: '1px solid rgba(184, 255, 92, 0.25)',
-              background: 'rgba(184, 255, 92, 0.08)',
-              color: '#d8ffae',
-              padding: '10px 14px',
-              borderRadius: '12px',
-              fontSize: '11px',
-              margin: '16px 0 0 0',
-              lineHeight: 1.4,
-            }}
-          >
-            <ShieldCheck style={{ width: '16px', height: '16px', flexShrink: 0, color: '#b8ff5c' }} />
-            <span>{notice}</span>
-          </div>
-        )}
 
         <div className="authTabs">
           <button

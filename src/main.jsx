@@ -1896,7 +1896,6 @@ function App() {
         <Suspense fallback={<div className="ent-root"><div className="ent-wrap" style={{ padding: "120px 28px" }}>Loading SallyIP…</div></div>}>
           <AuthPage
             initialMode="signup"
-            notice="Member access required: please sign up or log in to access the SallyIP Chat Workspace."
             onHome={() => navigateTo("home")}
             onSuccess={(u) => {
               setCurrentUser(u);
